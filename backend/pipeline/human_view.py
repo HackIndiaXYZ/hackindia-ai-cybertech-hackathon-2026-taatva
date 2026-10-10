@@ -13,6 +13,7 @@
 #   .venv\Scripts\python.exe -m pipeline.human_view ..\test_files\attacked_1_white_text.pdf --private
 
 from concurrent.futures import ThreadPoolExecutor
+from functools import partial
 import io
 import re
 import threading
@@ -144,15 +145,16 @@ def ask_gemini(png, model):
 
 # ---------- Witness 2: Tesseract ----------
 
-def read_with_tesseract(png):
+def read_with_tesseract(png, to_points=72 / DPI):
+    # to_points: how to turn picture pixels into the units step 2 uses
+    # (PDF points for PDFs, page pixels for web pages and emails)
     pytesseract.pytesseract.tesseract_cmd = config.TESSERACT_CMD
     image = Image.open(io.BytesIO(png))
     data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT,
                                      timeout=TESSERACT_TIMEOUT)
 
     # Tesseract gives single words. Group them back into lines.
-    # Boxes are changed from picture pixels into PDF points (same as step 2).
-    to_points = 72 / DPI
+    # Boxes are changed from picture pixels into the same units as step 2.
     lines = {}
     for i, word in enumerate(data["text"]):
         if not word.strip() or float(data["conf"][i]) < 0:
@@ -189,13 +191,18 @@ def safe_run(reader, png):
 
 def read_human_view(pdf_bytes, private_mode=None):
     # private_mode: True / False, or None = use the PRIVATE_MODE setting in .env
+    return read_pictures(render_pages(pdf_bytes), private_mode)
+
+
+def read_pictures(pictures, private_mode=None, to_points=72 / DPI):
+    # Ask both witnesses to read a list of page pictures (PNG).
+    # Used for PDF pages and for screenshots of web pages and emails.
     if private_mode is None:
         private_mode = config.PRIVATE_MODE
 
-    pictures = render_pages(pdf_bytes)
-
     with ThreadPoolExecutor(max_workers=WORKERS) as pool:
-        tesseract_jobs = [pool.submit(safe_run, read_with_tesseract, png) for png in pictures]
+        tesseract_jobs = [pool.submit(safe_run, partial(read_with_tesseract, to_points=to_points), png)
+                          for png in pictures]
         gemini_jobs = [None if private_mode else pool.submit(safe_run, read_with_gemini, png)
                        for png in pictures]
 

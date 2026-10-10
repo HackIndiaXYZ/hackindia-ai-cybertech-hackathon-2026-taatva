@@ -10,3 +10,5 @@ python-multipart
 transformers
 # PyTorch CPU version: pip install torch --index-url https://download.pytorch.org/whl/cpu
 torch
+playwright
+beautifulsoup4

@@ -75,6 +75,8 @@ def gemini_saw(text, gemini_lines):
 
 def tesseract_saw(text, box, tesseract_lines):
     # Did Tesseract read this text at about the same height on the page?
+    if not box:
+        return False  # the text has no place on the page at all
     target = simple(text)
     best = 0
     for line in tesseract_lines:
@@ -92,6 +94,10 @@ def why_hidden(piece):
     # Check one piece of page text against the hidden rules.
     # Returns a list of (reason, points). Empty list = looks visible.
     reasons = []
+    # Web pages and emails: the browser told us the page's code hides this text
+    if piece.get("code_hidden"):
+        reasons.append((f"hidden by page code ({', '.join(piece['code_hidden'])})", POINTS_INVISIBLE))
+        return reasons
     if piece["on_page_share"] < OFF_PAGE_SHARE:
         reasons.append(("off the page", POINTS_TINY_OR_OFF))
         return reasons  # nothing else to check: it is not on the page at all
@@ -140,9 +146,12 @@ def compare(ai_pieces, human, hidden_places):
         }
         reasons = why_hidden(piece)
 
-        # No rule fired, but every working witness missed it: computer-only text
+        # No rule fired, but every working witness missed it: computer-only text.
+        # Only when Gemini could look too: Tesseract alone (private mode) often
+        # misses faint small print that a person can still read.
         answers = [v for v in seen_by.values() if v is not None]
-        if not reasons and answers and not any(answers) and has_words(piece["text"]):
+        if (not reasons and seen_by["gemini"] is False and not any(answers)
+                and has_words(piece["text"])):
             reasons.append(("no witness could see it", POINTS_TINY_OR_OFF))
 
         where = {"page": piece["page"], "box": piece["box"]}

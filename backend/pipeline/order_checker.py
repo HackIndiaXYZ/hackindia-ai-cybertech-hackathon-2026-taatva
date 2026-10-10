@@ -25,8 +25,8 @@ from pipeline.hidden_parts import plain_letters
 S = r"\W*"  # "any gap between words": spaces, dots, dashes, or nothing
 PHRASES = [
     ("ignore the rules",
-     rf"(ignore|disregard|forget|skip|bypass|override){S}((all|any|the|your|other|previous|prior|above|earlier|preceding|existing|of|those|these){S}){{0,3}}"
-     rf"(instructions?|rules?|prompts?|directions?|guidelines?|commands?|context|constraints?|guardrails?)", 1.0, True),
+     rf"(ignore|disregard|forget|skip|bypass|override){S}((all|any|the|your|other|previous|prior|above|earlier|preceding|existing|of|those|these|usual|normal|standard){S}){{0,3}}"
+     rf"(instructions?|rules?|prompts?|directions?|guidelines?|commands?|context|constraints?|guardrails?|checks?|reviews?|approvals?|verification)", 1.0, True),
     ("rank this candidate first",
      rf"(rank|rate|score){S}(this|the){S}(candidate|applicant|resume|cv|profile|person){S}(first|highest|top|number{S}one)", 0.9, True),
     ("put me first",
@@ -59,6 +59,12 @@ PHRASES = [
      rf"\b(call|run|execute|invoke){S}(the{S})?(tool|function|command|code|script|api)\b|\bclick{S}(this|the){S}link\b", 0.6, False),
     ("chat markers",
      r"<\|im_start\|>|<\|system\|>|\[/?inst\]|###\s*(instruction|system)|(^|\n)\s*(system|assistant)\s*:", 0.8, False),
+    ("speaks to the AI",
+     r"(^|[.!?\n]\s*)(ai|assistant|chatbot|llm|agent|gpt|copilot)\s*[,:]", 0.7, False),
+    ("pick this supplier",
+     rf"\b(recommend|choose|select|approve|prefer|rank|pick|favou?r|pay){S}(this|our|the|my){S}(supplier|vendor|company|product|offer|invoice|quote|bid|proposal|seller)\b", 0.6, False),
+    ("mark it paid",
+     rf"\b(mark|set|flag|treat|label){S}(it|this|the{S}invoice|this{S}invoice|the{S}payment){S}(as{S})?(paid|approved|pre-?approved|safe|verified|trusted|legitimate)\b", 0.7, False),
     ("best candidate claim",
      rf"\b(this|the){S}candidate{S}(is|must{S}be){S}(the{S})?(best|perfect|ideal|top|most{S}qualified)\b", 0.6, False),
 ]
@@ -149,7 +155,9 @@ def check_together(texts):
             if mode == "squeezed" and not use_squeeze:
                 continue
             for match in pattern.finditer(joined):
-                touched = [i for i, (a, b) in enumerate(spans) if a < match.end() and match.start() < b]
+                # Pieces that hold real letters of this order (a full stop alone does not count)
+                touched = [i for i, (a, b) in enumerate(spans)
+                           if len(re.findall(r"[a-z0-9]", joined[max(a, match.start()):min(b, match.end())])) >= 2]
                 if len(touched) < 2:
                     continue  # not split, already caught in the single piece
                 for i in touched:

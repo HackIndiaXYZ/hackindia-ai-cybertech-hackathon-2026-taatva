@@ -19,6 +19,10 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 GEMINI_BACKUP_MODEL = os.getenv("GEMINI_BACKUP_MODEL", "gemini-3.1-flash-lite")
 TESSERACT_CMD = os.getenv("TESSERACT_CMD", "tesseract")
 
+# Which installed browser Playwright uses to open emails and web pages
+# ("msedge" = Microsoft Edge, already on Windows; "chrome" also works)
+BROWSER_CHANNEL = os.getenv("BROWSER_CHANNEL", "msedge")
+
 # Prompt Guard: the order checker's second opinion (runs on this computer)
 PROMPT_GUARD = os.getenv("PROMPT_GUARD", "true").strip().lower() in ("1", "true", "yes", "on")
 PROMPT_GUARD_MODEL = os.getenv("PROMPT_GUARD_MODEL", "meta-llama/Llama-Prompt-Guard-2-22M")

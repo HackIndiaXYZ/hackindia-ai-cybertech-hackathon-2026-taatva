@@ -19,11 +19,12 @@ import time
 import pymupdf
 
 import config
-from pipeline.ai_view import read_ai_view
+from pipeline.ai_view import ZOOM, read_ai_view
 from pipeline.compare import compare
 from pipeline.decide import decide
 from pipeline.hidden_parts import read_hidden_places
-from pipeline.human_view import read_human_view
+from pipeline.html_view import read_html
+from pipeline.human_view import read_human_view, read_pictures
 
 log = logging.getLogger("obsidian")
 
@@ -58,8 +59,10 @@ def open_safely(pdf_bytes, file_name=""):
     if len(pdf_bytes) > MAX_BYTES:
         return None, f"The file is too big (over {MAX_BYTES // (1024 * 1024)} MB)."
     if file_type(file_name) in ("html", "eml"):
-        return None, ("HTML emails and .eml files cannot be checked yet (coming soon). "
-                      "To be safe, the file is held.")
+        # Web pages and emails are text. A PDF or a program pretending to be one is refused.
+        if pdf_bytes[:5] == b"%PDF-" or pdf_bytes[:2] == b"MZ" or b"\x00" in pdf_bytes[:4096]:
+            return None, "This file says it is an email or web page, but it is not."
+        return [], None  # the page size is known after the browser opens it
     if b"%PDF-" not in pdf_bytes[:1024]:
         return None, "This is not a PDF file."
     doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
@@ -89,7 +92,7 @@ def two_views(ai_pieces, human, findings):
     # For the "AI view vs Human view" tab: what the AI reads, and what people see
     hidden_spots = {(f["where"].get("page"), tuple(f["where"].get("box") or ())) for f in findings}
     ai = [{"page": p["page"], "text": p["text"],
-           "hidden": (p["page"], tuple(p["box"])) in hidden_spots} for p in ai_pieces]
+           "hidden": (p["page"], tuple(p["box"] or ())) in hidden_spots} for p in ai_pieces]
     people = []
     for page in human["pages"]:
         if page["gemini"].get("status") == "ok":
@@ -100,19 +103,40 @@ def two_views(ai_pieces, human, findings):
     return {"ai": ai, "people": people}
 
 
-def run_steps(pdf_bytes, private_mode, pages):
-    timings = {}
-
+def timer(timings):
     def timed(name, work):
         started = time.perf_counter()
         answer = work()
         timings[name] = round(time.perf_counter() - started, 2)
         return answer
+    return timed
 
+
+def run_steps(pdf_bytes, private_mode, pages):
+    timings = {}
+    timed = timer(timings)
     ai_pieces = timed("ai_view", lambda: read_ai_view(pdf_bytes))
     human = timed("human_view", lambda: read_human_view(pdf_bytes, private_mode))
     compared = timed("compare", lambda: compare(ai_pieces, human, read_hidden_places(pdf_bytes)))
+    return finish(compared, ai_pieces, human, pages, timings, lambda: page_pictures(pdf_bytes))
 
+
+def run_steps_html(data, private_mode, file_name):
+    # Web pages and emails: open in a real browser (JavaScript off, no internet)
+    timings = {}
+    timed = timer(timings)
+    ai_pieces, photo, size, places = timed("ai_view", lambda: read_html(data, file_name))
+    # The photo is taken at 2x zoom, so 2 photo pixels = 1 page pixel
+    human = timed("human_view", lambda: read_pictures([photo], private_mode, to_points=1 / ZOOM))
+    compared = timed("compare", lambda: compare(ai_pieces, human, places))
+    preview = lambda: ["data:image/png;base64," + base64.b64encode(photo).decode()]
+    result = finish(compared, ai_pieces, human, [size], timings, preview)
+    result["pages"] = [size]
+    return result
+
+
+def finish(compared, ai_pieces, human, pages, timings, make_previews):
+    # Steps 6 and 7, the same for every kind of file
     # A witness that crashed or timed out = something crashed = Quarantine
     if compared["witness_errors"]:
         return quarantine("A page reader failed, so we cannot be sure what people see: "
@@ -122,7 +146,7 @@ def run_steps(pdf_bytes, private_mode, pages):
     result["timings"] = {**timings, **result["timings"]}
     result["witness_agreement"] = compared["witness_agreement"]
     result["views"] = two_views(ai_pieces, human, result["findings"])
-    result["page_images"] = page_pictures(pdf_bytes)
+    result["page_images"] = make_previews()
     return result
 
 
@@ -136,14 +160,18 @@ def scan_pdf(pdf_bytes, private_mode=None, file_name="file"):
         if problem:
             result = quarantine(problem, {"open": open_time})
         else:
-            job = _workers.submit(run_steps, pdf_bytes, private_mode, pages)
+            if file_type(file_name) == "pdf":
+                job = _workers.submit(run_steps, pdf_bytes, private_mode, pages)
+            else:
+                job = _workers.submit(run_steps_html, pdf_bytes, private_mode, file_name)
             try:
                 result = job.result(timeout=TIME_LIMIT)
             except TimeoutError:
                 job.cancel()
                 result = quarantine(f"The scan took longer than the {TIME_LIMIT} second time limit.")
             result["timings"] = {"open": open_time, **result["timings"]}
-            result["pages"] = pages
+            if file_type(file_name) == "pdf":
+                result["pages"] = pages
     except Exception as error:
         # Anything else that goes wrong also ends in Quarantine
         result = quarantine(f"The scan crashed: {type(error).__name__}: {error}")
@@ -170,11 +198,12 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.CRITICAL)  # keep the table tidy
     sys.stdout.reconfigure(encoding="utf-8")
     target = Path(sys.argv[1])
-    files = sorted(target.glob("*.pdf")) if target.is_dir() else [target]
+    kinds = (".pdf", ".html", ".htm", ".eml")
+    files = sorted(f for f in target.iterdir() if f.suffix.lower() in kinds) if target.is_dir() else [target]
     private = True if "--private" in sys.argv else None
 
     print(f"{'FILE':<28}{'SCORE':>6}  {'VERDICT':<12}WORST FINDING")
     print("=" * 130)
     for file in files:
         result = scan_pdf(file.read_bytes(), private, file.name)
-        print(f"{file.name:<28}{result['score']:>6}  {result['verdict'].upper():<12}{result['worst_finding'][:80]}")
+        print(f"{file.name[:27]:<28}{result['score']:>6}  {result['verdict'].upper():<12}{result['worst_finding'][:80]}")

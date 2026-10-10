@@ -71,8 +71,8 @@ export function UploadCard({ onFile, busy }: { onFile: (file: File) => void; bus
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         <span className="tag">PDF</span>
-        <span className="tag" title="HTML emails are coming soon. For now they are safely held.">HTML email · soon</span>
-        <span className="tag" title=".eml emails are coming soon. For now they are safely held.">.eml · soon</span>
+        <span className="tag" title="Web pages and HTML emails, opened safely in a real browser with scripts off">HTML email</span>
+        <span className="tag" title="Saved emails (.eml), opened safely in a real browser with scripts off">.eml</span>
         <span className="tag">deleted after scan</span>
       </div>
     </section>
