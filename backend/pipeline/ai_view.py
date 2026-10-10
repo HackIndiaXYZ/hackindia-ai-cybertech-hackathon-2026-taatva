@@ -49,31 +49,47 @@ def render_without_text(pdf_bytes, page_number):
     return picture
 
 
-def background_color(picture, box, page_rect):
-    # Look at the page picture (with no text) inside this text's box and
-    # return the most common colour there. None if the box is off the page.
+def render_normal(page):
+    # A picture of the page exactly as a person sees it
+    return page.get_pixmap(matrix=pymupdf.Matrix(ZOOM, ZOOM), alpha=False,
+                           colorspace=pymupdf.csRGB)
+
+
+def look_behind(no_text, normal, box, page_rect):
+    # Compare the two page pictures inside this text's box.
+    # Returns (background colour, ink):
+    #   background = most common colour in the picture WITHOUT text
+    #   ink = share of pixels that change when the text is drawn (0 to 1).
+    #         Ink 0 means the text is in the file but leaves no mark a person
+    #         could see (for example it is covered by an image).
+    # Returns (None, None) if the box is off the page.
     visible_part = box & page_rect
     if visible_part.is_empty:
-        return None
+        return None, None
 
     x0 = max(int(visible_part.x0 * ZOOM), 0)
     y0 = max(int(visible_part.y0 * ZOOM), 0)
-    x1 = min(max(int(visible_part.x1 * ZOOM), x0 + 1), picture.width)
-    y1 = min(max(int(visible_part.y1 * ZOOM), y0 + 1), picture.height)
+    x1 = min(max(int(visible_part.x1 * ZOOM), x0 + 1), no_text.width)
+    y1 = min(max(int(visible_part.y1 * ZOOM), y0 + 1), no_text.height)
 
     # For big boxes, check every few pixels instead of all of them (faster)
     step = max(1, int(((x1 - x0) * (y1 - y0) / 4000) ** 0.5))
 
-    data = picture.samples
+    before, after = no_text.samples, normal.samples
     counts = Counter()
+    changed = total = 0
     for y in range(y0, y1, step):
-        row = y * picture.stride
+        row = y * no_text.stride
         for x in range(x0, x1, step):
             i = row + x * 3
-            counts[(data[i], data[i + 1], data[i + 2])] += 1
-    if not counts:
-        return None
-    return counts.most_common(1)[0][0]
+            counts[(before[i], before[i + 1], before[i + 2])] += 1
+            difference = (abs(before[i] - after[i]) + abs(before[i + 1] - after[i + 1])
+                          + abs(before[i + 2] - after[i + 2]))
+            changed += difference > 30
+            total += 1
+    if not total:
+        return None, None
+    return counts.most_common(1)[0][0], changed / total
 
 
 def read_ai_view(pdf_bytes):
@@ -82,7 +98,9 @@ def read_ai_view(pdf_bytes):
     doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
     for page in doc:
         page_rect = page.rect
-        picture = render_without_text(pdf_bytes, page.number)
+        no_text = render_without_text(pdf_bytes, page.number)
+        normal = render_normal(page)
+        page_image_boxes = [[round(v, 1) for v in info["bbox"]] for info in page.get_image_info()]
         content = page.get_text("dict", flags=READ_FLAGS, clip=pymupdf.INFINITE_RECT())
 
         for block in content["blocks"]:
@@ -92,7 +110,8 @@ def read_ai_view(pdf_bytes):
                         continue  # skip empty spaces
                     box = pymupdf.Rect(span["bbox"])
                     color = int_to_rgb(span["color"])
-                    background = background_color(picture, box, page_rect)
+                    background, ink = look_behind(no_text, normal, box, page_rect)
+                    on_page_part = box & page_rect
                     pieces.append({
                         "page": page.number + 1,  # people count pages from 1
                         "text": span["text"],
@@ -103,6 +122,12 @@ def read_ai_view(pdf_bytes):
                         "opacity": round(span.get("alpha", 255) / 255, 2),  # 1 = solid, 0 = see-through
                         "background": to_hex(background) if background else None,
                         "on_page": page_rect.contains(box),
+                        # How much of the box is on the page (1 = all of it, 0 = none)
+                        "on_page_share": round(on_page_part.get_area() / box.get_area(), 2)
+                                         if box.get_area() and not on_page_part.is_empty else 0.0,
+                        "ink": None if ink is None else round(ink, 3),
+                        # Pictures on this page, so step 5 can tell "covered by an image"
+                        "page_images": page_image_boxes,
                     })
     doc.close()
     return pieces
@@ -115,10 +140,10 @@ if __name__ == "__main__":
     with open(sys.argv[1], "rb") as f:
         result = read_ai_view(f.read())
 
-    print(f"{'pg':<3}{'size':>5}  {'colour':<8}{'backgrnd':<9}{'opac':>5}  {'on page':<8}{'box (x0, y0, x1, y1)':<28}text")
-    print("-" * 120)
+    print(f"{'pg':<3}{'size':>5}  {'colour':<8}{'backgrnd':<9}{'opac':>5}{'ink':>6}  {'on page':<8}{'box (x0, y0, x1, y1)':<28}text")
+    print("-" * 126)
     for p in result:
         box = "(" + ", ".join(f"{v:.0f}" for v in p["box"]) + ")"
-        print(f"{p['page']:<3}{p['size']:>5}  {p['color']:<8}{str(p['background']):<9}{p['opacity']:>5}  "
-              f"{'yes' if p['on_page'] else 'NO':<8}{box:<28}{p['text']}")
+        print(f"{p['page']:<3}{p['size']:>5}  {p['color']:<8}{str(p['background']):<9}{p['opacity']:>5}"
+              f"{str(p['ink']):>6}  {'yes' if p['on_page'] else 'NO':<8}{box:<28}{p['text']}")
     print(f"\n{len(result)} pieces of text found.")
