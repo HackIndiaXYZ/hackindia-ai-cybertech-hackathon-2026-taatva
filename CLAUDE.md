@@ -60,7 +60,10 @@ POST /scan returns JSON: score, verdict, reasons, findings
 Light dashboard (team's updated design): off-white grey-blue page, white cards,
 deep navy text, steel-blue accents. Bold tall titles (Oswald), clean body text
 (IBM Plex Sans), typewriter tags (IBM Plex Mono). NEVER purple.
+Dark mode (switch in the header, saved in the browser): deep slate page,
+dark metal charcoal cards, silver accents. Still never purple.
 Green = Pass, yellow = Flag, red = Quarantine.
+Must work on a phone screen too.
 Big "X-Ray Reveal" switch: red boxes around hidden text on the page preview.
 Use words an HR person understands (e.g. "file details", not "metadata").
 "Copy clean text" never appears for Quarantine.
