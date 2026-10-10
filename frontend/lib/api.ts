@@ -85,6 +85,30 @@ export async function scanFile(file: File, privateMode: boolean) {
 
 export const getStatus = () => ask<Status>("/status");
 
+// ----- The "AI recruiter" demo -----
+
+export type DemoResult = {
+  mode: "original" | "obsidian";
+  ranking: { rank: number; resume: number; file_name: string; candidate: string; reason: string }[];
+  obsidian: { resume: number; file_name: string; score: number; verdict: Verdict; worst_finding: string; held: boolean }[];
+  sent: { resume: number; file_name: string; text: string }[];
+};
+
+export async function runDemo(files: File[], mode: "original" | "obsidian", job: string, privateMode: boolean) {
+  const { data } = await supabase().auth.getSession();
+  if (!data.session) throw new SignInNeeded("Please sign in again.");
+  const form = new FormData();
+  files.forEach((file) => form.append("files", file));
+  form.append("mode", mode);
+  form.append("job", job);
+  form.append("private_mode", String(privateMode));
+  return ask<DemoResult>("/demo/rank", {
+    method: "POST",
+    body: form,
+    headers: { Authorization: `Bearer ${data.session.access_token}` },
+  });
+}
+
 // ----- History, straight from Supabase (only your own scans) -----
 
 export async function getHistory(): Promise<ScanResult[]> {

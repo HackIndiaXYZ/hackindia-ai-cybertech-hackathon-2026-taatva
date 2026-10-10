@@ -42,6 +42,7 @@ export function Header() {
   const tabs = [
     { href: "/scan", label: "Scan" },
     { href: "/history", label: "History", badge: waitingCount },
+    { href: "/demo", label: "Demo" },
   ];
 
   // What reads the pages right now
