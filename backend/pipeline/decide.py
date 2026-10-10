@@ -9,7 +9,10 @@
 #   Quarantine 70-100: agent gets NOTHING. File held for Approve / Reject.
 # Gemini and Tesseract disagree a lot: at least Flag.
 
+import time
+
 from pipeline.hidden_parts import plain_letters
+from pipeline.plain_words import add_plain_words, summary
 from pipeline.order_checker import check_with_second_opinion
 from pipeline.prompt_guard import status as prompt_guard_status
 
@@ -92,9 +95,11 @@ def describe(item):
     return f'{place.capitalize()}: "{item["text"][:80]}" is {why}{bossy}. Danger {item["danger"]}.'
 
 
-def decide(compared):
+def decide(compared, page_heights=None):
     # Turn step 5 results into the final answer: score, verdict, reasons, clean copy.
+    started = time.perf_counter()
     score_bossiness(compared)
+    order_check_time = time.perf_counter() - started
 
     report = []
     for item in compared["findings"]:
@@ -123,13 +128,19 @@ def decide(compared):
     if not reasons:
         reasons.append("No hidden orders found.")
 
-    return {
+    add_plain_words(report, page_heights or {})
+    worst = report[0] if report else None
+    result = {
         "score": score,
         "verdict": verdict,
         "reasons": reasons,
         "findings": report,
+        "worst_finding": summary(worst),
         # Is the Prompt Guard second opinion working? ("ready" or the reason why not)
         "prompt_guard": prompt_guard_status(),
         # Quarantine: the agent gets NOTHING
         "clean_copy": None if verdict == "quarantine" else build_clean_copy(compared),
     }
+    result["timings"] = {"order_check": round(order_check_time, 2),
+                         "score_clean": round(time.perf_counter() - started - order_check_time, 2)}
+    return result

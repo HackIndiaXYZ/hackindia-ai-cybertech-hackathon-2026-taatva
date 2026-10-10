@@ -22,3 +22,6 @@ uploads/
 # Computer clutter
 .DS_Store
 Thumbs.db
+
+# Scan history (results only) - stays on this computer
+backend/data/

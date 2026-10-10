@@ -125,6 +125,7 @@ def compare(ai_pieces, human, hidden_places):
     picture_only = []  # text a person can see, but the computer did not read as text
     pages = {p["page"]: p for p in human["pages"]}
     witness_problems = []
+    agreements = []
 
     # ----- Way 1: everything the computer reads on the pages -----
     for piece in ai_pieces:
@@ -199,6 +200,7 @@ def compare(ai_pieces, human, hidden_places):
         if gemini.get("status") == "ok" and tesseract.get("status") == "ok":
             agreement = fuzz.token_set_ratio(simple(" ".join(gemini["lines"])),
                                              simple(" ".join(l["text"] for l in tesseract["lines"])))
+            agreements.append(agreement)
             if agreement < WITNESS_AGREE:
                 witness_problems.append({"page": number, "agreement": round(agreement)})
 
@@ -212,6 +214,8 @@ def compare(ai_pieces, human, hidden_places):
         "picture_only": picture_only,
         "witnesses_disagree": witness_problems,
         "witness_errors": errors,
+        # How much Gemini and Tesseract agree, on average (None in private mode)
+        "witness_agreement": round(sum(agreements) / len(agreements)) if agreements else None,
     }
 
 

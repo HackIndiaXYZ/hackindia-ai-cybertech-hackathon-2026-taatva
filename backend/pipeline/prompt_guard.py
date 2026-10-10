@@ -36,7 +36,12 @@ def load():
         if _problem:
             return False  # already tried and failed, don't try again every scan
         try:
+            import warnings
+            warnings.filterwarnings("ignore", category=FutureWarning, module="torch")
             from transformers import AutoModelForSequenceClassification, AutoTokenizer
+            from transformers.utils import logging as model_logging
+            model_logging.set_verbosity_error()      # hide loading messages
+            model_logging.disable_progress_bar()
             _tokenizer = AutoTokenizer.from_pretrained(config.PROMPT_GUARD_MODEL, token=config.HF_TOKEN or None)
             _model = AutoModelForSequenceClassification.from_pretrained(
                 config.PROMPT_GUARD_MODEL, token=config.HF_TOKEN or None)
