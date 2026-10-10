@@ -65,6 +65,13 @@ PHRASES = [
      rf"\b(recommend|choose|select|approve|prefer|rank|pick|favou?r|pay){S}(this|our|the|my){S}(supplier|vendor|company|product|offer|invoice|quote|bid|proposal|seller)\b", 0.6, False),
     ("mark it paid",
      rf"\b(mark|set|flag|treat|label){S}(it|this|the{S}invoice|this{S}invoice|the{S}payment){S}(as{S})?(paid|approved|pre-?approved|safe|verified|trusted|legitimate)\b", 0.7, False),
+    # Hindi orders (a short list of the most common ways to say them)
+    ("ignore the rules (Hindi)",
+     r"(अनदेखा|नज़रअंदाज़|नजरअंदाज|भूल\s*जा|मत\s*मान)[^।.]{0,40}|(निर्देश|नियम)[^।.]{0,30}(अनदेखा|नज़रअंदाज़|नजरअंदाज|मत\s*मान)", 0.9, False),
+    ("rank first (Hindi)",
+     r"(पहले|प्रथम|सबसे\s*ऊपर)\s*(स्थान|नंबर)?[^।.]{0,15}(रखें|रखो|दें|करें)", 0.7, False),
+    ("pick this candidate (Hindi)",
+     r"(इस|इसी)\s*(उम्मीदवार|आवेदक|सप्लायर|विक्रेता)[^।.]{0,25}(चुनें|चुनो|सिफारिश|पहले|सर्वश्रेष्ठ)", 0.6, False),
     ("best candidate claim",
      rf"\b(this|the){S}candidate{S}(is|must{S}be){S}(the{S})?(best|perfect|ideal|top|most{S}qualified)\b", 0.6, False),
 ]

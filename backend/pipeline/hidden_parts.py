@@ -74,10 +74,14 @@ def find_letter_tricks(text):
 
     invisible = [ZERO_WIDTH[ch] for ch in text if ch in ZERO_WIDTH]
     if invisible:
-        tricks.append({
+        trick = {
             "kind": "zero-width letters",
             "detail": f"{len(invisible)} invisible letters ({', '.join(sorted(set(invisible)))})",
-        })
+        }
+        secret = decode_zero_width(text)
+        if secret:
+            trick["hidden_message"] = secret
+        tricks.append(trick)
 
     tag_letters = [ch for ch in text if TAG_START <= ord(ch) <= TAG_END]
     if tag_letters:
@@ -115,6 +119,21 @@ def find_letter_tricks(text):
             "reads_as": plain_letters(text),
         })
     return tricks
+
+
+def decode_zero_width(text):
+    # A common trick: a whole sentence hidden as invisible "0" and "1" marks
+    # (zero-width space = 0, zero-width non-joiner = 1, 8 marks per letter).
+    # Returns the hidden sentence, or None if there is none.
+    for run in re.findall(r"[​‌]{16,}", text):
+        for zero, one in (("​", "‌"), ("‌", "​")):
+            bits = run.replace(zero, "0").replace(one, "1")
+            letters = [chr(int(bits[i:i + 8], 2)) for i in range(0, len(bits) - 7, 8)]
+            message = "".join(letters)
+            if message and sum(ch.isprintable() for ch in message) / len(message) > 0.9 \
+                    and re.search(r"[A-Za-z]{3}", message):
+                return message
+    return None
 
 
 def plain_letters(text):

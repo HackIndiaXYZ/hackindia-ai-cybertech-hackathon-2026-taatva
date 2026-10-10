@@ -171,7 +171,8 @@ def compare(ai_pieces, human, hidden_places):
         for trick in find_letter_tricks(piece["text"]):
             findings.append({
                 "text": trick.get("hidden_message") or trick.get("reads_as") or piece["text"],
-                "reads_as": plain_letters(piece["text"]),
+                # Check the DECODED secret for orders, not just the visible words around it
+                "reads_as": trick.get("hidden_message") or plain_letters(piece["text"]),
                 "where": where,
                 "how_hidden": [f"{trick['kind']}: {trick['detail']}"],
                 "hidden_points": POINTS_INVISIBLE,
