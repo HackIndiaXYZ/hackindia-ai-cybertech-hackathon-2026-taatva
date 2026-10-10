@@ -138,7 +138,7 @@ export function AgentCard({ result }: { result: ScanResult }) {
         </button>
       )}
 
-      <Link href={`/history?open=${result.id}`}
+      <Link href={result.id ? `/history?open=${result.id}` : "/history"}
         className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-primary/60 px-4 py-3 font-display text-[17px] font-semibold uppercase tracking-[0.16em] text-primary hover:bg-primary/5">
         Review in history <ArrowRight className="h-5 w-5" />
       </Link>

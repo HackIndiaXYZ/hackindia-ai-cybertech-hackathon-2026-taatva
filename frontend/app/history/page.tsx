@@ -43,13 +43,18 @@ function HistoryScreen() {
         const wanted = params.get("open");
         setOpen(new Set(wanted ? [wanted] : data.filter((r) => r.decision === "waiting").slice(0, 2).map((r) => r.id)));
       })
-      .catch((e) => setError(e.message));
+      .catch((e) => setError(`Could not load history: ${e.message}`));
   }, [params]);
 
   async function decide(id: string, decision: "approved" | "rejected") {
-    const updated = await decideScan(id, decision);
-    setRows((old) => old?.map((r) => (r.id === id ? { ...r, ...updated } : r)) ?? null);
-    refreshWaiting();
+    try {
+      // Saved in Supabase. The database only allows this for your own waiting Quarantine files.
+      const updated = await decideScan(id, decision);
+      setRows((old) => old?.map((r) => (r.id === id ? { ...r, ...updated } : r)) ?? null);
+      refreshWaiting();
+    } catch (e) {
+      setError(`Could not save your decision: ${e instanceof Error ? e.message : "unknown problem"}`);
+    }
   }
 
   const counts = useMemo(() => {
@@ -90,7 +95,7 @@ function HistoryScreen() {
         </div>
       </div>
 
-      {error && <p className="rounded-xl border border-quarantine/30 bg-quarantine/5 p-4 text-quarantine">Could not load history: {error}</p>}
+      {error && <p className="rounded-xl border border-quarantine/30 bg-quarantine/5 p-4 text-quarantine">{error}</p>}
 
       {/* 4 number cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -248,10 +253,20 @@ function DecisionCell({ row, onDecide }: { row: ScanResult; onDecide: (id: strin
     );
   }
   if (row.decision === "approved") {
-    return <span className="flex items-center gap-1.5 text-[13px] font-medium text-pass"><Check className="h-4 w-4" />Approved by you · {friendlyTime(row.decided_at ?? undefined)}</span>;
+    return (
+      <span className="flex flex-col text-[13px] font-medium text-pass">
+        <span className="flex items-center gap-1.5"><Check className="h-4 w-4" />Approved · {friendlyTime(row.decided_at ?? undefined)}</span>
+        {row.decided_by && <span className="pl-5 text-[11px] font-normal text-muted-foreground">by {row.decided_by}</span>}
+      </span>
+    );
   }
   if (row.decision === "rejected") {
-    return <span className="flex items-center gap-1.5 text-[13px] font-medium text-quarantine"><X className="h-4 w-4" />Rejected · never sent · {friendlyTime(row.decided_at ?? undefined)}</span>;
+    return (
+      <span className="flex flex-col text-[13px] font-medium text-quarantine">
+        <span className="flex items-center gap-1.5"><X className="h-4 w-4" />Rejected · never sent · {friendlyTime(row.decided_at ?? undefined)}</span>
+        {row.decided_by && <span className="pl-5 text-[11px] font-normal text-muted-foreground">by {row.decided_by}</span>}
+      </span>
+    );
   }
   return (
     <span className="flex items-center gap-1.5 text-[13px] text-muted-foreground">

@@ -1,34 +1,26 @@
 # TAATVA Obsidian - backend (the "engine room").
-#   GET  /health                  -> says the backend is alive
-#   GET  /status                  -> which readers are switched on (for the website header)
-#   POST /scan                    -> checks a file: score, verdict, reasons, findings, clean copy
-#   GET  /history                 -> all past scan results (results only, never the files)
-#   GET  /history/{id}            -> one past scan result
-#   POST /history/{id}/decision   -> a person approves or rejects a quarantined file
+#   GET  /health  -> says the backend is alive
+#   GET  /status  -> which readers are switched on (for the website header)
+#   POST /scan    -> checks a file: score, verdict, reasons, findings, clean copy.
+#                    Only for signed-in TAATVA users. The result is saved in Supabase.
+# The History page reads past scans straight from Supabase. Row level security
+# there makes sure each person only sees their own scans.
 
 import logging
+import threading
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 import config
-import history_store
-from pipeline.prompt_guard import status as prompt_guard_status
+from pipeline.prompt_guard import load as load_prompt_guard, status as prompt_guard_status
 from pipeline.scan import MAX_BYTES, scan_pdf
+from supabase_client import NotAllowed, save_scan, who_is_this
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+log = logging.getLogger("obsidian")
 
 app = FastAPI(title="Obsidian by TAATVA")
-
-
-@app.on_event("startup")
-def warm_up():
-    # Load Prompt Guard in the background when the backend starts,
-    # so the first scan does not have to wait for it.
-    import threading
-    from pipeline.prompt_guard import load
-    threading.Thread(target=load, daemon=True).start()
 
 # Let our website (on port 3000) talk to this backend
 app.add_middleware(
@@ -37,6 +29,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.on_event("startup")
+def warm_up():
+    # Load Prompt Guard in the background when the backend starts,
+    # so the first scan does not have to wait for it.
+    threading.Thread(target=load_prompt_guard, daemon=True).start()
 
 
 @app.get("/health")
@@ -55,41 +54,33 @@ def status():
 
 
 @app.post("/scan")
-def scan(file: UploadFile = File(...), private_mode: bool | None = Form(None)):
-    # The file is only kept in memory, never saved to disk, so it is gone
-    # as soon as the scan ends. Only the results are kept.
-    # Read one byte more than the limit, so "too big" files are caught.
+def scan(
+    file: UploadFile = File(...),
+    private_mode: bool | None = Form(None),
+    authorization: str | None = Header(None),
+):
+    # 1. Only signed-in TAATVA users may scan
+    token = (authorization or "").removeprefix("Bearer ").strip()
+    try:
+        user = who_is_this(token)
+    except NotAllowed as problem:
+        raise HTTPException(401, str(problem))
+
+    # 2. Scan. The file is only kept in memory, never saved to disk or to the
+    #    database, so it is gone as soon as the scan ends. Only results are kept.
+    #    Read one byte more than the limit, so "too big" files are caught.
     pdf_bytes = file.file.read(MAX_BYTES + 1)
     result = scan_pdf(pdf_bytes, private_mode, file.filename or "file")
     del pdf_bytes
-    result["file_name"] = file.filename
-    result["id"] = history_store.save(result)
-    result["decision"] = "waiting" if result["verdict"] == "quarantine" else "sent"
+    result["file_name"] = file.filename or "file"
+
+    # 3. Save the result in Supabase (who, file name, score, verdict, reasons, findings, date)
+    try:
+        saved = save_scan(result, user)
+        result.update(id=saved["id"], scanned_at=saved["scanned_at"], decision=saved["decision"])
+    except Exception as error:
+        # The verdict still stands. We only tell the website it was not saved.
+        log.error(f"Saving the scan failed: {error}")
+        result.update(id=None, decision="waiting" if result["verdict"] == "quarantine" else "sent",
+                      save_error="This result could not be saved to history.")
     return result
-
-
-@app.get("/history")
-def history():
-    return history_store.list_all()
-
-
-@app.get("/history/{scan_id}")
-def history_item(scan_id: str):
-    row = history_store.get(scan_id)
-    if not row:
-        raise HTTPException(404, "Scan not found.")
-    return row
-
-
-class Decision(BaseModel):
-    decision: str  # "approved" or "rejected"
-
-
-@app.post("/history/{scan_id}/decision")
-def decide(scan_id: str, body: Decision):
-    if body.decision not in ("approved", "rejected"):
-        raise HTTPException(400, 'Decision must be "approved" or "rejected".')
-    row, problem = history_store.decide(scan_id, body.decision)
-    if problem:
-        raise HTTPException(404 if "not found" in problem else 400, problem)
-    return row

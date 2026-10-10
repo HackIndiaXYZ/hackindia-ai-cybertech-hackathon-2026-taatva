@@ -1,4 +1,9 @@
-// TAATVA Obsidian - talking to the backend, and the shapes of its answers.
+// TAATVA Obsidian - talking to the backend and to Supabase, and the shapes of their answers.
+//   Scanning goes to our backend (with the person's sign-in token).
+//   History is read and decided straight from Supabase. Row level security
+//   there means each person only ever gets their own scans.
+
+import { supabase } from "./supabase";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -45,7 +50,12 @@ export type ScanResult = {
   scanned_at?: string;
   decision: "waiting" | "sent" | "approved" | "rejected";
   decided_at?: string | null;
+  decided_by?: string | null;
+  user_email?: string;
+  save_error?: string;
 };
+
+export class SignInNeeded extends Error {}
 
 export type Status = { gemini: boolean; private_mode_default: boolean; prompt_guard: string };
 
@@ -53,26 +63,46 @@ async function ask<T>(path: string, options?: RequestInit): Promise<T> {
   const response = await fetch(`${API_URL}${path}`, options);
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
+    if (response.status === 401) throw new SignInNeeded(body.detail ?? "Please sign in again.");
     throw new Error(body.detail ?? `The backend said ${response.status}`);
   }
   return response.json();
 }
 
-export function scanFile(file: File, privateMode: boolean) {
+export async function scanFile(file: File, privateMode: boolean) {
+  // Send the person's sign-in token, so the backend knows who is scanning
+  const { data } = await supabase().auth.getSession();
+  if (!data.session) throw new SignInNeeded("Please sign in again.");
   const form = new FormData();
   form.append("file", file);
   form.append("private_mode", String(privateMode));
-  return ask<ScanResult>("/scan", { method: "POST", body: form });
+  return ask<ScanResult>("/scan", {
+    method: "POST",
+    body: form,
+    headers: { Authorization: `Bearer ${data.session.access_token}` },
+  });
 }
 
-export const getHistory = () => ask<ScanResult[]>("/history");
-export const getScan = (id: string) => ask<ScanResult>(`/history/${id}`);
 export const getStatus = () => ask<Status>("/status");
 
-export function decideScan(id: string, decision: "approved" | "rejected") {
-  return ask<ScanResult>(`/history/${id}/decision`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ decision }),
-  });
+// ----- History, straight from Supabase (only your own scans) -----
+
+export async function getHistory(): Promise<ScanResult[]> {
+  const { data, error } = await supabase().from("scans").select("*").order("scanned_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return data as ScanResult[];
+}
+
+export async function getScan(id: string): Promise<ScanResult> {
+  const { data, error } = await supabase().from("scans").select("*").eq("id", id).single();
+  if (error) throw new Error(error.code === "PGRST116" ? "Scan not found." : error.message);
+  return data as ScanResult;
+}
+
+export async function decideScan(id: string, decision: "approved" | "rejected"): Promise<ScanResult> {
+  // The database only allows this on your own Quarantine files that are still waiting
+  const { data, error } = await supabase().from("scans").update({ decision }).eq("id", id).select("*");
+  if (error) throw new Error(error.message);
+  if (!data?.length) throw new Error("This file can no longer be changed.");
+  return data[0] as ScanResult;
 }

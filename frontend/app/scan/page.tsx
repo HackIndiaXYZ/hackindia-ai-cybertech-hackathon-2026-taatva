@@ -6,9 +6,9 @@
 // /scan?id=... opens a saved report from History.
 
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle } from "lucide-react";
-import { getScan, scanFile, type ScanResult } from "@/lib/api";
+import { getScan, scanFile, SignInNeeded, type ScanResult } from "@/lib/api";
 import { useSettings } from "@/components/settings";
 import { Stepper } from "@/components/scan/stepper";
 import { VerdictCard } from "@/components/scan/verdict-card";
@@ -27,6 +27,7 @@ export default function ScanPage() {
 function ScanScreen() {
   const { privateMode, refreshWaiting } = useSettings();
   const params = useSearchParams();
+  const router = useRouter();
   const [result, setResult] = useState<ScanResult | null>(null);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +50,10 @@ function ScanScreen() {
       setResult(await scanFile(newFile, privateMode));
       refreshWaiting();
     } catch (e) {
+      if (e instanceof SignInNeeded) {
+        router.replace("/login?next=/scan");
+        return;
+      }
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
       setScanning(false);
@@ -67,6 +72,12 @@ function ScanScreen() {
         <div className="flex items-center gap-3 rounded-xl border border-quarantine/30 bg-quarantine/5 p-4 text-[14px] text-quarantine">
           <AlertTriangle className="h-5 w-5" />
           Could not check the file: {error}. Is the backend running?
+        </div>
+      )}
+      {result?.save_error && (
+        <div className="flex items-center gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-flag">
+          <AlertTriangle className="h-5 w-5" />
+          {result.save_error} The verdict below still stands.
         </div>
       )}
 

@@ -5,7 +5,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Lock, LockOpen } from "lucide-react";
+import { Lock, LockOpen, LogOut } from "lucide-react";
 import { useSettings } from "./settings";
 import { cn } from "@/lib/utils";
 
@@ -25,7 +25,19 @@ export function Logo({ className }: { className?: string }) {
 
 export function Header() {
   const path = usePathname();
-  const { privateMode, setPrivateMode, status, backendDown, waitingCount } = useSettings();
+  const { email, signOut, privateMode, setPrivateMode, status, backendDown, waitingCount } = useSettings();
+
+  // The sign-in page only shows the logo
+  if (path.startsWith("/login")) {
+    return (
+      <header className="border-b bg-white/90">
+        <div className="mx-auto flex max-w-[1440px] items-center px-4 py-3 md:px-8">
+          <Logo className="h-9 w-9" />
+          <span className="ml-3 font-display text-[22px] font-bold tracking-[0.22em]">OBSIDIAN</span>
+        </div>
+      </header>
+    );
+  }
 
   const tabs = [
     { href: "/scan", label: "Scan" },
@@ -104,6 +116,19 @@ export function Header() {
             {privateMode ? <Lock className="h-3.5 w-3.5" /> : <LockOpen className="h-3.5 w-3.5" />}
             Private mode: {privateMode ? "on" : "off"}
           </button>
+          {email && (
+            <div className="flex items-center gap-2 border-l pl-3">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 font-display text-[14px] font-semibold uppercase text-primary"
+                title={`Signed in as ${email}`}>
+                {email[0]}
+              </span>
+              <span className="hidden max-w-[160px] truncate text-[12px] text-muted-foreground xl:block">{email}</span>
+              <button onClick={signOut} title="Sign out"
+                className="flex items-center gap-1 rounded-full border bg-white px-2.5 py-1.5 text-[11px] text-foreground hover:bg-muted">
+                <LogOut className="h-3.5 w-3.5" /> Sign out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
