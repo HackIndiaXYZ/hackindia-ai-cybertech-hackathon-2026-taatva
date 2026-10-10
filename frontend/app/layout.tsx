@@ -1,35 +1,28 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { IBM_Plex_Mono, IBM_Plex_Sans, Oswald } from "next/font/google";
 import "./globals.css";
+import { Header } from "@/components/header";
+import { SettingsProvider } from "@/components/settings";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
-});
+// Three fonts: bold tall letters for titles, a clean font for reading,
+// and a "typewriter" font for file names and technical tags.
+const display = Oswald({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display" });
+const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-sans" });
+const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-mono" });
 
 export const metadata: Metadata = {
   title: "Obsidian by TAATVA",
-  description: "Find, show, remove hidden instructions before an AI agent reads a file.",
+  description: "Find, show and remove hidden instructions before an AI agent reads a file.",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    // "dark" = always use the dark metallic look
-    <html lang="en" className="dark">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="en">
+      <body className={`${display.variable} ${sans.variable} ${mono.variable}`}>
+        <SettingsProvider>
+          <Header />
+          <main className="mx-auto max-w-[1440px] px-4 pb-16 pt-6 md:px-8">{children}</main>
+        </SettingsProvider>
       </body>
     </html>
   );

@@ -42,9 +42,16 @@ def load():
             from transformers.utils import logging as model_logging
             model_logging.set_verbosity_error()      # hide loading messages
             model_logging.disable_progress_bar()
-            _tokenizer = AutoTokenizer.from_pretrained(config.PROMPT_GUARD_MODEL, token=config.HF_TOKEN or None)
-            _model = AutoModelForSequenceClassification.from_pretrained(
-                config.PROMPT_GUARD_MODEL, token=config.HF_TOKEN or None)
+            def get(loader):
+                # Use the copy already on this computer first (no internet needed).
+                # Only the very first time is it downloaded from Hugging Face.
+                try:
+                    return loader.from_pretrained(config.PROMPT_GUARD_MODEL, local_files_only=True)
+                except Exception:
+                    return loader.from_pretrained(config.PROMPT_GUARD_MODEL, token=config.HF_TOKEN or None)
+
+            _tokenizer = get(AutoTokenizer)
+            _model = get(AutoModelForSequenceClassification)
             _model.eval()
             return True
         except Exception as error:

@@ -21,6 +21,15 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 
 app = FastAPI(title="Obsidian by TAATVA")
 
+
+@app.on_event("startup")
+def warm_up():
+    # Load Prompt Guard in the background when the backend starts,
+    # so the first scan does not have to wait for it.
+    import threading
+    from pipeline.prompt_guard import load
+    threading.Thread(target=load, daemon=True).start()
+
 # Let our website (on port 3000) talk to this backend
 app.add_middleware(
     CORSMiddleware,

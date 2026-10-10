@@ -118,7 +118,7 @@ def run_steps(pdf_bytes, private_mode, pages):
         return quarantine("A page reader failed, so we cannot be sure what people see: "
                           + "; ".join(compared["witness_errors"]), timings)
 
-    result = decide(compared, {p["page"]: p["height"] for p in pages})
+    result = decide(compared, {p["page"]: (p["width"], p["height"]) for p in pages})
     result["timings"] = {**timings, **result["timings"]}
     result["witness_agreement"] = compared["witness_agreement"]
     result["views"] = two_views(ai_pieces, human, result["findings"])

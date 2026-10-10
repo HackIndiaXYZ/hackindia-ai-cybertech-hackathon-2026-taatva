@@ -57,10 +57,13 @@ POST /scan returns JSON: score, verdict, reasons, findings
 (text, where, how hidden, page boxes), clean copy.
 
 ## Look and feel
-Dark metallic, rock-music feel. Charcoal black, brushed steel grey,
-stark white text. NEVER purple.
-Neon green = Pass, neon yellow = Flag, neon red = Quarantine.
+Light dashboard (team's updated design): off-white grey-blue page, white cards,
+deep navy text, steel-blue accents. Bold tall titles (Oswald), clean body text
+(IBM Plex Sans), typewriter tags (IBM Plex Mono). NEVER purple.
+Green = Pass, yellow = Flag, red = Quarantine.
 Big "X-Ray Reveal" switch: red boxes around hidden text on the page preview.
+Use words an HR person understands (e.g. "file details", not "metadata").
+"Copy clean text" never appears for Quarantine.
 
 ## Privacy and safety
 - Keys live only in .env files, never in code or GitHub.

@@ -85,7 +85,7 @@ def how_label(item):
     }.get(kind, "hidden part of file")
 
 
-def where_label(item, page_heights):
+def where_label(item, page_sizes):
     where = item["where"]
     place = where.get("place")
     if place:
@@ -97,9 +97,10 @@ def where_label(item, page_heights):
     box = where.get("box")
     if not box:
         return f"page {page}"
-    height = page_heights.get(page) or 792
+    width, height = page_sizes.get(page) or (612, 792)
     middle = (box[1] + box[3]) / 2
-    if middle < 0 or middle > height or box[0] < 0:
+    center = (box[0] + box[2]) / 2
+    if not (0 <= middle <= height and 0 <= center <= width):
         return f"page {page} · outside the page"
     spot = "top" if middle < height / 3 else "middle" if middle < 2 * height / 3 else "bottom"
     return f"page {page} · near the {spot}"
@@ -153,9 +154,10 @@ def short(text, size):
     return text if len(text) <= size else text[: size - 1] + "…"
 
 
-def add_plain_words(findings, page_heights):
+def add_plain_words(findings, page_sizes):
+    # page_sizes = {page number: (width, height)}
     for item in findings:
         item["title"] = title(item)
         item["explain"] = explain(item)
         item["how_label"] = how_label(item)
-        item["where_label"] = where_label(item, page_heights)
+        item["where_label"] = where_label(item, page_sizes)

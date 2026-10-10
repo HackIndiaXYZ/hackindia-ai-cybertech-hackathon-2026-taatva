@@ -95,7 +95,7 @@ def describe(item):
     return f'{place.capitalize()}: "{item["text"][:80]}" is {why}{bossy}. Danger {item["danger"]}.'
 
 
-def decide(compared, page_heights=None):
+def decide(compared, page_sizes=None):
     # Turn step 5 results into the final answer: score, verdict, reasons, clean copy.
     started = time.perf_counter()
     score_bossiness(compared)
@@ -128,7 +128,7 @@ def decide(compared, page_heights=None):
     if not reasons:
         reasons.append("No hidden orders found.")
 
-    add_plain_words(report, page_heights or {})
+    add_plain_words(report, page_sizes or {})
     worst = report[0] if report else None
     result = {
         "score": score,
