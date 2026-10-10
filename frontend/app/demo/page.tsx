@@ -66,7 +66,7 @@ export default function DemoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-[44px] font-bold uppercase leading-none tracking-[0.12em] text-foreground md:text-[56px]">
+        <h1 className="font-display text-[34px] font-bold uppercase leading-none tracking-[0.1em] text-foreground sm:text-[44px] md:text-[56px] md:tracking-[0.12em]">
           AI recruiter demo
         </h1>
         <p className="mt-2 max-w-3xl text-[15px] text-muted-foreground">
@@ -80,7 +80,7 @@ export default function DemoPage() {
         <div>
           <h2 className="section-title">The job</h2>
           <textarea value={job} onChange={(e) => setJob(e.target.value)} rows={5}
-            className="mt-3 w-full rounded-xl border bg-white p-3 text-[14px] outline-none focus:ring-2 focus:ring-primary/30" />
+            className="mt-3 w-full rounded-xl border bg-card p-3 text-[14px] outline-none focus:ring-2 focus:ring-primary/30" />
         </div>
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -102,7 +102,7 @@ export default function DemoPage() {
             {[0, 1, 2].map((i) => {
               const file = files[i];
               return (
-                <li key={i} className={cn("flex items-center gap-3 rounded-xl border p-3", file ? "bg-white" : "border-dashed bg-muted/40")}>
+                <li key={i} className={cn("flex items-center gap-3 rounded-xl border p-3", file ? "bg-card" : "border-dashed bg-muted/40")}>
                   <span className="font-display text-[20px] font-bold text-muted-foreground">{i + 1}</span>
                   {file ? (
                     <>
@@ -126,12 +126,12 @@ export default function DemoPage() {
       {/* The two buttons */}
       <div className="grid gap-4 md:grid-cols-2">
         <button onClick={() => send("original")} disabled={!ready || busy}
-          className="flex items-center justify-center gap-3 rounded-2xl border-2 border-quarantine/50 bg-white px-6 py-5 font-display text-[22px] font-bold uppercase tracking-[0.12em] text-quarantine shadow-sm transition hover:bg-quarantine/5 disabled:opacity-40">
+          className="flex items-center justify-center gap-3 rounded-2xl border-2 border-quarantine/50 bg-card px-6 py-5 font-display text-[22px] font-bold uppercase tracking-[0.12em] text-quarantine shadow-sm transition hover:bg-quarantine/5 disabled:opacity-40">
           {sides.original.loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <ShieldOff className="h-6 w-6" />}
           A · Send original files
         </button>
         <button onClick={() => send("obsidian")} disabled={!ready || busy}
-          className="flex items-center justify-center gap-3 rounded-2xl bg-primary px-6 py-5 font-display text-[22px] font-bold uppercase tracking-[0.12em] text-white shadow transition hover:bg-primary/90 disabled:opacity-40">
+          className="flex items-center justify-center gap-3 rounded-2xl bg-primary px-6 py-5 font-display text-[22px] font-bold uppercase tracking-[0.12em] text-primary-foreground shadow transition hover:bg-primary/90 disabled:opacity-40">
           {sides.obsidian.loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <ShieldCheck className="h-6 w-6" />}
           B · Send through Obsidian
         </button>
@@ -213,7 +213,7 @@ function ResultCard({ title, tone, side }: { title: string; tone: "danger" | "sa
             <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">The AI&apos;s ranking</div>
             <ol className="mt-2 space-y-2">
               {result.ranking.map((r) => (
-                <li key={r.rank} className={cn("flex gap-4 rounded-xl border bg-white p-3", r.rank === 1 && "border-2 border-primary/40")}>
+                <li key={r.rank} className={cn("flex gap-4 rounded-xl border bg-card p-3", r.rank === 1 && "border-2 border-primary/40")}>
                   <span className={cn("font-display text-[34px] font-bold leading-none", r.rank === 1 ? "text-primary" : "text-muted-foreground")}>
                     #{r.rank}
                   </span>

@@ -27,6 +27,8 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const onLoginPage = request.nextUrl.pathname.startsWith("/login");
+  // The email verification link must work for people who are not signed in yet
+  if (request.nextUrl.pathname.startsWith("/auth/")) return response;
 
   if (!user && !onLoginPage) {
     const url = request.nextUrl.clone();

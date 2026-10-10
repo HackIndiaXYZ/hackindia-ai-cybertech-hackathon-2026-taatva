@@ -3,7 +3,7 @@
 
 import { ShieldAlert, ShieldCheck, ShieldQuestion } from "lucide-react";
 import type { ScanResult } from "@/lib/api";
-import { VERDICT_MEANING, VERDICT_STYLE } from "@/lib/verdict";
+import { BOSSY_TIP, HIDDEN_TIP, VERDICT_MEANING, VERDICT_STYLE } from "@/lib/verdict";
 import { importantFindings } from "@/components/shared";
 import { cn } from "@/lib/utils";
 
@@ -20,18 +20,18 @@ function Gauge({ score, color }: { score: number; color: string }) {
   const [tx, ty] = point(100, r);
   return (
     <svg viewBox="0 0 220 140" className="mx-auto w-full max-w-[260px]" aria-label={`Danger score ${score} out of 100`}>
-      <path d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${tx} ${ty}`} fill="none" stroke="#e6e9ef" strokeWidth="16" strokeLinecap="round" />
+      <path d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${tx} ${ty}`} fill="none" stroke="hsl(var(--muted))" strokeWidth="16" strokeLinecap="round" />
       <path d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${ex} ${ey}`} fill="none" stroke={color} strokeWidth="16" strokeLinecap="round" />
-      <circle cx={ex} cy={ey} r="9" fill="white" stroke={color} strokeWidth="4" />
+      <circle cx={ex} cy={ey} r="9" fill="hsl(var(--card))" stroke={color} strokeWidth="4" />
       {/* Where Flag (30) and Quarantine (70) start */}
       {[30, 70].map((mark) => {
         const [lx, ly] = point(mark, r + 20);
-        return <text key={mark} x={lx} y={ly} textAnchor="middle" className="font-mono" fontSize="9" fill="#6b7685">{mark}</text>;
+        return <text key={mark} x={lx} y={ly} textAnchor="middle" className="font-mono" fontSize="9" fill="hsl(var(--muted-foreground))">{mark}</text>;
       })}
-      <text x={sx - 6} y={sy + 16} textAnchor="middle" className="font-mono" fontSize="9" fill="#6b7685">0</text>
-      <text x={tx + 6} y={ty + 16} textAnchor="middle" className="font-mono" fontSize="9" fill="#6b7685">100</text>
+      <text x={sx - 6} y={sy + 16} textAnchor="middle" className="font-mono" fontSize="9" fill="hsl(var(--muted-foreground))">0</text>
+      <text x={tx + 6} y={ty + 16} textAnchor="middle" className="font-mono" fontSize="9" fill="hsl(var(--muted-foreground))">100</text>
       <text x="110" y="100" textAnchor="middle" className="font-display" fontSize="44" fontWeight="700" fill={color}>{score}</text>
-      <text x="110" y="128" textAnchor="middle" className="font-mono" fontSize="10" fill="#6b7685">out of 100</text>
+      <text x="110" y="128" textAnchor="middle" className="font-mono" fontSize="10" fill="hsl(var(--muted-foreground))">out of 100</text>
     </svg>
   );
 }
@@ -44,7 +44,7 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
           <h2 className="section-title">Verdict</h2>
           <span className="font-mono text-[11px] text-muted-foreground">danger score</span>
         </div>
-        <Gauge score={0} color="#c5ccd6" />
+        <Gauge score={0} color="hsl(var(--border))" />
         <p className="mt-2 text-center text-[14px] text-muted-foreground">
           {scanning ? "Checking the file… this can take up to a minute." : "No file checked yet. Drop a resume below."}
         </p>
@@ -75,7 +75,7 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
         <Gauge score={result.score} color={style.hex} />
       </div>
       <div className="px-5 pb-5">
-        <div className={cn("mx-auto -mt-1 flex w-fit items-center gap-2.5 whitespace-nowrap rounded-full px-5 py-2.5 text-white shadow-lg", style.solid)}>
+        <div className={cn("mx-auto -mt-1 flex w-fit items-center gap-2.5 whitespace-nowrap rounded-full px-5 py-2.5 text-white dark:text-neutral-950 shadow-lg", style.solid)}>
           <Icon className="h-5 w-5 shrink-0" />
           <span className="font-display text-[24px] font-bold uppercase leading-none tracking-[0.14em]">{result.verdict}</span>
         </div>
@@ -98,11 +98,11 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
               <div className={cn("h-full opacity-45", style.solid)} style={{ width: `${bossy}%` }} />
             </div>
             <div className="mt-2 grid gap-1 text-[13px]">
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-2 text-muted-foreground" title={HIDDEN_TIP}>
                 <span className={cn("h-2.5 w-2.5 rounded-sm", style.solid)} />
                 How hidden <span className="font-mono font-medium text-foreground">{hidden}/50</span>
               </div>
-              <div className="flex items-center gap-2 text-muted-foreground">
+              <div className="flex items-center gap-2 text-muted-foreground" title={BOSSY_TIP}>
                 <span className={cn("h-2.5 w-2.5 rounded-sm opacity-45", style.solid)} />
                 How bossy <span className="font-mono font-medium text-foreground">{bossy}/50</span>
               </div>

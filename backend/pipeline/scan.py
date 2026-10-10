@@ -139,8 +139,10 @@ def finish(compared, ai_pieces, human, pages, timings, make_previews):
     # Steps 6 and 7, the same for every kind of file
     # A witness that crashed or timed out = something crashed = Quarantine
     if compared["witness_errors"]:
-        return quarantine("A page reader failed, so we cannot be sure what people see: "
-                          + "; ".join(compared["witness_errors"]), timings)
+        log.error("Page reader failed: " + "; ".join(compared["witness_errors"]))
+        return quarantine("One of our page readers did not answer (it may be busy), so we could not be sure "
+                          "what a person sees. To be safe, the file was held. Try again in a minute, "
+                          "or turn on private mode.", timings)
 
     result = decide(compared, {p["page"]: (p["width"], p["height"]) for p in pages})
     result["timings"] = {**timings, **result["timings"]}
@@ -168,13 +170,17 @@ def scan_pdf(pdf_bytes, private_mode=None, file_name="file"):
                 result = job.result(timeout=TIME_LIMIT)
             except TimeoutError:
                 job.cancel()
-                result = quarantine(f"The scan took longer than the {TIME_LIMIT} second time limit.")
+                result = quarantine(f"Checking this file took longer than {TIME_LIMIT // 60} minutes, "
+                                    "so it was held to be safe. Try again, or turn on private mode for a faster check.")
             result["timings"] = {"open": open_time, **result["timings"]}
             if file_type(file_name) == "pdf":
                 result["pages"] = pages
     except Exception as error:
-        # Anything else that goes wrong also ends in Quarantine
-        result = quarantine(f"The scan crashed: {type(error).__name__}: {error}")
+        # Anything else that goes wrong also ends in Quarantine.
+        # Plain words for people; the technical details go to the log only.
+        log.exception(f"Scan of {file_name} crashed: {error}")
+        result = quarantine("Obsidian could not open this file safely (it may be damaged or unusual), "
+                            "so it was held for a person to check.")
 
     result["total_time"] = round(time.perf_counter() - started, 1)
     result["private_mode"] = private_mode

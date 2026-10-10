@@ -1,0 +1,33 @@
+// TAATVA Obsidian - where the email verification link lands.
+// Supabase has already confirmed the email. We try to sign the person in
+// straight away; if that is not possible (for example the link was opened on
+// another device), they are sent to the sign-in page with a "confirmed" note.
+
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
+import { NextResponse, type NextRequest } from "next/server";
+
+export async function GET(request: NextRequest) {
+  const url = request.nextUrl;
+  const code = url.searchParams.get("code");
+  const failed = url.searchParams.get("error");
+
+  if (failed) return NextResponse.redirect(new URL("/login?error=link", url.origin));
+
+  if (code) {
+    const cookieStore = cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll: () => cookieStore.getAll(),
+          setAll: (list) => list.forEach(({ name, value, options }) => cookieStore.set(name, value, options)),
+        },
+      },
+    );
+    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    if (!error) return NextResponse.redirect(new URL("/scan", url.origin));
+  }
+  return NextResponse.redirect(new URL("/login?confirmed=1", url.origin));
+}

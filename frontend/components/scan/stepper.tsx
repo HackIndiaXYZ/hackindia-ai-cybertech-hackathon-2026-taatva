@@ -9,12 +9,18 @@ import { importantFindings, FileBadge, friendlyTime } from "@/components/shared"
 import { cn } from "@/lib/utils";
 
 const STEPS = [
-  { key: "open", label: "Open safely", sub: "type + size check", tool: "Checks the file type and size. Never runs anything inside the file." },
-  { key: "ai_view", label: "AI view", sub: "what the AI reads", tool: "PyMuPDF reads every piece of text, with its size, colour and position." },
-  { key: "human_view", label: "Human view", sub: "what a person sees", tool: "Gemini + Tesseract copy only the text a person can see on the page picture." },
-  { key: "compare", label: "Compare", sub: "AI vs person", tool: "RapidFuzz compares both views. Text only the computer sees is hidden." },
-  { key: "order_check", label: "Order check", sub: "sounds like an order?", tool: "Phrase list (+ Prompt Guard) scores how much the text sounds like an order to an AI." },
-  { key: "score_clean", label: "Score + clean", sub: "plain math", tool: "Danger = how hidden + how bossy. Plain code, never AI." },
+  { key: "open", label: "Open safely", sub: "type + size check",
+    tool: "Checks the file is really what it says it is and not too big. Nothing inside the file is ever run." },
+  { key: "ai_view", label: "AI view", sub: "what the AI reads",
+    tool: "Collects every bit of text an AI tool would read, including text people cannot see." },
+  { key: "human_view", label: "Human view", sub: "what a person sees",
+    tool: "Takes a picture of each page and writes down only the text a person can actually see." },
+  { key: "compare", label: "Compare", sub: "AI vs person",
+    tool: "Puts both views side by side. Text the AI reads but a person cannot see is hidden." },
+  { key: "order_check", label: "Order check", sub: "sounds like an order?",
+    tool: "Checks if any text sounds like an order to an AI, such as “ignore your rules” or “rank me first”." },
+  { key: "score_clean", label: "Score + clean", sub: "plain math",
+    tool: "Danger = how hidden + how bossy, worked out with simple fixed rules (never by AI). Then makes the clean copy." },
 ];
 
 type Props = { result: ScanResult | null; scanning: boolean; fileName?: string; fileSize?: number };
@@ -48,15 +54,15 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
           const failed = i === failedAt;
           return (
             <li key={step.key} className="relative flex flex-col items-center text-center" title={step.tool}>
-              {i > 0 && <span className={cn("absolute right-1/2 top-5 h-0.5 w-full", done || scanning ? "bg-primary" : "bg-border")} />}
+              {i > 0 && <span className={cn("absolute right-1/2 top-5 h-0.5 w-full", i === 3 && "max-md:hidden", done || scanning ? "bg-primary" : "bg-border")} />}
               <span
                 className={cn(
                   "relative z-10 grid h-10 w-10 place-items-center rounded-full border-[3px] border-white shadow ring-2",
-                  failed ? "bg-quarantine ring-quarantine/40" : done ? "bg-primary ring-primary/30" : scanning ? "bg-white ring-primary/40" : "bg-muted ring-border",
+                  failed ? "bg-quarantine ring-quarantine/40" : done ? "bg-primary ring-primary/30" : scanning ? "bg-card ring-primary/40" : "bg-muted ring-border",
                 )}
               >
-                {failed ? <span className="font-bold text-white">!</span>
-                  : done ? <Check className="h-4 w-4 text-white" strokeWidth={3} />
+                {failed ? <span className="font-bold text-white dark:text-neutral-950">!</span>
+                  : done ? <Check className="h-4 w-4 text-primary-foreground" strokeWidth={3} />
                   : scanning ? <Loader2 className="h-4 w-4 animate-spin text-primary" style={{ animationDelay: `${i * 120}ms` }} />
                   : null}
               </span>

@@ -1,19 +1,22 @@
 "use client";
 
 // TAATVA Obsidian - the top bar on every page:
-// logo on the left, SCAN / HISTORY tabs in the middle, reader status and private mode on the right.
+// logo on the left, SCAN / HISTORY / DEMO tabs in the middle,
+// reader status, private mode, light/dark switch and sign out on the right.
+// On a phone: logo and buttons on the first row, the tabs on a second row.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Lock, LockOpen, LogOut } from "lucide-react";
 import { useSettings } from "./settings";
+import { ThemeToggle } from "./theme";
 import { cn } from "@/lib/utils";
 
-// The Obsidian logo: a dark cut gemstone
+// The Obsidian logo: a dark cut gemstone (with a silver edge in dark mode)
 export function Logo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 40 40" className={className} aria-hidden="true">
-      <polygon points="20,3 37,15 31,36 9,36 3,15" fill="#1b2433" />
+      <polygon points="20,3 37,15 31,36 9,36 3,15" fill="#1b2433" className="stroke-transparent dark:stroke-slate-400" strokeWidth="1.2" />
       <polygon points="20,3 26,17 20,36 14,17" fill="#3b4a63" />
       <polygon points="3,15 14,17 9,36" fill="#2a364b" />
       <polygon points="37,15 26,17 31,36" fill="#0f1623" />
@@ -23,17 +26,33 @@ export function Logo({ className }: { className?: string }) {
   );
 }
 
+function Brand({ small = false }: { small?: boolean }) {
+  return (
+    <span className="flex items-center gap-2.5 sm:gap-3">
+      <Logo className={small ? "h-8 w-8" : "h-8 w-8 sm:h-10 sm:w-10"} />
+      <span>
+        <span className="block font-display text-[22px] font-bold leading-none tracking-[0.2em] text-foreground sm:text-[28px] sm:tracking-[0.22em]">
+          OBSIDIAN
+        </span>
+        <span className="mt-1 hidden font-mono text-[10px] tracking-[0.18em] text-muted-foreground sm:block">
+          BY TEAM TAATVA · HIDDEN-ORDER SCANNER
+        </span>
+      </span>
+    </span>
+  );
+}
+
 export function Header() {
   const path = usePathname();
   const { email, signOut, privateMode, setPrivateMode, status, backendDown, waitingCount } = useSettings();
 
-  // The sign-in page only shows the logo
-  if (path.startsWith("/login")) {
+  // The sign-in page only shows the logo and the light/dark switch
+  if (path.startsWith("/login") || path.startsWith("/auth")) {
     return (
-      <header className="border-b bg-white/90">
-        <div className="mx-auto flex max-w-[1440px] items-center px-4 py-3 md:px-8">
-          <Logo className="h-9 w-9" />
-          <span className="ml-3 font-display text-[22px] font-bold tracking-[0.22em]">OBSIDIAN</span>
+      <header className="border-b bg-card/90">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-3 py-3 sm:px-4 md:px-8">
+          <Brand />
+          <ThemeToggle />
         </div>
       </header>
     );
@@ -45,32 +64,28 @@ export function Header() {
     { href: "/demo", label: "Demo" },
   ];
 
-  // What reads the pages right now
+  // Who reads the pages right now, in plain words
   const readers = backendDown
-    ? { dot: "bg-quarantine", text: "Backend offline" }
+    ? { dot: "bg-quarantine", text: "Scanner offline", tip: "The scanner (backend) is not answering. Start it, then refresh." }
     : privateMode
-      ? { dot: "bg-pass", text: "Tesseract only · nothing leaves" }
+      ? { dot: "bg-pass", text: "Tesseract only · nothing leaves",
+          tip: "Private mode: pages are read only on this computer. Nothing is sent to Google." }
       : status && !status.gemini
-        ? { dot: "bg-flag", text: "Tesseract only · no Gemini key" }
-        : { dot: "bg-pass", text: "Gemini + Tesseract live" };
+        ? { dot: "bg-flag", text: "Tesseract only · no Gemini key",
+            tip: "Only the reader on this computer is used, because no Google Gemini key is set up." }
+        : { dot: "bg-pass", text: "Gemini + Tesseract live",
+            tip: "Every page is read by two page readers: Google's Gemini (online) and Tesseract (on this computer)." };
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-3 px-4 py-3 md:px-8">
-        <Link href="/scan" className="flex items-center gap-3">
-          <Logo className="h-10 w-10" />
-          <div>
-            <div className="font-display text-[28px] font-bold leading-none tracking-[0.22em] text-foreground">
-              OBSIDIAN
-            </div>
-            <div className="mt-1 font-mono text-[10px] tracking-[0.18em] text-muted-foreground">
-              BY TEAM TAATVA · HIDDEN-ORDER SCANNER
-            </div>
-          </div>
+    <header className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur">
+      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2.5 sm:px-4 md:px-8 md:py-3">
+        <Link href="/scan" aria-label="Obsidian home">
+          <Brand />
         </Link>
 
-        <nav className="order-3 flex w-full justify-center md:order-none md:w-auto">
-          <div className="flex rounded-xl border bg-muted p-1">
+        {/* SCAN / HISTORY / DEMO: centered. On a phone they get their own row. */}
+        <nav className="order-3 flex w-full justify-center lg:order-none lg:w-auto">
+          <div className="flex w-full rounded-xl border bg-muted p-1 sm:w-auto">
             {tabs.map((tab) => {
               const active = path.startsWith(tab.href);
               return (
@@ -78,8 +93,8 @@ export function Header() {
                   key={tab.href}
                   href={tab.href}
                   className={cn(
-                    "flex items-center gap-2 rounded-lg px-5 py-2 font-display text-[17px] font-semibold uppercase tracking-[0.16em] transition",
-                    active ? "bg-primary text-white shadow" : "text-foreground hover:bg-white",
+                    "flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition sm:flex-none sm:px-5 sm:text-[17px] sm:tracking-[0.16em]",
+                    active ? "bg-primary text-primary-foreground shadow" : "text-foreground hover:bg-card",
                   )}
                 >
                   {tab.label}
@@ -87,9 +102,9 @@ export function Header() {
                     <span
                       className={cn(
                         "grid h-5 min-w-5 place-items-center rounded-full px-1.5 font-mono text-[11px] tracking-normal",
-                        active ? "bg-white text-primary" : "bg-quarantine text-white",
+                        active ? "bg-primary-foreground text-primary" : "bg-quarantine text-white dark:text-neutral-950",
                       )}
-                      title={`${tab.badge} files waiting for your decision`}
+                      title={`${tab.badge} file${tab.badge === 1 ? "" : "s"} waiting for your decision`}
                     >
                       {tab.badge}
                     </span>
@@ -100,33 +115,37 @@ export function Header() {
           </div>
         </nav>
 
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 font-mono text-[11px] text-foreground">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <span className="hidden items-center gap-2 rounded-full border bg-card px-3 py-1.5 font-mono text-[11px] text-foreground 2xl:flex"
+            title={readers.tip}>
             <span className={cn("h-2 w-2 rounded-full", readers.dot)} />
             {readers.text}
           </span>
           <button
             onClick={() => setPrivateMode(!privateMode)}
             className={cn(
-              "flex items-center gap-1.5 rounded-full border px-3 py-1.5 font-mono text-[11px] transition",
-              privateMode ? "border-pass/40 bg-pass/10 text-pass" : "bg-white text-foreground hover:bg-muted",
+              "flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[11px] transition sm:px-3",
+              privateMode ? "border-pass/40 bg-pass/10 text-pass" : "bg-card text-foreground hover:bg-muted",
             )}
-            title="Private mode: pages are read only on this computer (Tesseract). Nothing is sent to Gemini."
+            title={`${readers.tip} Click to turn private mode ${privateMode ? "off" : "on"}.`}
             aria-pressed={privateMode}
           >
+            <span className={cn("h-2 w-2 rounded-full 2xl:hidden", readers.dot)} />
             {privateMode ? <Lock className="h-3.5 w-3.5" /> : <LockOpen className="h-3.5 w-3.5" />}
-            Private mode: {privateMode ? "on" : "off"}
+            <span className="hidden sm:inline">Private mode: {privateMode ? "on" : "off"}</span>
+            <span className="sm:hidden">{privateMode ? "Private" : "Online"}</span>
           </button>
+          <ThemeToggle />
           {email && (
-            <div className="flex items-center gap-2 border-l pl-3">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/10 font-display text-[14px] font-semibold uppercase text-primary"
+            <div className="flex items-center gap-1.5 border-l pl-2 sm:gap-2 sm:pl-3">
+              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 font-display text-[14px] font-semibold uppercase text-primary"
                 title={`Signed in as ${email}`}>
                 {email[0]}
               </span>
-              <span className="hidden max-w-[160px] truncate text-[12px] text-muted-foreground xl:block">{email}</span>
-              <button onClick={signOut} title="Sign out"
-                className="flex items-center gap-1 rounded-full border bg-white px-2.5 py-1.5 text-[11px] text-foreground hover:bg-muted">
-                <LogOut className="h-3.5 w-3.5" /> Sign out
+              <span className="hidden max-w-[160px] truncate text-[12px] text-muted-foreground 2xl:block">{email}</span>
+              <button onClick={signOut} title="Sign out" aria-label="Sign out"
+                className="flex items-center gap-1 rounded-full border bg-card px-2 py-1.5 text-[11px] text-foreground hover:bg-muted sm:px-2.5">
+                <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Sign out</span>
               </button>
             </div>
           )}

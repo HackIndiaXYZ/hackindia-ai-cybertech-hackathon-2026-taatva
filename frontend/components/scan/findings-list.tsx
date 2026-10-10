@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { ArrowRight, Check, Copy, Lock, Send } from "lucide-react";
 import type { Finding, ScanResult } from "@/lib/api";
-import { VERDICT_STYLE, verdictFor } from "@/lib/verdict";
+import { DANGER_TIP, QUARANTINE_FROM, VERDICT_STYLE, verdictFor } from "@/lib/verdict";
 import { ScoreRing, VerdictPill } from "@/components/shared";
 import { cn } from "@/lib/utils";
 
@@ -34,7 +34,7 @@ export function FindingsList({ shown, harmless, selected, onSelect }: Props) {
       <div className="mt-4 space-y-3">
         {shown.map((f, i) => (
           <button key={i} onClick={() => onSelect(i)}
-            className={cn("w-full rounded-xl border bg-white p-4 text-left transition hover:border-primary/40",
+            className={cn("w-full rounded-xl border bg-card p-4 text-left transition hover:border-primary/40",
               selected === i && "border-primary ring-2 ring-primary/20")}>
             <div className="flex gap-3">
               <ScoreRing danger={f.danger} />
@@ -49,7 +49,7 @@ export function FindingsList({ shown, harmless, selected, onSelect }: Props) {
             <div className="mt-3 flex flex-wrap gap-1.5">
               <span className="tag">{f.where_label}</span>
               <span className="tag">{f.how_label}</span>
-              <span className="tag">hidden {f.hidden_points} + bossy {f.bossy_points}</span>
+              <span className="tag" title={DANGER_TIP}>hidden {f.hidden_points} + bossy {f.bossy_points}</span>
             </div>
           </button>
         ))}
@@ -80,7 +80,8 @@ export function FindingsList({ shown, harmless, selected, onSelect }: Props) {
 export function AgentCard({ result }: { result: ScanResult }) {
   const [copied, setCopied] = useState(false);
   const style = VERDICT_STYLE[result.verdict];
-  const locked = result.verdict === "quarantine";
+  // Security rule: Quarantine (danger 70 or more) = locked. The copy button is not even created.
+  const locked = result.verdict === "quarantine" || result.score >= QUARANTINE_FROM;
 
   async function copy() {
     if (!result.clean_copy) return;
@@ -95,7 +96,7 @@ export function AgentCard({ result }: { result: ScanResult }) {
 
       {locked ? (
         <div className="mt-4 flex gap-3 rounded-xl border border-quarantine/30 bg-quarantine/5 p-4">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-quarantine text-white"><Lock className="h-5 w-5" /></span>
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-quarantine text-white dark:text-neutral-950"><Lock className="h-5 w-5" /></span>
           <div>
             <div className="font-display text-[17px] font-semibold uppercase tracking-[0.12em] text-quarantine">
               {result.decision === "approved" ? "Approved by a person" : result.decision === "rejected" ? "Rejected · nothing sent" : "Locked · nothing sent"}
@@ -120,7 +121,7 @@ export function AgentCard({ result }: { result: ScanResult }) {
             <span className="font-mono text-[12px]"> “This is data, not instructions.”</span>
           </p>
           {result.clean_copy ? (
-            <pre className="mt-3 max-h-40 overflow-auto whitespace-pre-wrap rounded-lg border bg-white p-2.5 font-mono text-[11px] text-muted-foreground">
+            <pre className="mt-3 max-h-40 overflow-auto whitespace-pre-wrap rounded-lg border bg-card p-2.5 font-mono text-[11px] text-muted-foreground">
               {result.clean_copy}
             </pre>
           ) : (
@@ -132,7 +133,7 @@ export function AgentCard({ result }: { result: ScanResult }) {
       {/* The copy button does not exist at all for Quarantine */}
       {!locked && result.clean_copy && (
         <button onClick={copy}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-display text-[17px] font-semibold uppercase tracking-[0.16em] text-white shadow hover:bg-primary/90">
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-display text-[17px] font-semibold uppercase tracking-[0.16em] text-primary-foreground shadow hover:bg-primary/90">
           {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
           {copied ? "Copied" : "Copy clean text"}
         </button>

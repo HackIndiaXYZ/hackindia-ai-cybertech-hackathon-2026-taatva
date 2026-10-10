@@ -52,7 +52,7 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
             {([["page", "Page"], ["views", "AI view vs Human view"]] as const).map(([key, label]) => (
               <button key={key} onClick={() => setTab(key)}
                 className={cn("rounded-md px-3 py-1.5 font-medium transition",
-                  tab === key ? "bg-white text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
+                  tab === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
                 {label}
               </button>
             ))}
@@ -74,19 +74,19 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
         </label>
       </div>
 
-      <div className="mt-5 rounded-xl border bg-[radial-gradient(#d8dde6_1px,transparent_1px)] bg-muted/60 p-4 [background-size:14px_14px] md:p-6">
+      <div className="mt-5 rounded-xl border bg-[radial-gradient(hsl(var(--border))_1px,transparent_1px)] bg-muted/60 p-4 [background-size:14px_14px] md:p-6">
         {tab === "page" ? (
           <>
             <div className="mb-3 flex items-center justify-center">
               {xray && (
-                <span className="rounded-full bg-quarantine px-3 py-1 font-mono text-[11px] font-medium text-white shadow">
+                <span className="rounded-full bg-quarantine px-3 py-1 font-mono text-[11px] font-medium text-white dark:text-neutral-950 shadow">
                   ● X-RAY ON · {hiddenOnPages + notOnPage.length} hidden
                 </span>
               )}
             </div>
 
             {/* The page */}
-            <div className="relative mx-auto max-w-[640px] bg-white shadow-xl"
+            <div className="relative mx-auto max-w-[640px] bg-white text-neutral-900 shadow-xl"
               style={{ aspectRatio: size ? `${size.width} / ${size.height}` : "612 / 792" }}>
               {image ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -111,7 +111,7 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
                       width: `${Math.max(((x1 - x0) / size.width) * 100, 30)}%`,
                       minHeight: `${((y1 - y0) / size.height) * 100}%`,
                     }}>
-                    <span className="absolute -top-[18px] left-1 flex items-center gap-1 whitespace-nowrap rounded-sm bg-quarantine px-1.5 py-[1px] font-mono text-[10px] font-medium uppercase text-white">
+                    <span className="absolute -top-[18px] left-1 flex items-center gap-1 whitespace-nowrap rounded-sm bg-quarantine px-1.5 py-[1px] font-mono text-[10px] font-medium uppercase text-white dark:text-neutral-950">
                       ⊘ {f.how_label} · {f.danger}
                     </span>
                     {/* The hidden words, made visible */}
@@ -182,7 +182,7 @@ function TwoViews({ result }: { result: ScanResult }) {
           <div key={page}>
             <div className="mb-2 font-mono text-[11px] uppercase text-muted-foreground">Page {page}</div>
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border bg-white p-3">
+              <div className="rounded-lg border bg-card p-3">
                 <div className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-primary">What the AI reads</div>
                 <ul className="space-y-0.5 text-[13px]">
                   {result.views!.ai.filter((l) => l.page === page).map((line, i) => (
@@ -192,7 +192,7 @@ function TwoViews({ result }: { result: ScanResult }) {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-lg border bg-white p-3">
+              <div className="rounded-lg border bg-card p-3">
                 <div className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-pass">
                   What a person sees <span className="font-normal normal-case text-muted-foreground">(read by {people?.reader ?? "—"})</span>
                 </div>

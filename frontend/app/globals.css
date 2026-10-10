@@ -30,6 +30,39 @@
     --flag: 40 82% 40%;
     --quarantine: 358 57% 46%;
   }
+
+  /* Dark mode: sharp dark metal. Deep slate page, charcoal metal cards,
+     silver accents. Verdict colours are brighter so they stay easy to read. */
+  .dark {
+    --background: 216 22% 7%;       /* deep slate */
+    --foreground: 210 20% 92%;      /* bright silver-white text */
+    --card: 215 18% 11%;            /* dark metal charcoal */
+    --card-foreground: 210 20% 92%;
+    --popover: 215 18% 11%;
+    --popover-foreground: 210 20% 92%;
+    --primary: 212 18% 76%;         /* silver accent */
+    --primary-foreground: 216 25% 9%;
+    --secondary: 215 15% 17%;
+    --secondary-foreground: 210 20% 92%;
+    --muted: 215 15% 17%;
+    --muted-foreground: 214 12% 66%;
+    --accent: 215 15% 17%;
+    --accent-foreground: 210 20% 92%;
+    --destructive: 0 72% 62%;
+    --border: 214 14% 22%;
+    --input: 214 14% 28%;
+    --ring: 212 18% 76%;
+
+    --pass: 145 55% 48%;
+    --flag: 42 88% 55%;
+    --quarantine: 0 75% 63%;
+  }
+}
+
+/* Metal feel in dark mode: a faint brushed sheen on cards */
+.dark .panel {
+  background-image: linear-gradient(160deg, hsl(0 0% 100% / 0.035), transparent 40%);
+  box-shadow: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 8px 24px rgb(0 0 0 / 0.35);
 }
 
 @layer base {

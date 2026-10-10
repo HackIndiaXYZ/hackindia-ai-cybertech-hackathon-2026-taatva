@@ -28,7 +28,7 @@ export function ScoreRing({ danger, size = 52 }: { danger: number; size?: number
   const circle = 2 * Math.PI * radius;
   return (
     <svg viewBox="0 0 52 52" width={size} height={size} className="shrink-0" aria-label={`Danger ${danger} out of 100`}>
-      <circle cx="26" cy="26" r={radius} fill="white" stroke="#e6e9ef" strokeWidth="5" />
+      <circle cx="26" cy="26" r={radius} fill="hsl(var(--card))" stroke="hsl(var(--muted))" strokeWidth="5" />
       <circle
         cx="26" cy="26" r={radius} fill="none" stroke={VERDICT_STYLE[verdict].hex} strokeWidth="5"
         strokeDasharray={`${(circle * Math.min(danger, 100)) / 100} ${circle}`} strokeLinecap="round"
@@ -56,7 +56,7 @@ export function DangerBar({ danger }: { danger: number }) {
 // Little file icon with "PDF" / "HTML" / "EML" written on it
 export function FileBadge({ type, className }: { type: string; className?: string }) {
   return (
-    <div className={cn("relative grid h-10 w-9 shrink-0 place-items-end rounded-md border bg-white pb-1 shadow-sm", className)}>
+    <div className={cn("relative grid h-10 w-9 shrink-0 place-items-end rounded-md border bg-card pb-1 shadow-sm", className)}>
       <span className="absolute left-2 right-2 top-2 h-0.5 rounded bg-muted" />
       <span className="absolute left-2 right-3 top-3.5 h-0.5 rounded bg-muted" />
       <span className="w-full text-center font-mono text-[8px] font-medium uppercase text-quarantine">{type}</span>
@@ -84,7 +84,7 @@ export function PageSchematic({ size, findings, className }: { size?: PageSize; 
     <div className={cn("relative overflow-hidden rounded border bg-white shadow-md", className)}
       style={{ aspectRatio: `${width} / ${height}` }}>
       {lines.map((top, i) => (
-        <span key={top} className="absolute h-[3%] rounded-sm bg-muted"
+        <span key={top} className="absolute h-[3%] rounded-sm bg-slate-200"
           style={{ top: `${top}%`, left: "12%", width: i % 3 === 0 ? "30%" : i % 2 ? "64%" : "72%", height: "2.2%" }} />
       ))}
       {boxes.map((f, i) => {

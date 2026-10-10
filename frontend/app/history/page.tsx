@@ -10,7 +10,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { ArrowRight, Check, ChevronDown, ChevronRight, Search, Send, X } from "lucide-react";
 import { decideScan, getHistory, type ScanResult, type Verdict } from "@/lib/api";
-import { VERDICT_STYLE } from "@/lib/verdict";
+import { DANGER_TIP, VERDICT_STYLE } from "@/lib/verdict";
 import { useSettings } from "@/components/settings";
 import { Input } from "@/components/ui/input";
 import { DangerBar, FILE_KIND, FileBadge, PageSchematic, VerdictPill, friendlyTime } from "@/components/shared";
@@ -45,6 +45,15 @@ function HistoryScreen() {
       })
       .catch((e) => setError(`Could not load history: ${e.message}`));
   }, [params]);
+
+  // Open or close one scan's details
+  function toggleRow(id: string) {
+    setOpen((old) => {
+      const next = new Set(old);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
 
   async function decide(id: string, decision: "approved" | "rejected") {
     try {
@@ -81,7 +90,7 @@ function HistoryScreen() {
       {/* Title and search */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-[44px] font-bold uppercase leading-none tracking-[0.12em] text-foreground md:text-[56px]">
+          <h1 className="font-display text-[34px] font-bold uppercase leading-none tracking-[0.1em] text-foreground sm:text-[44px] md:text-[56px] md:tracking-[0.12em]">
             Scan history
           </h1>
           <p className="mt-2 text-[15px] text-muted-foreground">
@@ -91,7 +100,7 @@ function HistoryScreen() {
         <div className="relative w-full md:w-80">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search files…"
-            className="h-12 rounded-xl bg-white pl-10 text-[15px]" />
+            className="h-12 rounded-xl bg-card pl-10 text-[15px]" />
         </div>
       </div>
 
@@ -132,19 +141,32 @@ function HistoryScreen() {
         <div className="flex flex-wrap rounded-xl border bg-muted p-1">
           {(["all", "quarantine", "flag", "pass"] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              className={cn("flex items-center gap-2 rounded-lg px-4 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition",
-                filter === f ? "bg-white text-foreground shadow-sm" : "text-foreground/80 hover:bg-white/60")}>
+              className={cn("flex items-center gap-2 rounded-lg px-3 py-2 font-display text-[13px] sm:px-4 sm:text-[15px] font-semibold uppercase tracking-[0.14em] transition",
+                filter === f ? "bg-card text-foreground shadow-sm" : "text-foreground/80 hover:bg-card/60")}>
               <span className={cn("h-1.5 w-1.5 rounded-full", f === "all" ? "bg-muted-foreground" : VERDICT_STYLE[f].solid)} />
               {f}
-              <span className="rounded-full border bg-white px-1.5 font-mono text-[10px] tracking-normal">{counts[f]}</span>
+              <span className="rounded-full border bg-card px-1.5 font-mono text-[10px] tracking-normal">{counts[f]}</span>
             </button>
           ))}
         </div>
         <span className="text-[13px] text-muted-foreground">Tip: open a row to see the hidden text and where it sat.</span>
       </div>
 
-      {/* The table */}
-      <section className="panel overflow-x-auto">
+      {/* On a phone: one card per scan */}
+      <ul className="space-y-3 md:hidden">
+        {rows === null && !error && <li className="panel p-6 text-center text-muted-foreground">Loading…</li>}
+        {rows !== null && visible.length === 0 && (
+          <li className="panel p-6 text-center text-muted-foreground">
+            {rows.length ? "No files match." : <>No files scanned yet. <Link href="/scan" className="text-primary underline">Scan one</Link>.</>}
+          </li>
+        )}
+        {visible.map((row) => (
+          <ScanCard key={row.id} row={row} isOpen={open.has(row.id)} toggle={() => toggleRow(row.id)} onDecide={decide} />
+        ))}
+      </ul>
+
+      {/* On bigger screens: the table */}
+      <section className="panel hidden overflow-x-auto md:block">
         <table className="w-full min-w-[980px] text-left">
           <thead>
             <tr className="border-b bg-muted/30 font-display text-[14px] uppercase tracking-[0.16em] text-primary">
@@ -168,17 +190,13 @@ function HistoryScreen() {
             )}
             {visible.map((row) => {
               const isOpen = open.has(row.id);
-              const toggle = () => setOpen((old) => {
-                const next = new Set(old);
-                if (next.has(row.id)) next.delete(row.id); else next.add(row.id);
-                return next;
-              });
+              const toggle = () => toggleRow(row.id);
               return (
                 <Fragment key={row.id}>
                   <tr className={cn("border-b align-middle", row.decision === "waiting" && "bg-quarantine/[0.03]", isOpen && "border-b-0")}>
                     <td className="py-4 pl-5 pr-2">
                       <button onClick={toggle} aria-label={isOpen ? "Close row" : "Open row"} aria-expanded={isOpen}
-                        className="grid h-9 w-9 place-items-center rounded-lg border bg-white text-primary hover:bg-muted">
+                        className="grid h-9 w-9 place-items-center rounded-lg border bg-card text-primary hover:bg-muted">
                         {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                       </button>
                     </td>
@@ -242,11 +260,11 @@ function DecisionCell({ row, onDecide }: { row: ScanResult; onDecide: (id: strin
     return (
       <div className="flex gap-2">
         <button disabled={busy} onClick={() => act("approved")}
-          className="flex items-center gap-1.5 rounded-lg bg-pass px-3.5 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-white shadow hover:bg-pass/90 disabled:opacity-50">
+          className="flex items-center gap-1.5 rounded-lg bg-pass px-3.5 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-white dark:text-neutral-950 shadow hover:bg-pass/90 disabled:opacity-50">
           <Check className="h-4 w-4" strokeWidth={3} />Approve
         </button>
         <button disabled={busy} onClick={() => act("rejected")}
-          className="flex items-center gap-1.5 rounded-lg border-2 border-quarantine/40 bg-white px-3.5 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-quarantine hover:bg-quarantine/5 disabled:opacity-50">
+          className="flex items-center gap-1.5 rounded-lg border-2 border-quarantine/40 bg-card px-3.5 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-quarantine hover:bg-quarantine/5 disabled:opacity-50">
           <X className="h-4 w-4" strokeWidth={3} />Reject
         </button>
       </div>
@@ -276,28 +294,62 @@ function DecisionCell({ row, onDecide }: { row: ScanResult; onDecide: (id: strin
 }
 
 function ExpandedRow({ row }: { row: ScanResult }) {
+  return (
+    <tr className={cn("border-b", row.decision === "waiting" && "bg-quarantine/[0.03]")}>
+      <td />
+      <td colSpan={6} className="px-2 pb-6 pr-5">
+        <RowDetails row={row} />
+      </td>
+    </tr>
+  );
+}
+
+// On a phone: one card per scan instead of a wide table row
+function ScanCard({ row, isOpen, toggle, onDecide }: {
+  row: ScanResult; isOpen: boolean; toggle: () => void; onDecide: (id: string, d: "approved" | "rejected") => void;
+}) {
+  return (
+    <li className={cn("panel p-4", row.decision === "waiting" && "border-quarantine/30 bg-quarantine/[0.03]")}>
+      <button onClick={toggle} aria-expanded={isOpen} className="flex w-full items-center gap-3 text-left">
+        <FileBadge type={row.file_type ?? "pdf"} />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-mono text-[14px] text-foreground">{row.file_name}</span>
+          <span className="block text-[12px] text-muted-foreground">{FILE_KIND[row.file_type ?? "pdf"]} · {friendlyTime(row.scanned_at)}</span>
+        </span>
+        {isOpen ? <ChevronDown className="h-5 w-5 shrink-0 text-primary" /> : <ChevronRight className="h-5 w-5 shrink-0 text-primary" />}
+      </button>
+      <div className="mt-3 flex items-center gap-3">
+        <span className={cn("font-display text-[28px] font-bold leading-none", VERDICT_STYLE[row.verdict].text)} title={DANGER_TIP}>{row.score}</span>
+        <div className="flex-1"><DangerBar danger={row.score} /></div>
+        <VerdictPill verdict={row.verdict} size="sm" />
+      </div>
+      <p className="mt-2 text-[14px] text-foreground">{row.worst_finding}</p>
+      <div className="mt-3"><DecisionCell row={row} onDecide={onDecide} /></div>
+      {isOpen && <div className="mt-4 border-t pt-4"><RowDetails row={row} /></div>}
+    </li>
+  );
+}
+
+function RowDetails({ row }: { row: ScanResult }) {
   const worst = row.findings.find((f) => f.danger >= 30 || f.hidden_points >= 40) ?? row.findings[0];
   const page = worst?.where.page ?? 1;
   const pageSize = row.pages.find((p) => p.page === page) ?? row.pages[0];
   const boxes = row.findings.filter((f) => (f.where.page ?? 0) === page && (f.danger >= 30 || f.hidden_points >= 40));
 
   return (
-    <tr className={cn("border-b", row.decision === "waiting" && "bg-quarantine/[0.03]")}>
-      <td />
-      <td colSpan={6} className="px-2 pb-6 pr-5">
-        <div className="flex flex-wrap items-start gap-6">
-          <PageSchematic size={pageSize} findings={boxes} className="w-[100px] shrink-0" />
-          <div className="min-w-[280px] flex-1">
+        <div className="flex flex-wrap items-start gap-4 sm:gap-6">
+          <PageSchematic size={pageSize} findings={boxes} className="w-[80px] shrink-0 sm:w-[100px]" />
+          <div className="min-w-[200px] flex-1">
             <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">What was hidden</div>
             {worst && (worst.danger >= 30 || worst.hidden_points >= 40) ? (
               <>
-                <div className="mt-2 rounded-lg border bg-white px-3 py-2.5 font-mono text-[14px] text-quarantine">
+                <div className="mt-2 rounded-lg border bg-card px-3 py-2.5 font-mono text-[14px] text-quarantine">
                   {worst.reads_as || worst.text}
                 </div>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   <span className="tag">where: {worst.where_label}</span>
                   <span className="tag">how: {worst.how_label}</span>
-                  <span className="tag">hidden {worst.hidden_points} + bossy {worst.bossy_points} = {worst.danger}</span>
+                  <span className="tag" title={DANGER_TIP}>hidden {worst.hidden_points} + bossy {worst.bossy_points} = {worst.danger}</span>
                 </div>
               </>
             ) : (
@@ -307,11 +359,9 @@ function ExpandedRow({ row }: { row: ScanResult }) {
             )}
           </div>
           <Link href={`/scan?id=${row.id}`}
-            className="flex items-center gap-2 self-center rounded-xl border-2 border-primary/60 bg-white px-5 py-3 font-display text-[16px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5">
+            className="flex w-full items-center justify-center gap-2 self-center rounded-xl border-2 border-primary/60 bg-card px-5 py-3 font-display text-[16px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5 sm:w-auto">
             Open full report <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
-      </td>
-    </tr>
   );
 }

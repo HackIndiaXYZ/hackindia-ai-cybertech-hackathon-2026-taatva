@@ -40,8 +40,8 @@ PLACES = {
 # Ways text is hidden ON the page. Matched by how the first reason starts.
 #   key: (title, short tag, explanation)
 ON_PAGE = {
-    "hidden by page code":   ("Text hidden by the page's code", "hidden by code",
-                              "The page's code hides it, so a person never sees it."),
+    "hidden by page code":   ("Text hidden by the page's code", "hidden by the page's code",
+                              "The page's code tells the screen not to show it, so a person never sees it."),
     "same colour":           ("Text the same colour as the page", "same colour as page",
                               "Same colour as the page, so a person sees blank space."),
     "tiny font":             ("Text too small to read", "font under 4 pt", "Far too small for a person to read."),
@@ -104,13 +104,7 @@ def title(item):
 
 
 def how_label(item):
-    # A very short tag, like "same colour as page" or "display:none block"
-    reason = (item.get("how_hidden") or [""])[0]
-    if kind_of(item) == "hidden by page code":
-        if "display:none" in reason:
-            return "display:none block"
-        if "visibility:hidden" in reason:
-            return "visibility:hidden"
+    # A very short tag, like "same colour as page"
     return words_for(item)[1]
 
 

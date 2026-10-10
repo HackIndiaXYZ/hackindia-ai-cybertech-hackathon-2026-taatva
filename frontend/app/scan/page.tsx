@@ -71,7 +71,7 @@ function ScanScreen() {
       {error && (
         <div className="flex items-center gap-3 rounded-xl border border-quarantine/30 bg-quarantine/5 p-4 text-[14px] text-quarantine">
           <AlertTriangle className="h-5 w-5" />
-          Could not check the file: {error}. Is the backend running?
+          Could not check the file: {error}. Is the scanner running? Try again in a moment.
         </div>
       )}
       {result?.save_error && (
