@@ -20,8 +20,13 @@ GEMINI_BACKUP_MODEL = os.getenv("GEMINI_BACKUP_MODEL", "gemini-3.1-flash-lite")
 TESSERACT_CMD = os.getenv("TESSERACT_CMD", "tesseract")
 
 # Which installed browser Playwright uses to open emails and web pages
-# ("msedge" = Microsoft Edge, already on Windows; "chrome" also works)
-BROWSER_CHANNEL = os.getenv("BROWSER_CHANNEL", "msedge")
+# ("msedge" = Microsoft Edge, already on Windows; empty = Playwright's own Chromium, used on Render)
+BROWSER_CHANNEL = os.getenv("BROWSER_CHANNEL", "msedge").strip()
+
+# Websites allowed to talk to this backend (comma separated).
+# On this computer: http://localhost:3000. On Render: add your Vercel address.
+FRONTEND_URLS = [u.strip().rstrip("/") for u in
+                 os.getenv("FRONTEND_URLS", "http://localhost:3000").split(",") if u.strip()]
 
 # Prompt Guard: the order checker's second opinion (runs on this computer)
 PROMPT_GUARD = os.getenv("PROMPT_GUARD", "true").strip().lower() in ("1", "true", "yes", "on")

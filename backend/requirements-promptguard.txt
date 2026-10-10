@@ -1,0 +1,5 @@
+# TAATVA Obsidian - OPTIONAL extra: Prompt Guard (the order checker's second opinion).
+# Big (about 1 GB). Install only if the computer has enough memory (2 GB or more).
+#   pip install -r requirements-promptguard.txt --extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.1
+transformers==5.19.0

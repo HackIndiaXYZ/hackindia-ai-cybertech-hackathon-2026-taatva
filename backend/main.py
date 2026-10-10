@@ -24,10 +24,10 @@ log = logging.getLogger("obsidian")
 
 app = FastAPI(title="Obsidian by TAATVA")
 
-# Let our website (on port 3000) talk to this backend
+# Let our website talk to this backend (addresses come from FRONTEND_URLS in the settings)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=config.FRONTEND_URLS,
     allow_methods=["*"],
     allow_headers=["*"],
 )

@@ -202,10 +202,14 @@ def open_in_browser(safe_html):
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as playwright:
-        try:
-            browser = playwright.chromium.launch(channel=config.BROWSER_CHANNEL, headless=True)
-        except Exception:
-            browser = playwright.chromium.launch(headless=True)  # Playwright's own browser, if installed
+        browser = None
+        if config.BROWSER_CHANNEL:
+            try:
+                browser = playwright.chromium.launch(channel=config.BROWSER_CHANNEL, headless=True)
+            except Exception:
+                browser = None
+        if browser is None:
+            browser = playwright.chromium.launch(headless=True)  # Playwright's own Chromium (used on Render)
         try:
             context = browser.new_context(
                 java_script_enabled=False,         # nothing in the page can run

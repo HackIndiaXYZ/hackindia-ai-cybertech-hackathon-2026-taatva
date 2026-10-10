@@ -1,0 +1,10 @@
+# TAATVA Obsidian - files that must NEVER go into the Docker box
+.env
+.env.*
+!.env.example
+.venv/
+venv/
+__pycache__/
+*.pyc
+data/
+uploads/
