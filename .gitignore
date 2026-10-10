@@ -1,0 +1,24 @@
+# TAATVA Obsidian - files git must NEVER upload to GitHub
+
+# Secret settings files (they hold our keys)
+.env
+.env.*
+!.env.example
+
+# Python leftovers
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Node / Next.js leftovers
+node_modules/
+.next/
+out/
+
+# Uploaded files (we delete them after each scan anyway)
+uploads/
+
+# Computer clutter
+.DS_Store
+Thumbs.db
