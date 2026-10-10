@@ -10,7 +10,7 @@
 #   - pieces split apart ("Ignore other" ... "rules") are joined and checked together
 #   - letters with gaps ("i g n o r e") are squeezed together and checked too
 # It scans ALL text, seen or not.
-# (Optional extra for later: Meta's "Prompt Guard" model as a second opinion.)
+# Second opinion: Meta's Prompt Guard model (see prompt_guard.py), if set up.
 
 import base64
 import binascii
@@ -156,6 +156,29 @@ def check_together(texts):
                     if name not in results[i]["phrases"]:
                         results[i]["phrases"][name] = f"{match.group(0)} (joined from split pieces)"
                         results[i]["score"] = combine(results[i]["phrases"])
+    return results
+
+
+def check_with_second_opinion(texts):
+    # Phrase list first, then Prompt Guard as a second opinion.
+    # Final order score = the HIGHER of the two, so neither can hide an order
+    # the other one found. Both numbers are kept so people can see who said what.
+    from pipeline.prompt_guard import order_scores
+
+    results = check_together(texts)
+    for result in results:
+        result["phrase_score"] = result["score"]
+        result["prompt_guard_score"] = None
+
+    # Prompt Guard reads the cleaned-up text, plus any decoded Base64
+    readable = [" ".join([plain_letters(t)] + r["base64_decoded"]) for t, r in zip(texts, results)]
+    guard = order_scores(readable)
+    if guard is not None:
+        for result, score in zip(results, guard):
+            result["prompt_guard_score"] = score
+            result["score"] = max(result["score"], score)
+            if score >= 0.5:
+                result["phrases"]["prompt guard"] = f"Prompt Guard says {round(score * 100)}% likely an order"
     return results
 
 

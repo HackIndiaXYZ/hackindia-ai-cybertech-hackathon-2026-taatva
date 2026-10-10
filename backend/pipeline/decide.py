@@ -10,7 +10,8 @@
 # Gemini and Tesseract disagree a lot: at least Flag.
 
 from pipeline.hidden_parts import plain_letters
-from pipeline.order_checker import check_together
+from pipeline.order_checker import check_with_second_opinion
+from pipeline.prompt_guard import status as prompt_guard_status
 
 FLAG_FROM = 30
 QUARANTINE_FROM = 70
@@ -40,9 +41,11 @@ def score_bossiness(compared):
             groups.setdefault(key, []).append(item)
 
     for items in groups.values():
-        results = check_together([item.get("reads_as") or item["text"] for item in items])
+        results = check_with_second_opinion([item.get("reads_as") or item["text"] for item in items])
         for item, result in zip(items, results):
             item["bossy_score"] = result["score"]
+            item["phrase_score"] = result["phrase_score"]
+            item["prompt_guard_score"] = result["prompt_guard_score"]
             item["bossy_points"] = round(result["score"] * 50)
             item["bossy_phrases"] = list(result["phrases"].values())
             if result["base64_decoded"]:
@@ -125,6 +128,8 @@ def decide(compared):
         "verdict": verdict,
         "reasons": reasons,
         "findings": report,
+        # Is the Prompt Guard second opinion working? ("ready" or the reason why not)
+        "prompt_guard": prompt_guard_status(),
         # Quarantine: the agent gets NOTHING
         "clean_copy": None if verdict == "quarantine" else build_clean_copy(compared),
     }
