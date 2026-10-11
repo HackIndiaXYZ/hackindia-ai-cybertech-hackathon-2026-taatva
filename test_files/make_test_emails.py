@@ -1,4 +1,4 @@
-﻿# TAATVA Obsidian - makes the fake test EMAILS (.eml files).
+# TAATVA Obsidian - makes the fake test EMAILS (.eml files).
 # Run from the Obsidian folder:
 #   backend\.venv\Scripts\python.exe test_files\make_test_emails.py
 #

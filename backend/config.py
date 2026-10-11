@@ -1,4 +1,4 @@
-﻿# TAATVA Obsidian - reads our settings from backend/.env (keys never live in code).
+# TAATVA Obsidian - reads our settings from backend/.env (keys never live in code).
 
 import os
 from pathlib import Path

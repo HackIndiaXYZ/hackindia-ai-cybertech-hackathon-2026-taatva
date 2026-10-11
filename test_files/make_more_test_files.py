@@ -66,7 +66,7 @@ def attacked_html_comment():
 def hide_in_zero_width(message):
     # Each letter becomes 8 invisible marks: zero-width space = 0, zero-width non-joiner = 1
     bits = "".join(f"{ord(ch):08b}" for ch in message)
-    return "".join("​" if bit == "0" else "‌" for bit in bits)
+    return "".join("\u200b" if bit == "0" else "\u200c" for bit in bits)
 
 
 def attacked_zero_width():
