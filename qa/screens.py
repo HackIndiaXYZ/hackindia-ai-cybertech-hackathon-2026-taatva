@@ -120,9 +120,16 @@ def run():
     quick = "--quick" in sys.argv
     report = []
     with sync_playwright() as p:
-        engines = [("chromium", p.chromium)] if quick else [("chromium", p.chromium), ("firefox", p.firefox), ("webkit", p.webkit)]
+        engines = [("chromium", p.chromium)] if quick else [("chromium", p.chromium), ("webkit", p.webkit), ("firefox", p.firefox)]
         for engine_name, engine in engines:
-            browser = engine.launch()
+            try:
+                browser = engine.launch()
+            except Exception as error:  # e.g. Windows blocks the browser program
+                print(f"COULD NOT START {engine_name}: {str(error).splitlines()[0][:120]}", flush=True)
+                report.append({"engine": engine_name, "size": "-", "page": "-", "could_not_start": True,
+                               "sideways": False, "wide": [], "small_targets": [], "min_paragraph_px": None,
+                               "xray": [], "console": [], "alerts": []})
+                continue
             sizes = QUICK_SIZES if quick else (list(SIZES) if engine_name == "chromium" else OTHER_BROWSER_SIZES)
             for size_name in sizes:
                 width, height = SIZES[size_name]
@@ -138,7 +145,7 @@ def run():
                     page.on("pageerror", lambda e: console.append(f"pageerror: {str(e)[:160]}"))
                     page.on("dialog", lambda d: (alerts.append(d.message), d.dismiss()))
                     page.goto(BASE + path, wait_until="networkidle", timeout=60_000)
-                    page.wait_for_timeout(1200)
+                    page.wait_for_timeout(700)
                     found = page.evaluate(CHECKS)
                     size, wanted = expected_boxes(page_key)
                     problems = box_errors(found, size, wanted) if size else []
@@ -150,6 +157,7 @@ def run():
                                    "xray": problems, "console": console[:6], "alerts": alerts})
                     page.close()
                 context.close()
+                (OUT / "report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")  # save as we go
                 print(f"done {engine_name} {size_name}", flush=True)
             browser.close()
     (OUT / "report.json").write_text(json.dumps(report, indent=1), encoding="utf-8")

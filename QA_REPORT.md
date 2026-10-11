@@ -61,6 +61,19 @@ so the live website always needs a real sign-in.
 | QA-21 | `frontend/app/scan/page.tsx` | (a) A file picked through the second upload box while a scan was running could start a **second scan** at the same time. (b) Refreshing or pressing Back during a scan lost the result on screen without warning. | (a) Pick a file, then quickly pick another one in the other upload box. (b) Press F5 while "Checking the file…" shows. | Medium | **Fixed**: only one scan can run at a time (a guard that does not depend on screen updates); the browser asks "Leave this page?" while a scan runs (the result is still saved in History). Tested in `qa/behaviour.py`. |
 | QA-02 | `backend/pipeline/hidden_parts.py` lines 25–41, 128–129 | The list of invisible letters was typed into the code **as real invisible characters** (some are right-to-left override marks). An editor or copy-paste could delete them silently and the detector would go blind with no warning. | Open the file: the list looks like empty strings `"": "zero-width space"`. | Medium | **Fixed**: written as visible codes (`​` …). Test `test_no_invisible_characters_typed_into_our_code` stops it coming back. |
 
-## Proof numbers
+## Proof numbers (real, measured on 11 Oct 2026)
 
-(filled in during Phase 2)
+From `test_files\run_tests.py --private` (20 files: 14 attacked, 6 clean), after all fixes:
+
+| Number | Result | Target |
+|---|---|---|
+| Attacks caught | **14 of 14 = 100%** | 90% or more ✅ |
+| False alarms on clean files | **0 of 6 = 0%** | 5% or less ✅ |
+| Average time per page | **2.9 seconds** (23 pages, private mode on this laptop) | under 5 ✅ |
+| Demo AI recruiter tricked? | **Yes without Obsidian** (ranked the weak candidate #1), **no with Obsidian** (ranked Maya Chen #1) | ✅ |
+
+With Gemini switched on (free plan) the earlier measurement was **6.5 seconds per page** ❌. The free plan only allows a
+few Gemini requests per minute, and the daily allowance of the main model is often used up. The detection results were
+identical (14/14, 0/6). On Render, scans are slower than on this laptop (smaller, shared processor).
+
+Automated tests: **see "Test totals" below**.

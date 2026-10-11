@@ -62,18 +62,20 @@ with sync_playwright() as p:
     scans = sum(1 for u in fixture_requests if "/qa/white.json" in u)
     check("double upload starts only one scan", scans == 1, f"{scans} scan(s)")
 
-    # 5. X-Ray switched on and off 20 times quickly: no leftover boxes
+    # 5. X-Ray on page 3 (not only page 1), then switched 21 times quickly: no leftover boxes
     page.goto(f"{BASE}/scan?qa=1&id=multipage", wait_until="networkidle")
-    switch = page.get_by_role("switch", name="X-Ray Reveal")
-    for _ in range(20):
-        switch.click()
-    off_boxes = page.locator("[data-xray-box]").count()
-    switch.click()
     page.get_by_role("button", name="Next page").click()
     page.get_by_role("button", name="Next page").click()
     on_boxes = page.locator("[data-xray-box]").count()
-    check("X-Ray off after 20 clicks = no boxes", off_boxes == 0, f"{off_boxes} boxes")
+    switch = page.get_by_role("switch", name="X-Ray Reveal")
+    for _ in range(21):          # an odd number of clicks: ends OFF
+        switch.click()
+    off_boxes = page.locator("[data-xray-box]").count()
+    switch.click()               # back ON
+    back_on = page.locator("[data-xray-box]").count()
     check("X-Ray on, page 3 = its box shows", on_boxes == 1, f"{on_boxes} boxes")
+    check("X-Ray off after 21 quick clicks = no boxes", off_boxes == 0, f"{off_boxes} boxes")
+    check("X-Ray on again = box comes back once", back_on == 1, f"{back_on} boxes")
 
     # 6. Rotating the phone and resizing the window: boxes stay on the hidden text
     page.goto(f"{BASE}/scan?qa=1&id=white", wait_until="networkidle")
@@ -137,7 +139,9 @@ with sync_playwright() as p:
     check("10 scans in a row: memory does not keep growing", growth < 15, f"{heaps[0]:.1f} -> {heaps[-1]:.1f} MB")
     check("images on page after 10 scans", page.locator('img[alt^="Page"]').count() <= 3)
 
-    check("no errors in the browser console", not errors, "; ".join(errors[:3]))
+    # (errors caused on purpose by the "internet off" test do not count)
+    real_errors = [e for e in errors if "ERR_INTERNET_DISCONNECTED" not in e and "Failed to fetch" not in e]
+    check("no errors in the browser console", not real_errors, "; ".join(real_errors[:3]))
     browser.close()
 
 failed = [r for r in results if not r[1]]
