@@ -110,7 +110,12 @@ def read_ai_view(pdf_bytes):
         zoom = safe_zoom(page_rect)
         no_text = render_without_text(pdf_bytes, page.number, zoom)
         normal = render_normal(page, zoom)
-        page_image_boxes = [[round(v, 1) for v in info["bbox"]] for info in page.get_image_info()]
+        # PyMuPDF gives text and picture boxes as if the page were NOT rotated. The page
+        # picture and the website show the page as people see it (rotated), so we turn
+        # every box the same way (bug QA-07).
+        turn = page.rotation_matrix
+        page_image_boxes = [[round(v, 1) for v in (pymupdf.Rect(info["bbox"]) * turn)]
+                            for info in page.get_image_info()]
         content = page.get_text("dict", flags=READ_FLAGS, clip=pymupdf.INFINITE_RECT())
 
         for block in content["blocks"]:
@@ -118,7 +123,7 @@ def read_ai_view(pdf_bytes):
                 for span in line["spans"]:
                     if not span["text"].strip():
                         continue  # skip empty spaces
-                    box = pymupdf.Rect(span["bbox"])
+                    box = pymupdf.Rect(span["bbox"]) * turn
                     color = int_to_rgb(span["color"])
                     background, ink = look_behind(no_text, normal, box, page_rect, zoom)
                     on_page_part = box & page_rect
