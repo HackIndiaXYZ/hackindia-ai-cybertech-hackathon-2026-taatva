@@ -13,8 +13,13 @@ import { useSettings } from "@/components/settings";
 import { Stepper } from "@/components/scan/stepper";
 import { VerdictCard } from "@/components/scan/verdict-card";
 import { closedWhilePicking, DropZone, UploadCard } from "@/components/scan/upload-card";
-import { DocumentViewer } from "@/components/scan/document-viewer";
-import { AgentCard, FindingsList } from "@/components/scan/findings-list";
+import dynamic from "next/dynamic";
+
+// The result parts are only needed once a file is scanned, so phones download them
+// later and the empty Scan page opens faster (Lighthouse, QA-24).
+const DocumentViewer = dynamic(() => import("@/components/scan/document-viewer").then((m) => m.DocumentViewer));
+const FindingsList = dynamic(() => import("@/components/scan/findings-list").then((m) => m.FindingsList));
+const AgentCard = dynamic(() => import("@/components/scan/findings-list").then((m) => m.AgentCard));
 
 const MAX_MB = 20;
 const KINDS = [".pdf", ".html", ".htm", ".eml"];

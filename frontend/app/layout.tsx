@@ -7,9 +7,11 @@ import { THEME_SCRIPT } from "@/components/theme";
 
 // Three fonts: bold tall letters for titles, a clean font for reading,
 // and a "typewriter" font for file names and technical tags.
-const display = Oswald({ subsets: ["latin"], weight: ["500", "600", "700"], variable: "--font-display" });
+// Only the weights we use (each weight is one more file to download on phones)
+const display = Oswald({ subsets: ["latin"], weight: ["600", "700"], variable: "--font-display" });
 const sans = IBM_Plex_Sans({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-sans" });
-const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-mono" });
+// The "typewriter" font is only used for small tags: it may load a moment later (faster first view on phones)
+const mono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-mono", preload: false });
 
 export const metadata: Metadata = {
   title: "Obsidian by TAATVA",

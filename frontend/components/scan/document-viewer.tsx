@@ -131,9 +131,11 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
                       style={{ ...side, bottom: `calc(${100 - top}% + 3px)` }}>
                       ⊘ {f.how_label} · {f.danger}
                     </span>
-                    {/* The hidden words, made readable, in a note just under the box */}
+                    {/* The hidden words, made readable, in a note just under the box.
+                        Fixed dark red on white: the page picture is always white paper,
+                        in light AND dark mode (theme red was too light in dark mode, QA-24). */}
                     {noteFor === i && <button onClick={() => onSelect(i)} tabIndex={-1} aria-hidden="true"
-                      className="absolute z-10 w-max break-words rounded-sm border border-quarantine/40 bg-white px-1.5 py-0.5 text-left text-[11px] font-semibold leading-tight text-quarantine shadow-sm md:text-[12px]"
+                      className="absolute z-10 w-max break-words rounded-sm border border-red-300 bg-white px-1.5 py-0.5 text-left text-[11px] font-semibold leading-tight text-red-800 shadow-sm md:text-[12px]"
                       style={{ ...side, top: `calc(${top}% + max(${height}%, 4px) + 3px)` }}>
                       {f.reads_as || f.text}
                     </button>}
