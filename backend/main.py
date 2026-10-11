@@ -7,10 +7,13 @@
 # The History page reads past scans straight from Supabase. Row level security
 # there makes sure each person only sees their own scans.
 
+from collections import defaultdict, deque
 import logging
 import threading
+import time
 
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 import config
@@ -31,6 +34,39 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Bug QA-10: refuse very big uploads BEFORE receiving them (the 20 MB check came too late:
+# the whole upload was received first). A little room is left for the form around the file.
+MAX_UPLOAD = MAX_BYTES * 5 + 1024 * 1024   # the demo can send up to 5 files
+
+
+@app.middleware("http")
+async def refuse_huge_uploads(request: Request, call_next):
+    size = request.headers.get("content-length")
+    if request.method == "POST" and size and size.isdigit() and int(size) > MAX_UPLOAD:
+        return JSONResponse({"detail": "This upload is too big. Each file can be up to 20 MB."}, status_code=413)
+    return await call_next(request)
+
+
+# Bug QA-10: a fair-use limit per person, so one account cannot overload the scanner
+LIMITS = {"scan": (30, 600), "demo": (10, 600)}   # (how many, per how many seconds)
+_recent = defaultdict(deque)
+_recent_lock = threading.Lock()
+
+
+def fair_use(user, action):
+    most, seconds = LIMITS[action]
+    now = time.time()
+    with _recent_lock:
+        times = _recent[(user["id"], action)]
+        while times and now - times[0] > seconds:
+            times.popleft()
+        if len(times) >= most:
+            wait = int(seconds - (now - times[0])) + 1
+            raise HTTPException(429, f"You have done a lot of scans in a short time. Please wait about "
+                                     f"{max(1, wait // 60)} minute(s) and try again.")
+        times.append(now)
 
 
 @app.on_event("startup")
@@ -85,6 +121,7 @@ def scan(
     # 1. Only signed-in TAATVA users may scan
     token = (authorization or "").removeprefix("Bearer ").strip()
     user = check_sign_in(token)
+    fair_use(user, "scan")
 
     # 2. Scan. The file is only kept in memory, never saved to disk or to the
     #    database, so it is gone as soon as the scan ends. Only results are kept.
@@ -117,7 +154,7 @@ def demo_rank(
     # The "AI recruiter" demo. Only for signed-in TAATVA users.
     # Demo runs are not saved to history.
     token = (authorization or "").removeprefix("Bearer ").strip()
-    check_sign_in(token)
+    fair_use(check_sign_in(token), "demo")
     if mode not in ("original", "obsidian"):
         raise HTTPException(400, 'Mode must be "original" or "obsidian".')
     if not 1 <= len(files) <= 5:

@@ -8,6 +8,7 @@ import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Loader2, LogIn, MailCheck, TriangleAlert, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import { safeNextPage } from "@/lib/safe-next";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -70,9 +71,9 @@ function LoginForm() {
   async function signIn() {
     const { error } = await supabase().auth.signInWithPassword({ email: email.trim(), password });
     if (error) return setError(plainError(error.message, error.code));
-    // Go where the person wanted to go (only pages inside this website)
-    const next = params.get("next");
-    router.replace(next && next.startsWith("/") && !next.startsWith("//") ? next : "/scan");
+    // Go where the person wanted to go, but ONLY to pages inside this website (bug QA-09:
+    // "/\evil.com" looked like a local page, but browsers read it as another website)
+    router.replace(safeNextPage(params.get("next"), window.location.origin));
     router.refresh();
   }
 
@@ -117,7 +118,7 @@ function LoginForm() {
     <div className="grid min-h-[70vh] place-items-center py-4">
       <div className="panel w-full max-w-md p-5 sm:p-8">
         <h1 className="section-title">{mode === "signin" ? "Sign in" : "Create your account"}</h1>
-        <p className="mt-1 text-[14px] text-muted-foreground">
+        <p className="mt-1 text-[16px] md:text-[14px] text-muted-foreground">
           Check resumes and emails for hidden instructions before your AI tools read them. Your scans are private to you.
         </p>
 
@@ -125,7 +126,7 @@ function LoginForm() {
         <div className="mt-5 grid grid-cols-2 rounded-xl border bg-muted p-1" role="tablist">
           {([["signin", "Sign in"], ["signup", "Sign up"]] as const).map(([key, label]) => (
             <button key={key} role="tab" aria-selected={mode === key} onClick={() => switchTo(key)}
-              className={cn("rounded-lg py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition",
+              className={cn("rounded-lg py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition",
                 mode === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
               {label}
             </button>
@@ -144,11 +145,11 @@ function LoginForm() {
           <div className="mt-6 rounded-2xl border-2 border-pass/40 bg-pass/10 p-5 text-center" role="status" aria-live="polite">
             <MailCheck className="mx-auto h-10 w-10 text-pass" />
             <h2 className="mt-3 font-display text-[22px] font-bold uppercase tracking-[0.12em] text-foreground">Check your inbox</h2>
-            <p className="mt-2 text-[14px] text-foreground">
+            <p className="mt-2 text-[16px] md:text-[14px] text-foreground">
               We sent a verification link to <b className="break-all">{checkInbox}</b>.
               Click the link in that email to activate your account, then come back and sign in.
             </p>
-            <p className="mt-2 text-[12px] text-muted-foreground">
+            <p className="mt-2 text-[14px] md:text-[12px] text-muted-foreground">
               Nothing arrived after a few minutes? Check your spam folder, or sign up again to get a new link.
             </p>
             <button onClick={() => switchTo("signin")}
@@ -179,7 +180,7 @@ function LoginForm() {
             )}
 
             {error && (
-              <p className="flex gap-2 rounded-lg border border-quarantine/40 bg-quarantine/10 p-3 text-[13px] text-foreground" role="alert">
+              <p className="flex gap-2 rounded-lg border border-quarantine/40 bg-quarantine/10 p-3 text-[15px] md:text-[13px] text-foreground" role="alert">
                 <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-quarantine" />
                 {error}
               </p>
@@ -193,10 +194,10 @@ function LoginForm() {
           </form>
         )}
 
-        <p className="mt-6 text-[12px] text-muted-foreground">
+        <p className="mt-6 text-[14px] md:text-[12px] text-muted-foreground">
           {mode === "signin"
-            ? <>New to Obsidian? <button onClick={() => switchTo("signup")} className="font-medium text-primary underline">Create an account</button>.</>
-            : <>Already have an account? <button onClick={() => switchTo("signin")} className="font-medium text-primary underline">Sign in</button>.</>}
+            ? <>New to Obsidian? <button onClick={() => switchTo("signup")} className="font-medium text-primary underline max-md:inline-flex max-md:min-h-11 max-md:items-center">Create an account</button>.</>
+            : <>Already have an account? <button onClick={() => switchTo("signin")} className="font-medium text-primary underline max-md:inline-flex max-md:min-h-11 max-md:items-center">Sign in</button>.</>}
         </p>
       </div>
     </div>

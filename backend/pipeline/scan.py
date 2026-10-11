@@ -208,7 +208,7 @@ def scan_pdf(pdf_bytes, private_mode=None, file_name="file"):
     except Exception as error:
         # Anything else that goes wrong also ends in Quarantine.
         # Plain words for people; the technical details go to the log only.
-        log.exception(f"Scan of {file_name} crashed: {error}")
+        log.exception(f"Scan of {' '.join(str(file_name).split())[:120]} crashed: {error}")
         result = quarantine("Obsidian could not open this file safely (it may be damaged or unusual), "
                             "so it was held for a person to check.")
 
@@ -218,7 +218,9 @@ def scan_pdf(pdf_bytes, private_mode=None, file_name="file"):
     result["file_type"] = file_type(file_name)
 
     # Pass: log it. Flag: alert a human. Quarantine: hold for Approve / Reject.
-    message = f"{file_name}: {result['verdict'].upper()} (score {result['score']})"
+    # (Line breaks in a file name are removed, so a name cannot fake extra log lines.)
+    safe_name = " ".join(str(file_name).split())[:120]
+    message = f"{safe_name}: {result['verdict'].upper()} (score {result['score']})"
     if result["verdict"] == "pass":
         log.info(message)
     elif result["verdict"] == "flag":

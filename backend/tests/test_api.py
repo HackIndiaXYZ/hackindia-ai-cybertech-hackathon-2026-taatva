@@ -80,3 +80,20 @@ def test_errors_do_not_leak_details(client):
     assert body["verdict"] == "quarantine"
     text = " ".join(body["reasons"])
     assert "Traceback" not in text and "C:\\" not in text and "/app/" not in text
+
+
+# ---------- QA-10: fair use and huge uploads ----------
+
+def test_fair_use_limit(client, monkeypatch):
+    monkeypatch.setitem(main.LIMITS, "scan", (2, 600))
+    main._recent.clear()
+    codes = [scan(client, a_pdf()).status_code for _ in range(3)]
+    assert codes == [200, 200, 429]
+    main._recent.clear()
+
+
+def test_huge_upload_refused_before_receiving_it(client):
+    response = client.post("/scan", content=b"x", headers={"Authorization": "Bearer good",
+                                                           "Content-Length": str(main.MAX_UPLOAD + 1),
+                                                           "Content-Type": "multipart/form-data; boundary=x"})
+    assert response.status_code == 413
