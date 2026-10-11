@@ -11,6 +11,7 @@
 #   .venv\Scripts\python.exe -m pipeline.scan ..\test_files --private
 
 import base64
+import gc
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 import logging
 import os
@@ -33,7 +34,8 @@ MAX_PAGES = 50
 TIME_LIMIT = int(os.getenv("SCAN_TIME_LIMIT", "180"))  # seconds per file
 PREVIEW_DPI = 110              # sharpness of the page pictures shown on the website
 
-_workers = ThreadPoolExecutor(max_workers=4)
+# Only MAX_PARALLEL_SCANS files are scanned at the same time; the rest wait their turn (saves memory)
+_workers = ThreadPoolExecutor(max_workers=config.MAX_PARALLEL_SCANS)
 
 
 def quarantine(reason, timings=None):
@@ -182,6 +184,7 @@ def scan_pdf(pdf_bytes, private_mode=None, file_name="file"):
         result = quarantine("Obsidian could not open this file safely (it may be damaged or unusual), "
                             "so it was held for a person to check.")
 
+    gc.collect()  # give the memory from this scan back straight away
     result["total_time"] = round(time.perf_counter() - started, 1)
     result["private_mode"] = private_mode
     result["file_type"] = file_type(file_name)

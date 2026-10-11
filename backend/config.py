@@ -23,6 +23,12 @@ TESSERACT_CMD = os.getenv("TESSERACT_CMD", "tesseract")
 # ("msedge" = Microsoft Edge, already on Windows; empty = Playwright's own Chromium, used on Render)
 BROWSER_CHANNEL = os.getenv("BROWSER_CHANNEL", "msedge").strip()
 
+# Memory savers (important on small servers, like Render's 512 MB plans):
+#   SCAN_WORKERS: how many page-reading jobs run at the same time inside one scan
+#   MAX_PARALLEL_SCANS: how many files are scanned at the same time (others wait their turn)
+SCAN_WORKERS = max(1, int(os.getenv("SCAN_WORKERS", "8")))
+MAX_PARALLEL_SCANS = max(1, int(os.getenv("MAX_PARALLEL_SCANS", "2")))
+
 # Websites allowed to talk to this backend (comma separated).
 # On this computer: http://localhost:3000. On Render: add your Vercel address.
 FRONTEND_URLS = [u.strip().rstrip("/") for u in

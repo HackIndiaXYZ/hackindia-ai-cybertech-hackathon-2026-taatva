@@ -35,6 +35,20 @@ MAX_HEIGHT = 8000             # longest page we photograph (in page pixels)
 PAGE_TIME_LIMIT = 30_000      # milliseconds to open the page
 PX_TO_PT = 0.75               # 1 page pixel = 0.75 point (so "under 4 pt" works the same)
 
+# Browser settings that use much less memory (small servers have only 512 MB):
+# no shared-memory area (Docker has a tiny one), no graphics card, one page process,
+# and a small memory budget for the page.
+LOW_MEMORY = [
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+    "--no-zygote",
+    "--renderer-process-limit=1",
+    "--disable-extensions",
+    "--disable-background-networking",
+    "--disable-features=site-per-process,Translate,MediaRouter",
+    "--js-flags=--max-old-space-size=96",
+]
+
 # A tiny grey picture used instead of every real picture (no internet, no tracking)
 GREY_PIXEL = ("data:image/png;base64," + base64.b64encode(
     pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 1, 1), False).tobytes("png")).decode())
@@ -205,11 +219,12 @@ def open_in_browser(safe_html):
         browser = None
         if config.BROWSER_CHANNEL:
             try:
-                browser = playwright.chromium.launch(channel=config.BROWSER_CHANNEL, headless=True)
+                browser = playwright.chromium.launch(channel=config.BROWSER_CHANNEL, headless=True, args=LOW_MEMORY)
             except Exception:
                 browser = None
         if browser is None:
-            browser = playwright.chromium.launch(headless=True)  # Playwright's own Chromium (used on Render)
+            # Playwright's own Chromium (used on Render)
+            browser = playwright.chromium.launch(headless=True, args=LOW_MEMORY)
         try:
             context = browser.new_context(
                 java_script_enabled=False,         # nothing in the page can run

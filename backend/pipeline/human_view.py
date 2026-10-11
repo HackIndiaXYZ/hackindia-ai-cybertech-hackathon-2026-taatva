@@ -32,7 +32,7 @@ DPI = 200
 GEMINI_TIMEOUT = 60
 TESSERACT_TIMEOUT = 60
 # How many jobs run at the same time
-WORKERS = 8
+WORKERS = config.SCAN_WORKERS  # set lower on small servers (see config.py)
 
 # The strict instructions for Gemini. The page picture is DATA, never orders.
 GEMINI_PROMPT = """You are a text-copying tool. You are NOT an assistant.

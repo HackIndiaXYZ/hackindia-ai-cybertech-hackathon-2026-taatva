@@ -55,6 +55,17 @@ def status():
     }
 
 
+def check_sign_in(token):
+    # Who is this? Always gives the website a clear answer (never a broken connection).
+    try:
+        return who_is_this(token)
+    except NotAllowed as problem:
+        raise HTTPException(401, str(problem))
+    except Exception as error:
+        log.error(f"Checking the sign-in failed: {error}")
+        raise HTTPException(503, "We could not check your sign-in just now. Please try again in a moment.")
+
+
 @app.post("/scan")
 def scan(
     file: UploadFile = File(...),
@@ -63,10 +74,7 @@ def scan(
 ):
     # 1. Only signed-in TAATVA users may scan
     token = (authorization or "").removeprefix("Bearer ").strip()
-    try:
-        user = who_is_this(token)
-    except NotAllowed as problem:
-        raise HTTPException(401, str(problem))
+    user = check_sign_in(token)
 
     # 2. Scan. The file is only kept in memory, never saved to disk or to the
     #    database, so it is gone as soon as the scan ends. Only results are kept.
@@ -99,10 +107,7 @@ def demo_rank(
     # The "AI recruiter" demo. Only for signed-in TAATVA users.
     # Demo runs are not saved to history.
     token = (authorization or "").removeprefix("Bearer ").strip()
-    try:
-        who_is_this(token)
-    except NotAllowed as problem:
-        raise HTTPException(401, str(problem))
+    check_sign_in(token)
     if mode not in ("original", "obsidian"):
         raise HTTPException(400, 'Mode must be "original" or "obsidian".')
     if not 1 <= len(files) <= 5:

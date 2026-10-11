@@ -7,14 +7,53 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle } from "lucide-react";
-import { getScan, scanFile, SignInNeeded, type ScanResult } from "@/lib/api";
+import { AlertTriangle, Loader2 } from "lucide-react";
+import { getScan, getStatus, scanFile, SignInNeeded, type ScanResult } from "@/lib/api";
 import { useSettings } from "@/components/settings";
 import { Stepper } from "@/components/scan/stepper";
 import { VerdictCard } from "@/components/scan/verdict-card";
 import { DropZone, UploadCard } from "@/components/scan/upload-card";
 import { DocumentViewer } from "@/components/scan/document-viewer";
 import { AgentCard, FindingsList } from "@/components/scan/findings-list";
+
+const MAX_MB = 20;
+const KINDS = [".pdf", ".html", ".htm", ".eml"];
+const CONNECTION_HELP =
+  "The scanner stopped answering while checking this file. This can happen if it was waking up, " +
+  "if the file was very large, or if the phone switched apps or lost signal during the scan. " +
+  "Please keep this page open and try again.";
+
+// Problems we can spot before uploading (size and type)
+function checkFileFirst(file: File): string | null {
+  const name = file.name.toLowerCase();
+  if (!KINDS.some((kind) => name.endsWith(kind))) {
+    return "Obsidian checks PDF files, web pages (.html) and saved emails (.eml). Please choose one of those.";
+  }
+  if (file.size === 0) return "This file is empty.";
+  if (file.size > MAX_MB * 1024 * 1024) {
+    return `This file is ${(file.size / 1024 / 1024).toFixed(1)} MB. The limit is ${MAX_MB} MB.`;
+  }
+  return null;
+}
+
+// "Failed to fetch" and similar: the connection broke, there was no real answer
+function isConnectionProblem(e: unknown) {
+  return e instanceof TypeError || (e instanceof Error && /failed to fetch|network|load failed/i.test(e.message));
+}
+
+// Ask the scanner "are you there?" every 3 seconds, for up to `limit` milliseconds
+async function waitForScanner(limit: number) {
+  const until = Date.now() + limit;
+  while (Date.now() < until) {
+    try {
+      await getStatus();
+      return true;
+    } catch {
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+  }
+  return false;
+}
 
 export default function ScanPage() {
   return (
@@ -33,6 +72,7 @@ function ScanScreen() {
   const [error, setError] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   // Open a saved report from History
   useEffect(() => {
@@ -42,12 +82,17 @@ function ScanScreen() {
 
   async function scan(newFile: File) {
     setFile(newFile);
-    setScanning(true);
     setError(null);
     setResult(null);
     setSelected(null);
+
+    // Check the file on the phone/computer first, so we never upload something we cannot scan
+    const problem = checkFileFirst(newFile);
+    if (problem) return setError(problem);
+
+    setScanning(true);
     try {
-      setResult(await scanFile(newFile, privateMode));
+      setResult(await scanWithOneRetry(newFile));
       refreshWaiting();
     } catch (e) {
       if (e instanceof SignInNeeded) {
@@ -60,6 +105,25 @@ function ScanScreen() {
     }
   }
 
+  // If the connection breaks (for example the scanner restarted or was waking up),
+  // wait until the scanner answers again, then try ONE more time.
+  async function scanWithOneRetry(newFile: File) {
+    try {
+      return await scanFile(newFile, privateMode);
+    } catch (e) {
+      if (!isConnectionProblem(e)) throw e;
+      setNotice("The scanner did not answer. Waiting for it to be ready, then trying once more…");
+      const ready = await waitForScanner(90_000);
+      setNotice(null);
+      if (!ready) throw new Error(CONNECTION_HELP);
+      try {
+        return await scanFile(newFile, privateMode);
+      } catch (again) {
+        throw isConnectionProblem(again) ? new Error(CONNECTION_HELP) : again;
+      }
+    }
+  }
+
   // Findings worth showing: they matter (danger 30+) or are clearly hidden on purpose
   const shown = useMemo(() => (result?.findings ?? []).filter((f) => f.danger >= 30 || f.hidden_points >= 40), [result]);
   const harmless = useMemo(() => (result?.findings ?? []).filter((f) => !shown.includes(f)), [result, shown]);
@@ -68,10 +132,16 @@ function ScanScreen() {
     <div className="space-y-6">
       <Stepper result={result} scanning={scanning} fileName={file?.name} fileSize={file?.size} />
 
+      {notice && (
+        <div className="flex items-center gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-foreground" role="status">
+          <Loader2 className="h-5 w-5 shrink-0 animate-spin text-flag" />
+          {notice}
+        </div>
+      )}
       {error && (
-        <div className="flex items-center gap-3 rounded-xl border border-quarantine/30 bg-quarantine/5 p-4 text-[14px] text-quarantine">
-          <AlertTriangle className="h-5 w-5" />
-          Could not check the file: {error}. Is the scanner running? Try again in a moment.
+        <div className="flex items-start gap-3 rounded-xl border border-quarantine/30 bg-quarantine/5 p-4 text-[14px] text-foreground" role="alert">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-quarantine" />
+          <span><b className="text-quarantine">Could not check the file.</b> {error}</span>
         </div>
       )}
       {result?.save_error && (

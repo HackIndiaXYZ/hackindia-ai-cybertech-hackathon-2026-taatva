@@ -37,7 +37,13 @@ Secret keys are typed into Render and Vercel. They are **never** in GitHub.
    | Region | the one closest to you (e.g. Singapore) |
    | Root Directory | `backend` |
    | Dockerfile Path | `./Dockerfile` (Render shows it as `backend/ ./Dockerfile`) |
-   | Instance Type | **Starter** or bigger (Free works for small demos but sleeps after 15 minutes and has little memory) |
+   | Instance Type | **Standard (2 GB)** is best. **Starter (512 MB)** works for one person at a time. **Free** sleeps after 15 minutes and is slow, so only for quick tests |
+
+   > **Why memory matters:** one scan uses about 200–300 MB (emails use the most, because a browser opens them).
+   > If the server runs out of memory, Render restarts it in the middle of a scan and the phone or browser
+   > shows "Failed to fetch". The Dockerfile already turns on memory savers
+   > (`SCAN_WORKERS=2`, `MAX_PARALLEL_SCANS=1`: one file at a time). On a 2 GB server you may raise them,
+   > e.g. `SCAN_WORKERS=4` and `MAX_PARALLEL_SCANS=2`, as environment variables.
 5. Open **Environment Variables** → **Add Environment Variable** for each line below:
 
    | Key | Value |
