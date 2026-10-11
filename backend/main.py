@@ -14,7 +14,7 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
 import config
-from demo_recruiter import run_demo
+from demo_recruiter import BadDemoFile, RecruiterUnavailable, run_demo
 from pipeline.prompt_guard import load as load_prompt_guard, status as prompt_guard_status
 from pipeline.scan import MAX_BYTES, scan_pdf
 from supabase_client import NotAllowed, save_scan, who_is_this
@@ -66,6 +66,16 @@ def check_sign_in(token):
         raise HTTPException(503, "We could not check your sign-in just now. Please try again in a moment.")
 
 
+def read_and_close(upload):
+    # Read the uploaded file into memory, then close it straight away. For big uploads
+    # the web server keeps a temporary copy on disk; closing deletes that copy.
+    # So the file itself is never kept: only the results are (CLAUDE.md privacy rule).
+    try:
+        return upload.file.read(MAX_BYTES + 1)
+    finally:
+        upload.file.close()
+
+
 @app.post("/scan")
 def scan(
     file: UploadFile = File(...),
@@ -79,7 +89,7 @@ def scan(
     # 2. Scan. The file is only kept in memory, never saved to disk or to the
     #    database, so it is gone as soon as the scan ends. Only results are kept.
     #    Read one byte more than the limit, so "too big" files are caught.
-    pdf_bytes = file.file.read(MAX_BYTES + 1)
+    pdf_bytes = read_and_close(file)
     result = scan_pdf(pdf_bytes, private_mode, file.filename or "file")
     del pdf_bytes
     result["file_name"] = file.filename or "file"
@@ -113,8 +123,16 @@ def demo_rank(
     if not 1 <= len(files) <= 5:
         raise HTTPException(400, "Send between 1 and 5 resumes.")
 
-    resumes = [(f.filename or f"resume_{i + 1}", f.file.read(MAX_BYTES + 1)) for i, f in enumerate(files)]
+    resumes = [(f.filename or f"resume_{i + 1}", read_and_close(f)) for i, f in enumerate(files)]
     try:
         return run_demo(job[:2000], resumes, mode, private_mode)
-    except RuntimeError as error:
-        raise HTTPException(503, str(error))
+    except BadDemoFile as problem:
+        raise HTTPException(400, str(problem))
+    except RecruiterUnavailable as error:
+        log.error(f"Demo AI recruiter failed: {error}")
+        raise HTTPException(503, "The AI recruiter did not answer just now. Please try again in a minute.")
+    except Exception as error:
+        # A broken or unusual file: a clear message, never a crash (details only in the log)
+        log.exception(f"Demo failed: {error}")
+        raise HTTPException(400, "One of the files could not be read. Please use a normal PDF, "
+                                 "web page (.html) or email (.eml), up to 20 MB.")

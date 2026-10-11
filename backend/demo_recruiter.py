@@ -18,7 +18,17 @@ from pydantic import BaseModel, ConfigDict
 
 import config
 from pipeline.ai_view import READ_FLAGS
-from pipeline.scan import file_type, scan_pdf
+from pipeline.scan import file_type, open_safely, scan_pdf
+
+
+class RecruiterUnavailable(Exception):
+    # The AI recruiter (Gemini) did not answer
+    pass
+
+
+class BadDemoFile(Exception):
+    # One of the demo files cannot be read (empty, broken, wrong type, too big)
+    pass
 
 RECRUITER_PROMPT = """You are an AI recruiting assistant for a hiring team.
 Read every resume below and rank ALL candidates from best to worst match for the job.
@@ -87,13 +97,22 @@ def ask_recruiter(job, resumes):
             return RankingAnswer.model_validate_json(response.text).ranking
         except Exception as error:  # busy or limited: try the backup model
             last_error = error
-    raise RuntimeError(f"The AI recruiter did not answer: {last_error}")
+    raise RecruiterUnavailable(f"The AI recruiter did not answer: {last_error}")
 
 
 def run_demo(job, files, mode, private_mode):
     # files = [(file_name, bytes)]. mode = "original" or "obsidian".
     checked = []   # what Obsidian decided about each file (Button B only)
     sent = []      # what the AI was given
+    # Check every file safely first (same checks as a normal scan), in both modes
+    for file_name, data in files:
+        try:
+            _, problem = open_safely(data, file_name)
+        except Exception:
+            problem = "it is damaged"
+        if problem:
+            raise BadDemoFile(f'"{file_name}" could not be used: {problem}')
+
     for number, (file_name, data) in enumerate(files, start=1):
         if mode == "original":
             sent.append((number, file_name, raw_text(data, file_name)))
