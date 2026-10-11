@@ -179,3 +179,21 @@ def test_two_scans_at_the_same_time():
         thread.join()
     assert len(results) == 3
     assert all(r["verdict"] == results[0]["verdict"] for r in results)
+
+
+# ---------- QA-08: very long web pages ----------
+
+def long_page(extra=""):
+    paras = "".join(f"<p style='margin:0 0 40px'>Section {i}: our team delivered projects on time "
+                    f"for many happy clients.</p>" for i in range(220))
+    return html_page(paras + extra)
+
+
+def test_long_normal_web_page_is_not_a_false_alarm():
+    result = scan_pdf(long_page(), True, "long.html")
+    assert result["verdict"] == "pass", result["worst_finding"]
+
+
+def test_hidden_text_at_the_bottom_of_a_long_page_is_still_caught():
+    result = scan_pdf(long_page(f"<p style='color:#ffffff'>{ORDER}</p>"), True, "long_attack.html")
+    assert result["verdict"] == "quarantine"

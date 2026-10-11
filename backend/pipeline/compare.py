@@ -150,8 +150,9 @@ def compare(ai_pieces, human, hidden_places):
         # Only when Gemini could look too: Tesseract alone (private mode) often
         # misses faint small print that a person can still read.
         answers = [v for v in seen_by.values() if v is not None]
+        # (Not for text below the photographed part of a long web page: no photo, no witness.)
         if (not reasons and seen_by["gemini"] is False and not any(answers)
-                and has_words(piece["text"])):
+                and has_words(piece["text"]) and not piece.get("below_photo")):
             reasons.append(("no witness could see it", POINTS_TINY_OR_OFF))
 
         where = {"page": piece["page"], "box": piece["box"]}

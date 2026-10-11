@@ -172,7 +172,7 @@ def finish(compared, ai_pieces, human, pages, timings, make_previews):
         notes.append("Google's Gemini reader was busy, so the pages were read by our own reader "
                      "(Tesseract) only, the same as private mode. The result is still reliable.")
 
-    result = decide(compared, {p["page"]: (p["width"], p["height"]) for p in pages})
+    result = decide(compared, {p["page"]: (p["width"], p.get("full_height", p["height"])) for p in pages})
     result["timings"] = {**timings, **result["timings"]}
     result["witness_agreement"] = compared["witness_agreement"]
     result["notes"] = notes

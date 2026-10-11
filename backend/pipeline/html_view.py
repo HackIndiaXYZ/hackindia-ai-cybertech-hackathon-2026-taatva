@@ -189,7 +189,13 @@ LOOK_AT_EVERY_TEXT = r"""
     }
     const c = (style.color.match(/[\d.]+/g) || ['0', '0', '0', '1']).map(Number);
     opacity *= (c.length > 3 ? c[3] : 1);
-    out.push({ text, box, fontPx, color: c.slice(0, 3), opacity, reasons: [...new Set(reasons)] });
+    // Background colour from the page's own styling (used for text below the photographed part)
+    let bg = [255, 255, 255];
+    for (let a = el; a; a = a.parentElement) {
+      const v = (getComputedStyle(a).backgroundColor.match(/[\d.]+/g) || []).map(Number);
+      if (v.length >= 3 && (v.length < 4 || v[3] > 0.5)) { bg = v.slice(0, 3); break; }
+    }
+    out.push({ text, box, fontPx, color: c.slice(0, 3), bg, opacity, reasons: [...new Set(reasons)] });
   }
   const images = [...document.images].map(i => {
     const r = i.getBoundingClientRect();
@@ -250,7 +256,7 @@ def open_in_browser(safe_html):
             no_text = page.screenshot(full_page=True, clip=area, timeout=PAGE_TIME_LIMIT)
         finally:
             browser.close()
-    facts.update(width=width, height=height)
+    facts.update(width=width, full_height=max(facts["height"], 1), height=height)
     return facts, normal, no_text
 
 
@@ -268,14 +274,20 @@ def read_html(data, file_name):
         normal = pymupdf.Pixmap(normal, 0)    # drop the see-through layer
     if no_text.alpha:
         no_text = pymupdf.Pixmap(no_text, 0)
-    page_rect = pymupdf.Rect(0, 0, facts["width"], facts["height"])
+    photo_rect = pymupdf.Rect(0, 0, facts["width"], facts["height"])          # the photographed part
+    page_rect = pymupdf.Rect(0, 0, facts["width"], facts["full_height"])      # the whole page
 
     pieces = []
     for item in facts["pieces"]:
         box = pymupdf.Rect(item["box"]) if item["box"] else None
-        background, ink, share = None, None, 0.0
+        background, ink, share, below_photo = None, None, 0.0, False
         if box is not None and not box.is_empty:
-            background, ink = look_behind(no_text, normal, box, page_rect)
+            if box.y1 <= photo_rect.y1 + 1:
+                background, ink = look_behind(no_text, normal, box, photo_rect)
+            else:
+                # Below the photographed part (very long pages): no photo to check, so we use
+                # the page's own styling for the background, and never call it "off the page" (QA-08)
+                background, below_photo = tuple(round(v) for v in item["bg"]), True
             visible_part = box & page_rect
             share = 0.0 if visible_part.is_empty else round(visible_part.get_area() / box.get_area(), 2)
         pieces.append({
@@ -292,6 +304,7 @@ def read_html(data, file_name):
             "ink": None if ink is None else round(ink, 3),
             "page_images": [[round(v, 1) for v in image] for image in facts["images"]],
             "code_hidden": item["reasons"],   # the browser says the code hides it
+            "below_photo": below_photo,
         })
 
     # Hidden places: from the raw code, from the email, and plain-text lines that differ
@@ -307,7 +320,7 @@ def read_html(data, file_name):
         "letter_tricks": find_letter_tricks(text), "reads_as": plain_letters(text),
     } for kind, place, text in places]
 
-    size = {"page": 1, "width": facts["width"], "height": facts["height"]}
+    size = {"page": 1, "width": facts["width"], "height": facts["height"], "full_height": facts["full_height"]}
     return pieces, normal_png, size, hidden_places
 
 
