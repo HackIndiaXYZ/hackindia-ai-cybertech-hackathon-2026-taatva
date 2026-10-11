@@ -176,6 +176,9 @@ def check_together(texts):
     return results
 
 
+GUARD_ALONE_WEIGHT = 0.5  # Prompt Guard's weight when the phrase list found nothing
+
+
 def check_with_second_opinion(texts):
     # Phrase list first, then Prompt Guard as a second opinion.
     # Final order score = the HIGHER of the two, so neither can hide an order
@@ -193,8 +196,12 @@ def check_with_second_opinion(texts):
     if guard is not None:
         for result, score in zip(results, guard):
             result["prompt_guard_score"] = score
-            result["score"] = max(result["score"], score)
-            if score >= 0.5:
+            # Team decision (QA-04): Prompt Guard sometimes thinks normal phrases are orders
+            # ("Do not share this document"). So ALONE it counts half (at most 0.5 = 25 points).
+            # When the phrase list also found something, it counts fully.
+            counted = score if result["phrase_score"] > 0 else score * GUARD_ALONE_WEIGHT
+            result["score"] = round(max(result["score"], counted), 2)
+            if counted >= 0.25:
                 result["phrases"]["prompt guard"] = f"Prompt Guard says {round(score * 100)}% likely an order"
     return results
 

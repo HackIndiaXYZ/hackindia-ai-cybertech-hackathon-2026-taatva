@@ -141,3 +141,19 @@ def test_scoring_never_uses_ai_to_decide(monkeypatch):
     result = decide(compared(findings=[finding(ORDER, 50)]))
     assert result["verdict"] == "quarantine"
     assert decide_module.verdict_for(result["score"]) == result["verdict"]
+
+
+# ---------- QA-04: Prompt Guard alone counts half ----------
+
+def test_prompt_guard_alone_counts_half(monkeypatch):
+    import pipeline.prompt_guard as prompt_guard
+    from pipeline.order_checker import check_with_second_opinion
+    monkeypatch.setattr(prompt_guard, "order_scores", lambda texts: [0.9 for _ in texts])
+    alone, agreed = check_with_second_opinion(["Do not share this document", ORDER])
+    assert alone["score"] == 0.45                 # phrase list found nothing: half of 0.9
+    assert agreed["score"] >= 0.9                 # phrase list agrees: full weight
+
+
+def test_common_footer_is_not_a_false_alarm():
+    result = decide(compared(visible=[piece("Do not share this document")]))
+    assert result["verdict"] == "pass"
