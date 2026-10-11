@@ -11,7 +11,7 @@
 
 import time
 
-from pipeline.hidden_parts import plain_letters
+from pipeline.hidden_parts import visible_letters
 from pipeline.plain_words import add_plain_words, summary
 from pipeline.order_checker import check_with_second_opinion
 from pipeline.prompt_guard import status as prompt_guard_status
@@ -62,7 +62,7 @@ def build_clean_copy(compared):
         if item["bossy_score"] >= HARMLESS_BELOW:
             continue
         page, box = item["where"]["page"], item["where"]["box"]
-        lines_by_page.setdefault(page, []).append((box[3], box[0], plain_letters(item["text"]).strip()))
+        lines_by_page.setdefault(page, []).append((box[3], box[0], visible_letters(item["text"]).strip()))
 
     out = [WRAPPER, ""]
     for page in sorted(set(lines_by_page) | {p["where"]["page"] for p in compared["picture_only"]}):
@@ -80,7 +80,7 @@ def build_clean_copy(compared):
         # Visible text inside pictures (read by our witnesses)
         for item in compared["picture_only"]:
             if item["where"]["page"] == page and item["bossy_score"] < HARMLESS_BELOW:
-                out.append(f"[text in picture] {plain_letters(item['text'])}")
+                out.append(f"[text in picture] {visible_letters(item['text'])}")
         out.append("")
     out.append(WRAPPER)
     return "\n".join(out)

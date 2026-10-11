@@ -22,23 +22,23 @@ import pymupdf
 
 # Letters that are invisible: they take up no space on the page
 ZERO_WIDTH = {
-    "​": "zero-width space",
-    "‌": "zero-width non-joiner",
-    "‍": "zero-width joiner",
-    "‎": "left-to-right mark",
-    "‏": "right-to-left mark",
-    "⁠": "word joiner",
-    "⁡": "invisible function",
-    "⁢": "invisible times",
-    "⁣": "invisible separator",
-    "⁤": "invisible plus",
-    "﻿": "zero-width no-break space",
-    "­": "soft hyphen",
+    "\u200b": "zero-width space",
+    "\u200c": "zero-width non-joiner",
+    "\u200d": "zero-width joiner",
+    "\u200e": "left-to-right mark",
+    "\u200f": "right-to-left mark",
+    "\u2060": "word joiner",
+    "\u2061": "invisible function",
+    "\u2062": "invisible times",
+    "\u2063": "invisible separator",
+    "\u2064": "invisible plus",
+    "\ufeff": "zero-width no-break space",
+    "\u00ad": "soft hyphen",
     "᠎": "mongolian vowel separator",
-    "‪": "direction control", "‫": "direction control", "‬": "direction control",
-    "‭": "direction control", "‮": "direction control (right-to-left override)",
-    "⁦": "direction control", "⁧": "direction control",
-    "⁨": "direction control", "⁩": "direction control",
+    "\u202a": "direction control", "\u202b": "direction control", "\u202c": "direction control",
+    "\u202d": "direction control", "\u202e": "direction control (right-to-left override)",
+    "\u2066": "direction control", "\u2067": "direction control",
+    "\u2068": "direction control", "\u2069": "direction control",
 }
 
 # "Tag" letters U+E0000 to U+E007F are invisible copies of normal letters.
@@ -125,8 +125,8 @@ def decode_zero_width(text):
     # A common trick: a whole sentence hidden as invisible "0" and "1" marks
     # (zero-width space = 0, zero-width non-joiner = 1, 8 marks per letter).
     # Returns the hidden sentence, or None if there is none.
-    for run in re.findall(r"[​‌]{16,}", text):
-        for zero, one in (("​", "‌"), ("‌", "​")):
+    for run in re.findall(r"[\u200b\u200c]{16,}", text):
+        for zero, one in (("\u200b", "\u200c"), ("\u200c", "\u200b")):
             bits = run.replace(zero, "0").replace(one, "1")
             letters = [chr(int(bits[i:i + 8], 2)) for i in range(0, len(bits) - 7, 8)]
             message = "".join(letters)
@@ -134,6 +134,20 @@ def decode_zero_width(text):
                     and re.search(r"[A-Za-z]{3}", message):
                 return message
     return None
+
+
+def visible_letters(text):
+    # Only the letters a PERSON can see. Used for the clean copy.
+    # Different from plain_letters: invisible letters are thrown away, never decoded,
+    # so a hidden message can never sneak into the clean copy.
+    out = []
+    for ch in text:
+        if ch in ZERO_WIDTH or TAG_START <= ord(ch) <= TAG_END:
+            continue
+        if unicodedata.category(ch) in ("Cc", "Cf") and ch not in "\t\n\r":
+            continue  # control and format characters are invisible too
+        out.append(ch)
+    return unicodedata.normalize("NFKC", "".join(out))
 
 
 def plain_letters(text):
