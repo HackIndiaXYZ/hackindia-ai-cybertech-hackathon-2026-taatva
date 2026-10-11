@@ -30,7 +30,8 @@ from pipeline.ai_view import safe_zoom
 # Page picture sharpness. 200 dots per inch reads small print well.
 DPI = 200
 # Seconds we wait for each witness on each page before giving up
-GEMINI_TIMEOUT = 60
+GEMINI_TIMEOUT = 20       # one Gemini request
+GEMINI_PAGE_BUDGET = 30   # all Gemini tries for one page together. After that we go on without Gemini.
 TESSERACT_TIMEOUT = 60
 # How many jobs run at the same time
 WORKERS = config.SCAN_WORKERS  # set lower on small servers (see config.py)
@@ -105,35 +106,48 @@ def gemini_client():
 
 # Models that said "too many requests", and until when we skip them (time.time())
 _resting_until = {}
-REST_SECONDS = 600   # a model that ran out of requests is skipped for 10 minutes
+REST_SECONDS = 600         # out of requests for this minute: skip the model for 10 minutes
+REST_SECONDS_DAY = 3600    # out of requests for the whole DAY: skip it for an hour
+
+
+class GeminiUnavailable(Exception):
+    # Gemini did not answer in time. The scan goes on with Tesseract only.
+    pass
 
 
 def read_with_gemini(png):
     from google.genai import errors
 
-    # Try up to 3 times:
+    # Gemini is a helper witness, so it must never make people wait long:
     #  - "too many requests" (429): switch to the other model AT ONCE (each model has
-    #    its own allowance) and let the tired model rest for 10 minutes. Only wait if
-    #    both models are out of requests.
-    #  - Google's server busy (5xx): wait 3 s, then 6 s, and try again.
-    tries = 0
-    while True:
+    #    its own allowance) and let the tired model rest (10 minutes, or 1 hour if its
+    #    allowance for the whole day is used up). Never sit and wait for it.
+    #  - Google's server busy (5xx): wait 2 s and try again.
+    #  - All of this together may take at most GEMINI_PAGE_BUDGET seconds per page.
+    started = time.time()
+    last_problem = "no answer"
+    for _ in range(3):
         now = time.time()
         fresh = [m for m in (config.GEMINI_MODEL, config.GEMINI_BACKUP_MODEL) if _resting_until.get(m, 0) <= now]
-        model = fresh[0] if fresh else config.GEMINI_BACKUP_MODEL
+        if not fresh:
+            raise GeminiUnavailable("both Gemini models are out of free requests for now")
+        if now - started > GEMINI_PAGE_BUDGET:
+            break
+        model = fresh[0]
         try:
             return ask_gemini(png, model)
         except errors.APIError as error:
-            tries += 1
-            busy = error.code == 429 or (error.code or 0) >= 500
-            if not busy or tries >= 3:
-                raise
+            last_problem = f"error {error.code}"
             if error.code == 429:
-                _resting_until[model] = time.time() + REST_SECONDS
-                if len(fresh) <= 1:  # both models are tired: wait as long as Google asks (max 30 s)
-                    time.sleep(min(retry_delay(error), 30))
+                whole_day = "PerDay" in str(error)
+                _resting_until[model] = time.time() + (REST_SECONDS_DAY if whole_day else REST_SECONDS)
+            elif (error.code or 0) >= 500:
+                time.sleep(2)
             else:
-                time.sleep(3 * tries)
+                raise
+        except Exception as error:  # timeout or connection problem
+            last_problem = type(error).__name__
+    raise GeminiUnavailable(f"Gemini did not answer in time ({last_problem})")
 
 
 def retry_delay(error):

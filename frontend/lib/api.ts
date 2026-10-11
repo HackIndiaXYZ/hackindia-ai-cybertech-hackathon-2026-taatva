@@ -53,6 +53,7 @@ export type ScanResult = {
   decided_by?: string | null;
   user_email?: string;
   save_error?: string;
+  notes?: string[]; // e.g. "Gemini was busy, read by Tesseract only"
 };
 
 export class SignInNeeded extends Error {}

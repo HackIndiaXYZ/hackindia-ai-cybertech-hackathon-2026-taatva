@@ -154,17 +154,29 @@ def run_steps_html(data, private_mode, file_name):
 
 
 def finish(compared, ai_pieces, human, pages, timings, make_previews):
-    # Steps 6 and 7, the same for every kind of file
-    # A witness that crashed or timed out = something crashed = Quarantine
-    if compared["witness_errors"]:
+    # Steps 6 and 7, the same for every kind of file.
+    # Tesseract is the reader we always need. If IT fails, we cannot know what a person
+    # sees: Quarantine (never a silent pass).
+    # Gemini is the helper reader. If only Gemini is busy, we carry on with Tesseract
+    # alone, exactly like private mode, and say so clearly.
+    tesseract_errors = [e for e in compared["witness_errors"] if ": tesseract failed" in e]
+    gemini_errors = [e for e in compared["witness_errors"] if ": gemini failed" in e]
+    if tesseract_errors:
         log.error("Page reader failed: " + "; ".join(compared["witness_errors"]))
-        return quarantine("One of our page readers did not answer (it may be busy), so we could not be sure "
-                          "what a person sees. To be safe, the file was held. Try again in a minute, "
-                          "or turn on private mode.", timings)
+        return quarantine("Our page reader could not read this file, so we could not be sure what a person "
+                          "sees. To be safe, the file was held. Try again in a minute.", timings)
+
+    notes = []
+    if gemini_errors:
+        log.warning("Gemini did not answer, continued with Tesseract only: " + "; ".join(gemini_errors))
+        notes.append("Google's Gemini reader was busy, so the pages were read by our own reader "
+                     "(Tesseract) only, the same as private mode. The result is still reliable.")
 
     result = decide(compared, {p["page"]: (p["width"], p["height"]) for p in pages})
     result["timings"] = {**timings, **result["timings"]}
     result["witness_agreement"] = compared["witness_agreement"]
+    result["notes"] = notes
+    result["reasons"] += notes  # saved in history too
     result["views"] = two_views(ai_pieces, human, result["findings"])
     result["page_images"] = make_previews()
     return result
