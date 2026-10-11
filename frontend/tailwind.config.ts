@@ -26,6 +26,7 @@ const config: Config = {
         // Verdict colours
         pass: "hsl(var(--pass))",
         flag: "hsl(var(--flag))",
+        "flag-ink": "hsl(var(--flag-ink))", // yellow for words (darker in light mode)
         quarantine: "hsl(var(--quarantine))",
       },
       fontFamily: {

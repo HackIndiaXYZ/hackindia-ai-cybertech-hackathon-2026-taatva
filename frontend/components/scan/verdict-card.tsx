@@ -94,7 +94,7 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
         {/* Notes, e.g. when Gemini was busy and only our own reader was used */}
         {result.notes?.map((note, i) => (
           <p key={i} className="mt-3 flex gap-2 rounded-lg border border-flag/30 bg-flag/10 p-2.5 text-[12px] text-foreground">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-flag" />
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-flag-ink" />
             {note}
           </p>
         ))}

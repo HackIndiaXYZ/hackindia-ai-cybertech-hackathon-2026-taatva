@@ -110,7 +110,7 @@ function HistoryScreen() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard dot="bg-primary" glow="bg-primary/10" label="Files scanned" value={counts.all} note="resumes and emails" />
         <StatCard dot="bg-pass" glow="bg-pass/10" label="Passed" value={counts.pass} note="clean text sent, saved" valueClass="text-pass" />
-        <StatCard dot="bg-flag" glow="bg-flag/10" label="Flagged" value={counts.flag} note="clean text sent, reviewer alerted" valueClass="text-flag" />
+        <StatCard dot="bg-flag" glow="bg-flag/10" label="Flagged" value={counts.flag} note="clean text sent, reviewer alerted" valueClass="text-flag-ink" />
         <StatCard dot="bg-quarantine" glow="bg-quarantine/10" label="Waiting for you" value={counts.waiting}
           note={`${counts.approved} approved · ${counts.rejected} rejected so far`} valueClass="text-quarantine" alert={counts.waiting > 0} />
       </div>

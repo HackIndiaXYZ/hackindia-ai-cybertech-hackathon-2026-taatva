@@ -17,7 +17,7 @@
     --secondary: 216 25% 93%;
     --secondary-foreground: 217 30% 15%;
     --muted: 216 25% 94%;
-    --muted-foreground: 215 12% 45%;
+    --muted-foreground: 215 12% 43%;   /* a touch darker: readable on grey boxes too (QA-15) */
     --accent: 216 25% 93%;
     --accent-foreground: 217 30% 15%;
     --destructive: 358 57% 46%;
@@ -28,6 +28,7 @@
 
     --pass: 145 59% 30%;
     --flag: 40 82% 40%;
+    --flag-ink: 40 82% 31%;   /* darker yellow for WORDS, so they are easy to read (QA-15) */
     --quarantine: 358 57% 46%;
   }
 
@@ -55,7 +56,8 @@
 
     --pass: 145 55% 48%;
     --flag: 42 88% 55%;
-    --quarantine: 0 75% 63%;
+    --flag-ink: 42 88% 55%;
+    --quarantine: 0 75% 64%;
   }
 }
 
@@ -68,6 +70,12 @@
 @layer base {
   * {
     @apply border-border;
+  }
+  /* Keyboard users (Tab key) always see where they are (QA-16).
+     Only shows for the keyboard, not for mouse clicks or taps. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;

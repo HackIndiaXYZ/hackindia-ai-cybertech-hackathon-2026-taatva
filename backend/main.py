@@ -8,6 +8,7 @@
 # there makes sure each person only sees their own scans.
 
 from collections import defaultdict, deque
+from contextlib import asynccontextmanager
 import logging
 import threading
 import time
@@ -25,7 +26,15 @@ from supabase_client import NotAllowed, save_scan, who_is_this
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger("obsidian")
 
-app = FastAPI(title="Obsidian by TAATVA")
+@asynccontextmanager
+async def lifespan(app):
+    # When the backend starts: load Prompt Guard in the background,
+    # so the first scan does not have to wait for it.
+    threading.Thread(target=load_prompt_guard, daemon=True).start()
+    yield
+
+
+app = FastAPI(title="Obsidian by TAATVA", lifespan=lifespan)
 
 # Let our website talk to this backend (addresses come from FRONTEND_URLS in the settings)
 app.add_middleware(
@@ -67,13 +76,6 @@ def fair_use(user, action):
             raise HTTPException(429, f"You have done a lot of scans in a short time. Please wait about "
                                      f"{max(1, wait // 60)} minute(s) and try again.")
         times.append(now)
-
-
-@app.on_event("startup")
-def warm_up():
-    # Load Prompt Guard in the background when the backend starts,
-    # so the first scan does not have to wait for it.
-    threading.Thread(target=load_prompt_guard, daemon=True).start()
 
 
 @app.get("/health")

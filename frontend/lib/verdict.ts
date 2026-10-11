@@ -13,7 +13,7 @@ export function verdictFor(score: number): Verdict {
 // Tailwind classes for each verdict: text colour, soft background, solid fill, border
 export const VERDICT_STYLE: Record<Verdict, { text: string; soft: string; solid: string; border: string; hex: string }> = {
   pass: { text: "text-pass", soft: "bg-pass/10", solid: "bg-pass", border: "border-pass/30", hex: "hsl(var(--pass))" },
-  flag: { text: "text-flag", soft: "bg-flag/10", solid: "bg-flag", border: "border-flag/30", hex: "hsl(var(--flag))" },
+  flag: { text: "text-flag-ink", soft: "bg-flag/10", solid: "bg-flag", border: "border-flag/30", hex: "hsl(var(--flag))" },
   quarantine: { text: "text-quarantine", soft: "bg-quarantine/10", solid: "bg-quarantine", border: "border-quarantine/30", hex: "hsl(var(--quarantine))" },
 };
 

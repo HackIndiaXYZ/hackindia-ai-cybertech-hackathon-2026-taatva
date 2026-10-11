@@ -139,7 +139,7 @@ function ScanScreen() {
 
       {phoneNote && (
         <div className="flex items-start gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-foreground" role="status">
-          <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-flag" />
+          <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-flag-ink" />
           <span>
             <b>Your phone reloaded this page to save memory</b> while you were choosing a file, so the file did not arrive.
             Please choose it again. If this keeps happening, close a few other apps or browser tabs first.
@@ -149,7 +149,7 @@ function ScanScreen() {
       )}
       {notice && (
         <div className="flex items-center gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-foreground" role="status">
-          <Loader2 className="h-5 w-5 shrink-0 animate-spin text-flag" />
+          <Loader2 className="h-5 w-5 shrink-0 animate-spin text-flag-ink" />
           {notice}
         </div>
       )}
@@ -160,7 +160,7 @@ function ScanScreen() {
         </div>
       )}
       {result?.save_error && (
-        <div className="flex items-center gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-flag">
+        <div className="flex items-center gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-flag-ink">
           <AlertTriangle className="h-5 w-5" />
           {result.save_error} The verdict below still stands.
         </div>
