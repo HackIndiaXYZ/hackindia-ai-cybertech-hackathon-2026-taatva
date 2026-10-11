@@ -12,6 +12,8 @@ from collections import Counter
 
 import pymupdf
 
+import config
+
 # Read text with PyMuPDF's normal settings, MINUS the setting that cuts off
 # text outside the page. Attackers hide text off the page, so we must see it.
 READ_FLAGS = pymupdf.TEXTFLAGS_DICT & ~pymupdf.TEXT_MEDIABOX_CLIP
@@ -19,6 +21,13 @@ READ_FLAGS = pymupdf.TEXTFLAGS_DICT & ~pymupdf.TEXT_MEDIABOX_CLIP
 # How sharp the page picture is when we look for background colours.
 # 2 = twice normal size, enough to see even tiny text boxes.
 ZOOM = 2
+
+
+def safe_zoom(rect, wanted=ZOOM):
+    # Make the page picture as sharp as wanted, but never bigger than
+    # MAX_PAGE_PIXELS (giant pages like posters would use too much memory)
+    area = max(rect.width * rect.height, 1)
+    return min(wanted, (config.MAX_PAGE_PIXELS / area) ** 0.5)
 
 
 def to_hex(rgb):
@@ -31,7 +40,7 @@ def int_to_rgb(color_int):
     return ((color_int >> 16) & 255, (color_int >> 8) & 255, color_int & 255)
 
 
-def render_without_text(pdf_bytes, page_number):
+def render_without_text(pdf_bytes, page_number, zoom=ZOOM):
     # Make a picture of the page with ALL text taken away.
     # What is left (white paper, coloured boxes, images) is the background.
     # We work on a throw-away copy, so the real file is never changed.
@@ -43,19 +52,19 @@ def render_without_text(pdf_bytes, page_number):
         graphics=pymupdf.PDF_REDACT_LINE_ART_NONE,  # keep boxes and lines
         text=pymupdf.PDF_REDACT_TEXT_REMOVE,        # remove text only
     )
-    picture = page.get_pixmap(matrix=pymupdf.Matrix(ZOOM, ZOOM), alpha=False,
+    picture = page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), alpha=False,
                               colorspace=pymupdf.csRGB)
     copy.close()
     return picture
 
 
-def render_normal(page):
+def render_normal(page, zoom=ZOOM):
     # A picture of the page exactly as a person sees it
-    return page.get_pixmap(matrix=pymupdf.Matrix(ZOOM, ZOOM), alpha=False,
+    return page.get_pixmap(matrix=pymupdf.Matrix(zoom, zoom), alpha=False,
                            colorspace=pymupdf.csRGB)
 
 
-def look_behind(no_text, normal, box, page_rect):
+def look_behind(no_text, normal, box, page_rect, zoom=ZOOM):
     # Compare the two page pictures inside this text's box.
     # Returns (background colour, ink):
     #   background = most common colour in the picture WITHOUT text
@@ -67,10 +76,10 @@ def look_behind(no_text, normal, box, page_rect):
     if visible_part.is_empty:
         return None, None
 
-    x0 = max(int(visible_part.x0 * ZOOM), 0)
-    y0 = max(int(visible_part.y0 * ZOOM), 0)
-    x1 = min(max(int(visible_part.x1 * ZOOM), x0 + 1), no_text.width)
-    y1 = min(max(int(visible_part.y1 * ZOOM), y0 + 1), no_text.height)
+    x0 = max(int(visible_part.x0 * zoom), 0)
+    y0 = max(int(visible_part.y0 * zoom), 0)
+    x1 = min(max(int(visible_part.x1 * zoom), x0 + 1), no_text.width)
+    y1 = min(max(int(visible_part.y1 * zoom), y0 + 1), no_text.height)
 
     # For big boxes, check every few pixels instead of all of them (faster)
     step = max(1, int(((x1 - x0) * (y1 - y0) / 4000) ** 0.5))
@@ -98,8 +107,9 @@ def read_ai_view(pdf_bytes):
     doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
     for page in doc:
         page_rect = page.rect
-        no_text = render_without_text(pdf_bytes, page.number)
-        normal = render_normal(page)
+        zoom = safe_zoom(page_rect)
+        no_text = render_without_text(pdf_bytes, page.number, zoom)
+        normal = render_normal(page, zoom)
         page_image_boxes = [[round(v, 1) for v in info["bbox"]] for info in page.get_image_info()]
         content = page.get_text("dict", flags=READ_FLAGS, clip=pymupdf.INFINITE_RECT())
 
@@ -110,7 +120,7 @@ def read_ai_view(pdf_bytes):
                         continue  # skip empty spaces
                     box = pymupdf.Rect(span["bbox"])
                     color = int_to_rgb(span["color"])
-                    background, ink = look_behind(no_text, normal, box, page_rect)
+                    background, ink = look_behind(no_text, normal, box, page_rect, zoom)
                     on_page_part = box & page_rect
                     pieces.append({
                         "page": page.number + 1,  # people count pages from 1

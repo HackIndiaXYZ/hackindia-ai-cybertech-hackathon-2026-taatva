@@ -20,7 +20,7 @@ import time
 import pymupdf
 
 import config
-from pipeline.ai_view import ZOOM, read_ai_view
+from pipeline.ai_view import ZOOM, read_ai_view, safe_zoom
 from pipeline.compare import compare
 from pipeline.decide import decide
 from pipeline.hidden_parts import read_hidden_places
@@ -85,7 +85,8 @@ def page_pictures(pdf_bytes):
     # Small pictures of each page for the website's preview. Never saved.
     doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
     pictures = ["data:image/png;base64," + base64.b64encode(
-        page.get_pixmap(dpi=PREVIEW_DPI, alpha=False).tobytes("png")).decode() for page in doc]
+        page.get_pixmap(dpi=max(24, int(72 * safe_zoom(page.rect, PREVIEW_DPI / 72))), alpha=False)
+        .tobytes("png")).decode() for page in doc]
     doc.close()
     return pictures
 

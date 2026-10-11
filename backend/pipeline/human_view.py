@@ -25,6 +25,7 @@ from PIL import Image
 from pydantic import BaseModel, ConfigDict
 
 import config
+from pipeline.ai_view import safe_zoom
 
 # Page picture sharpness. 200 dots per inch reads small print well.
 DPI = 200
@@ -71,10 +72,14 @@ class GeminiAnswer(BaseModel):
 
 def render_pages(pdf_bytes):
     # Turn every page into a PNG picture (done one by one; PyMuPDF prefers that)
+    # One sharpness for the whole file: 200 dpi, or less if a page is huge
+    # (so a poster-sized page never makes a gigantic picture)
     doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
-    pictures = [page.get_pixmap(dpi=DPI, alpha=False).tobytes("png") for page in doc]
+    biggest = max(doc, key=lambda page: page.rect.width * page.rect.height).rect
+    dpi = max(36, min(DPI, int(72 * safe_zoom(biggest, DPI / 72))))
+    pictures = [page.get_pixmap(dpi=dpi, alpha=False).tobytes("png") for page in doc]
     doc.close()
-    return pictures
+    return pictures, 72 / dpi
 
 
 # ---------- Witness 1: Gemini ----------
@@ -164,7 +169,8 @@ def read_with_tesseract(png, to_points=72 / DPI):
     # to_points: how to turn picture pixels into the units step 2 uses
     # (PDF points for PDFs, page pixels for web pages and emails)
     pytesseract.pytesseract.tesseract_cmd = config.TESSERACT_CMD
-    image = Image.open(io.BytesIO(png))
+    # Grey picture: Tesseract reads it just as well, with a third of the memory
+    image = Image.open(io.BytesIO(png)).convert("L")
     data = pytesseract.image_to_data(image, output_type=pytesseract.Output.DICT,
                                      timeout=TESSERACT_TIMEOUT)
 
@@ -206,7 +212,8 @@ def safe_run(reader, png):
 
 def read_human_view(pdf_bytes, private_mode=None):
     # private_mode: True / False, or None = use the PRIVATE_MODE setting in .env
-    return read_pictures(render_pages(pdf_bytes), private_mode)
+    pictures, to_points = render_pages(pdf_bytes)
+    return read_pictures(pictures, private_mode, to_points)
 
 
 def read_pictures(pictures, private_mode=None, to_points=72 / DPI):
