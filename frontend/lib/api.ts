@@ -4,6 +4,7 @@
 //   there means each person only ever gets their own scans.
 
 import { supabase } from "./supabase";
+import { qaHistory, qaMode, qaScan, qaScanFile } from "./qa";
 
 export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -71,6 +72,7 @@ async function ask<T>(path: string, options?: RequestInit): Promise<T> {
 }
 
 export async function scanFile(file: File, privateMode: boolean) {
+  if (qaMode()) return qaScanFile(file); // developer test mode only
   // Send the person's sign-in token, so the backend knows who is scanning
   const { data } = await supabase().auth.getSession();
   if (!data.session) throw new SignInNeeded("Please sign in again.");
@@ -114,18 +116,21 @@ export async function runDemo(files: File[], mode: "original" | "obsidian", job:
 // ----- History, straight from Supabase (only your own scans) -----
 
 export async function getHistory(): Promise<ScanResult[]> {
+  if (qaMode()) return qaHistory(); // developer test mode only
   const { data, error } = await supabase().from("scans").select("*").order("scanned_at", { ascending: false });
   if (error) throw new Error(error.message);
   return data as ScanResult[];
 }
 
 export async function getScan(id: string): Promise<ScanResult> {
+  if (qaMode()) return qaScan(id); // developer test mode only
   const { data, error } = await supabase().from("scans").select("*").eq("id", id).single();
   if (error) throw new Error(error.code === "PGRST116" ? "Scan not found." : error.message);
   return data as ScanResult;
 }
 
 export async function decideScan(id: string, decision: "approved" | "rejected"): Promise<ScanResult> {
+  if (qaMode()) return { ...(await qaScan(id)), decision, decided_at: new Date().toISOString(), decided_by: "qa tester" };
   // The database only allows this on your own Quarantine files that are still waiting
   const { data, error } = await supabase().from("scans").update({ decision }).eq("id", id).select("*");
   if (error) throw new Error(error.message);

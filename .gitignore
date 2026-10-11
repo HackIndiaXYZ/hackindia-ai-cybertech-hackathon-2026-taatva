@@ -25,3 +25,7 @@ Thumbs.db
 
 # Scan history (results only) - stays on this computer
 backend/data/
+
+# QA test-mode example results (made on a developer's computer)
+frontend/public/qa/
+qa-screenshots/

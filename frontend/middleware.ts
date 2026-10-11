@@ -27,6 +27,8 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const onLoginPage = request.nextUrl.pathname.startsWith("/login");
+  // QA test mode: ONLY on a developer's computer ("npm run dev"), never on the live website
+  if (process.env.NODE_ENV === "development" && request.nextUrl.searchParams.has("qa")) return response;
   // The email verification link must work for people who are not signed in yet
   if (request.nextUrl.pathname.startsWith("/auth/")) return response;
 

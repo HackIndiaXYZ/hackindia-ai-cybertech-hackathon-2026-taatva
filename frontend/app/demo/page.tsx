@@ -136,7 +136,7 @@ export default function DemoPage() {
           B · Send through Obsidian
         </button>
       </div>
-      {!ready && <p className="-mt-2 text-center text-[13px] text-muted-foreground">Add resumes first: click “Use the 3 demo resumes”.</p>}
+      {!ready && <p className="-mt-2 text-center text-[15px] md:text-[13px] text-muted-foreground">Add resumes first: click “Use the 3 demo resumes”.</p>}
 
       {caught && (
         <div className="flex items-start gap-3 rounded-2xl border-2 border-quarantine/40 bg-quarantine/5 p-4">
@@ -153,7 +153,7 @@ export default function DemoPage() {
         <ResultCard title="A · Without Obsidian" tone="danger" side={sides.original} />
         <ResultCard title="B · With Obsidian" tone="safe" side={sides.obsidian} />
       </div>
-      <p className="text-[12px] text-muted-foreground">
+      <p className="text-[14px] md:text-[12px] text-muted-foreground">
         The AI recruiter here is Gemini, playing the AI being protected. Demo runs are not saved to history.
         {privateMode && " Private mode is on: Obsidian reads pages with Tesseract only."}
       </p>
@@ -180,9 +180,9 @@ function ResultCard({ title, tone, side }: { title: string; tone: "danger" | "sa
             {danger ? "The AI is reading the original files…" : "Obsidian is checking each file, then the AI reads the clean copies…"}
           </div>
         )}
-        {side.error && <p className="rounded-lg border border-quarantine/30 bg-quarantine/5 p-3 text-[14px] text-quarantine">{side.error}</p>}
+        {side.error && <p className="rounded-lg border border-quarantine/30 bg-quarantine/5 p-3 text-[16px] md:text-[14px] text-quarantine">{side.error}</p>}
         {!side.loading && !result && !side.error && (
-          <p className="py-10 text-center text-[14px] text-muted-foreground">
+          <p className="py-10 text-center text-[16px] md:text-[14px] text-muted-foreground">
             Press {danger ? "A" : "B"} to see the AI recruiter&apos;s ranking.
           </p>
         )}
@@ -203,7 +203,7 @@ function ResultCard({ title, tone, side }: { title: string; tone: "danger" | "sa
                           {c.held ? "Held · not sent to the AI" : "Clean copy sent"}
                         </span>
                       </div>
-                      {c.held && <p className="mt-1 text-[12px] text-muted-foreground">{c.worst_finding}</p>}
+                      {c.held && <p className="mt-1 text-[14px] md:text-[12px] text-muted-foreground">{c.worst_finding}</p>}
                     </li>
                   ))}
                 </ul>
@@ -220,7 +220,7 @@ function ResultCard({ title, tone, side }: { title: string; tone: "danger" | "sa
                   <div className="min-w-0">
                     <div className="text-[16px] font-semibold text-foreground">{r.candidate}</div>
                     <div className="font-mono text-[11px] text-muted-foreground">{r.file_name}</div>
-                    <p className="mt-1 flex gap-1.5 text-[13px] text-foreground">
+                    <p className="mt-1 flex gap-1.5 text-[15px] md:text-[13px] text-foreground">
                       <Bot className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />“{r.reason}”
                     </p>
                   </div>

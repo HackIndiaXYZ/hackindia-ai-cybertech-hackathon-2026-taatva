@@ -21,7 +21,8 @@ export function Logo({ className }: { className?: string }) {
       <polygon points="3,15 14,17 9,36" fill="#2a364b" />
       <polygon points="37,15 26,17 31,36" fill="#0f1623" />
       <polyline points="3,15 14,17 26,17 37,15" fill="none" stroke="#8fa0b8" strokeWidth="0.8" />
-      <polyline points="20,3 14,17 9,36 M20,3 26,17 31,36" fill="none" stroke="#8fa0b8" strokeWidth="0.6" />
+      <polyline points="20,3 14,17 9,36" fill="none" stroke="#8fa0b8" strokeWidth="0.6" />
+      <polyline points="20,3 26,17 31,36" fill="none" stroke="#8fa0b8" strokeWidth="0.6" />
     </svg>
   );
 }
@@ -83,7 +84,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 border-b bg-card md:bg-card/90 md:backdrop-blur" data-scanner={scanner}>
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2.5 sm:px-4 md:px-8 md:py-3">
-        <Link href="/scan" aria-label="Obsidian home">
+        <Link href="/scan" aria-label="Obsidian home" className="flex min-h-11 items-center">
           <Brand />
         </Link>
 
@@ -97,7 +98,7 @@ export function Header() {
                   key={tab.href}
                   href={tab.href}
                   className={cn(
-                    "flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition sm:flex-none sm:px-5 sm:text-[17px] sm:tracking-[0.16em]",
+                    "flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition sm:flex-none sm:px-5 sm:text-[17px] sm:tracking-[0.16em]",
                     active ? "bg-primary text-primary-foreground shadow" : "text-foreground hover:bg-card",
                   )}
                 >
@@ -128,7 +129,7 @@ export function Header() {
           <button
             onClick={() => setPrivateMode(!privateMode)}
             className={cn(
-              "flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[11px] transition sm:px-3",
+              "flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[11px] transition max-md:min-h-11 sm:px-3",
               privateMode ? "border-pass/40 bg-pass/10 text-pass" : "bg-card text-foreground hover:bg-muted",
             )}
             title={`${readers.tip} Click to turn private mode ${privateMode ? "off" : "on"}.`}
@@ -148,7 +149,7 @@ export function Header() {
               </span>
               <span className="hidden max-w-[160px] truncate text-[12px] text-muted-foreground 2xl:block">{email}</span>
               <button onClick={signOut} title="Sign out" aria-label="Sign out"
-                className="flex items-center gap-1 rounded-full border bg-card px-2 py-1.5 text-[11px] text-foreground hover:bg-muted sm:px-2.5">
+                className="flex items-center justify-center gap-1 rounded-full border bg-card px-2 py-1.5 text-[11px] text-foreground hover:bg-muted max-md:min-h-11 max-md:min-w-11 sm:px-2.5">
                 <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Sign out</span>
               </button>
             </div>

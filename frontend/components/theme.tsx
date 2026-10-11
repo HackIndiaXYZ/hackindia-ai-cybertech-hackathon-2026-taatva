@@ -40,7 +40,7 @@ export function ThemeToggle() {
       onClick={flip}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       title={dark ? "Switch to light mode" : "Switch to dark mode"}
-      className="grid h-8 w-8 shrink-0 place-items-center rounded-full border bg-card text-foreground transition hover:bg-muted"
+      className="grid h-11 w-11 shrink-0 place-items-center rounded-full border bg-card text-foreground transition hover:bg-muted md:h-8 md:w-8"
     >
       {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
     </button>

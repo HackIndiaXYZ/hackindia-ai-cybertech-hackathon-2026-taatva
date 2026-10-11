@@ -141,7 +141,7 @@ function HistoryScreen() {
         <div className="flex flex-wrap rounded-xl border bg-muted p-1">
           {(["all", "quarantine", "flag", "pass"] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              className={cn("flex items-center gap-2 rounded-lg px-3 py-2 font-display text-[13px] sm:px-4 sm:text-[15px] font-semibold uppercase tracking-[0.14em] transition",
+              className={cn("flex items-center gap-2 rounded-lg px-3 py-2 max-md:min-h-11 font-display text-[13px] sm:px-4 sm:text-[15px] font-semibold uppercase tracking-[0.14em] transition",
                 filter === f ? "bg-card text-foreground shadow-sm" : "text-foreground/80 hover:bg-card/60")}>
               <span className={cn("h-1.5 w-1.5 rounded-full", f === "all" ? "bg-muted-foreground" : VERDICT_STYLE[f].solid)} />
               {f}
@@ -227,7 +227,7 @@ function HistoryScreen() {
           </tbody>
         </table>
       </section>
-      <p className="text-[12px] text-muted-foreground">
+      <p className="text-[14px] md:text-[12px] text-muted-foreground">
         Pass (0–29) and Flag (30–69) send the clean text to the agent automatically. Quarantine (70–100) waits for a person.
       </p>
     </div>
@@ -260,11 +260,11 @@ function DecisionCell({ row, onDecide }: { row: ScanResult; onDecide: (id: strin
     return (
       <div className="flex gap-2">
         <button disabled={busy} onClick={() => act("approved")}
-          className="flex items-center gap-1.5 rounded-lg bg-pass px-3.5 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-white dark:text-neutral-950 shadow hover:bg-pass/90 disabled:opacity-50">
+          className="flex items-center gap-1.5 rounded-lg bg-pass px-3.5 py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-white dark:text-neutral-950 shadow hover:bg-pass/90 disabled:opacity-50">
           <Check className="h-4 w-4" strokeWidth={3} />Approve
         </button>
         <button disabled={busy} onClick={() => act("rejected")}
-          className="flex items-center gap-1.5 rounded-lg border-2 border-quarantine/40 bg-card px-3.5 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-quarantine hover:bg-quarantine/5 disabled:opacity-50">
+          className="flex items-center gap-1.5 rounded-lg border-2 border-quarantine/40 bg-card px-3.5 py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-quarantine hover:bg-quarantine/5 disabled:opacity-50">
           <X className="h-4 w-4" strokeWidth={3} />Reject
         </button>
       </div>
@@ -310,7 +310,7 @@ function ScanCard({ row, isOpen, toggle, onDecide }: {
 }) {
   return (
     <li className={cn("panel p-4", row.decision === "waiting" && "border-quarantine/30 bg-quarantine/[0.03]")}>
-      <button onClick={toggle} aria-expanded={isOpen} className="flex w-full items-center gap-3 text-left">
+      <button onClick={toggle} aria-expanded={isOpen} className="flex min-h-11 w-full items-center gap-3 text-left">
         <FileBadge type={row.file_type ?? "pdf"} />
         <span className="min-w-0 flex-1">
           <span className="block truncate font-mono text-[14px] text-foreground">{row.file_name}</span>
@@ -323,7 +323,7 @@ function ScanCard({ row, isOpen, toggle, onDecide }: {
         <div className="flex-1"><DangerBar danger={row.score} /></div>
         <VerdictPill verdict={row.verdict} size="sm" />
       </div>
-      <p className="mt-2 text-[14px] text-foreground">{row.worst_finding}</p>
+      <p className="mt-2 text-[16px] md:text-[14px] text-foreground">{row.worst_finding}</p>
       <div className="mt-3"><DecisionCell row={row} onDecide={onDecide} /></div>
       {isOpen && <div className="mt-4 border-t pt-4"><RowDetails row={row} /></div>}
     </li>
@@ -353,7 +353,7 @@ function RowDetails({ row }: { row: ScanResult }) {
                 </div>
               </>
             ) : (
-              <p className="mt-2 text-[14px] text-muted-foreground">
+              <p className="mt-2 text-[16px] md:text-[14px] text-muted-foreground">
                 {row.findings.length === 0 && row.verdict === "quarantine" ? row.reasons[0] : "Nothing hidden that matters. Only normal file details."}
               </p>
             )}

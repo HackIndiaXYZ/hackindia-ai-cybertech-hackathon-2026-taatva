@@ -45,7 +45,7 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
           <span className="font-mono text-[11px] text-muted-foreground">danger score</span>
         </div>
         <Gauge score={0} color="hsl(var(--border))" />
-        <p className="mt-2 text-center text-[14px] text-muted-foreground">
+        <p className="mt-2 text-center text-[16px] md:text-[14px] text-muted-foreground">
           {scanning ? "Checking the file… this can take up to a minute." : "No file checked yet. Drop a resume below."}
         </p>
       </section>
@@ -80,9 +80,9 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
           <Icon className="h-5 w-5 shrink-0" />
           <span className="font-display text-[24px] font-bold uppercase leading-none tracking-[0.14em]">{result.verdict}</span>
         </div>
-        <p className="mt-3 text-center text-[14px] leading-snug text-foreground">{VERDICT_MEANING[result.verdict]}</p>
+        <p className="mt-3 text-center text-[16px] md:text-[14px] leading-snug text-foreground">{VERDICT_MEANING[result.verdict]}</p>
 
-        <ul className="mt-3 space-y-1 text-[13px] text-muted-foreground">
+        <ul className="mt-3 space-y-1 text-[15px] text-muted-foreground md:text-[13px]">
           {reasons.map((reason, i) => (
             <li key={i} className="flex gap-2">
               <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", style.solid)} />

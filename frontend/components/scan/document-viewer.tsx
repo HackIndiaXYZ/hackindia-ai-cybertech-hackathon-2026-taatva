@@ -7,7 +7,7 @@
 // Hidden text that is not on the page at all (file details, off the page)
 // is shown in red alert boxes under the page.
 
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Eye, EyeOff, FileWarning } from "lucide-react";
 import type { Finding, ScanResult } from "@/lib/api";
 import { Switch } from "@/components/ui/switch";
@@ -51,7 +51,7 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
           <div className="mt-3 flex rounded-lg border bg-muted p-1 text-[14px]">
             {([["page", "Page"], ["views", "AI view vs Human view"]] as const).map(([key, label]) => (
               <button key={key} onClick={() => setTab(key)}
-                className={cn("rounded-md px-3 py-1.5 font-medium transition",
+                className={cn("rounded-md px-3 py-1.5 font-medium transition max-md:min-h-11",
                   tab === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
                 {label}
               </button>
@@ -101,41 +101,57 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
               {xray && size && onThisPage.map(({ f, i }) => {
                 const [x0, y0, x1, y1] = f.where.box!;
                 const active = selected === i;
+                // Boxes are in page units (PDF points or web pixels). We turn them into
+                // percentages of the page, so they stay EXACTLY on the hidden text at any
+                // screen size, zoom level or phone rotation (the picture scales the same way).
+                const left = (x0 / size.width) * 100;
+                const top = (y0 / size.height) * 100;
+                const width = ((x1 - x0) / size.width) * 100;
+                const height = ((y1 - y0) / size.height) * 100;
+                const right = 100 - left - width;
+                const rightSide = left > 50;
+                // The label and the note never stick out of the page: they are measured
+                // against the page, on whichever side has more room.
+                const side = rightSide
+                  ? { right: `${Math.max(right, 0)}%`, maxWidth: `${100 - Math.max(right, 0)}%` }
+                  : { left: `${left}%`, maxWidth: `${100 - left}%` };
                 return (
-                  <button key={i} onClick={() => onSelect(i)}
-                    className={cn("absolute rounded-sm border-2 border-quarantine bg-quarantine/[0.07] text-left transition",
-                      active && "ring-4 ring-quarantine/30")}
-                    style={{
-                      left: `${(x0 / size.width) * 100}%`,
-                      top: `${(y0 / size.height) * 100}%`,
-                      width: `${Math.max(((x1 - x0) / size.width) * 100, 30)}%`,
-                      minHeight: `${((y1 - y0) / size.height) * 100}%`,
-                    }}>
-                    <span className="absolute -top-[18px] left-1 flex items-center gap-1 whitespace-nowrap rounded-sm bg-quarantine px-1.5 py-[1px] font-mono text-[10px] font-medium uppercase text-white dark:text-neutral-950">
+                  <Fragment key={i}>
+                    <button onClick={() => onSelect(i)} data-xray-box={i}
+                      aria-label={`Hidden text: ${f.reads_as || f.text}`}
+                      className={cn("absolute rounded-[2px] outline outline-2 outline-quarantine bg-quarantine/[0.08] transition",
+                        active && "ring-4 ring-quarantine/30")}
+                      style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `max(${height}%, 4px)` }} />
+                    <span aria-hidden="true"
+                      className="absolute flex w-max items-center gap-1 overflow-hidden whitespace-nowrap rounded-sm bg-quarantine px-1.5 py-[1px] font-mono text-[10px] font-medium uppercase text-white dark:text-neutral-950"
+                      style={{ ...side, bottom: `calc(${100 - top}% + 3px)` }}>
                       ⊘ {f.how_label} · {f.danger}
                     </span>
-                    {/* The hidden words, made visible */}
-                    <span className="block px-1.5 py-0.5 text-[11px] font-semibold leading-tight text-quarantine md:text-[12px]">
+                    {/* The hidden words, made readable, in a note just under the box */}
+                    <button onClick={() => onSelect(i)} tabIndex={-1} aria-hidden="true"
+                      className="absolute z-10 w-max break-words rounded-sm border border-quarantine/40 bg-white px-1.5 py-0.5 text-left text-[11px] font-semibold leading-tight text-quarantine shadow-sm md:text-[12px]"
+                      style={{ ...side, top: `calc(${top}% + max(${height}%, 4px) + 3px)` }}>
                       {f.reads_as || f.text}
-                    </span>
-                  </button>
+                    </button>
+                  </Fragment>
                 );
               })}
-
-              {pageCount > 1 && (
-                <div className="absolute bottom-3 right-4 flex items-center gap-1 font-mono text-[11px] text-muted-foreground">
-                  <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}
-                    className="rounded p-0.5 hover:bg-muted disabled:opacity-30" aria-label="Previous page">
-                    <ChevronLeft className="h-4 w-4" />
-                  </button>
-                  {page} / {pageCount}
-                  <button onClick={() => setPage(Math.min(pageCount, page + 1))} disabled={page === pageCount}
-                    className="rounded p-0.5 hover:bg-muted disabled:opacity-30" aria-label="Next page">
-                    <ChevronRight className="h-4 w-4" />
-                  </button>
-                </div>
-              )}
             </div>
+
+            {/* Page switcher, under the page, with big buttons that are easy to tap */}
+            {pageCount > 1 && (
+              <div className="mx-auto mt-3 flex max-w-[640px] items-center justify-center gap-3 font-mono text-[13px] text-muted-foreground">
+                <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}
+                  className="grid h-11 w-11 place-items-center rounded-lg border bg-card hover:bg-muted disabled:opacity-30" aria-label="Previous page">
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <span aria-live="polite">Page {page} of {pageCount}</span>
+                <button onClick={() => setPage(Math.min(pageCount, page + 1))} disabled={page === pageCount}
+                  className="grid h-11 w-11 place-items-center rounded-lg border bg-card hover:bg-muted disabled:opacity-30" aria-label="Next page">
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+            )}
 
             {/* Hidden text that is never shown on any page */}
             {notOnPage.length > 0 && (
@@ -168,7 +184,7 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
 function TwoViews({ result }: { result: ScanResult }) {
   if (!result.views) {
     return (
-      <p className="p-6 text-center text-[14px] text-muted-foreground">
+      <p className="p-6 text-center text-[16px] md:text-[14px] text-muted-foreground">
         The text of the file is deleted after the scan, so this side-by-side view is only available right after scanning.
       </p>
     );
@@ -204,7 +220,7 @@ function TwoViews({ result }: { result: ScanResult }) {
           </div>
         );
       })}
-      <p className="text-[12px] text-muted-foreground">
+      <p className="text-[14px] md:text-[12px] text-muted-foreground">
         Lines in red are read by the AI but cannot be seen by a person. That gap is what Obsidian catches.
       </p>
     </div>

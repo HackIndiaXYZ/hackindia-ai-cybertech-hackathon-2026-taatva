@@ -184,7 +184,7 @@ function ScanScreen() {
               <div className="mt-5">
                 <DropZone onFile={scan} busy={scanning} big />
               </div>
-              <p className="mt-4 text-center text-[13px] text-muted-foreground">
+              <p className="mt-4 text-center text-[15px] md:text-[13px] text-muted-foreground">
                 Obsidian reads the file the way an AI would, and the way a person would.
                 Anything the AI reads but a person cannot see is hidden, and gets caught.
               </p>
@@ -202,7 +202,7 @@ function ScanScreen() {
           ) : (
             <section className="panel p-5">
               <h2 className="section-title">Findings</h2>
-              <p className="mt-2 text-[13px] text-muted-foreground">Hidden text will be listed here after a scan.</p>
+              <p className="mt-2 text-[15px] md:text-[13px] text-muted-foreground">Hidden text will be listed here after a scan.</p>
             </section>
           )}
         </div>

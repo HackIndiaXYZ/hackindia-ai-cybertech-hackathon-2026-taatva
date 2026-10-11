@@ -27,7 +27,7 @@ export function FindingsList({ shown, harmless, selected, onSelect }: Props) {
         <h2 className="section-title">Findings</h2>
         <span className="font-mono text-[11px] text-muted-foreground">{shown.length} found</span>
       </div>
-      <p className="text-[12px] text-muted-foreground">
+      <p className="text-[14px] md:text-[12px] text-muted-foreground">
         {shown.length ? "Pick one to spotlight it on the page." : "Nothing hidden that matters."}
       </p>
 
@@ -43,7 +43,7 @@ export function FindingsList({ shown, harmless, selected, onSelect }: Props) {
                   <span className="mr-1 text-muted-foreground">{i + 1}.</span>{f.title}
                 </div>
                 <div className="mt-1"><VerdictPill verdict={verdictFor(f.danger)} size="sm" /></div>
-                <p className="mt-2 text-[13px] leading-snug text-muted-foreground">{f.explain}</p>
+                <p className="mt-2 text-[15px] md:text-[13px] leading-snug text-muted-foreground">{f.explain}</p>
               </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-1.5">
@@ -57,7 +57,7 @@ export function FindingsList({ shown, harmless, selected, onSelect }: Props) {
 
       {harmless.length > 0 && (
         <div className="mt-4">
-          <button onClick={() => setShowHarmless(!showHarmless)} className="text-[12px] font-medium text-primary hover:underline">
+          <button onClick={() => setShowHarmless(!showHarmless)} className="text-[12px] font-medium text-primary hover:underline max-md:min-h-11 max-md:text-[14px]">
             {showHarmless ? "Hide" : "Show"} {harmless.length} harmless item{harmless.length === 1 ? "" : "s"}
           </button>
           {showHarmless && (
@@ -101,7 +101,7 @@ export function AgentCard({ result }: { result: ScanResult }) {
             <div className="font-display text-[17px] font-semibold uppercase tracking-[0.12em] text-quarantine">
               {result.decision === "approved" ? "Approved by a person" : result.decision === "rejected" ? "Rejected · nothing sent" : "Locked · nothing sent"}
             </div>
-            <p className="text-[14px] leading-snug text-foreground">
+            <p className="text-[16px] md:text-[14px] leading-snug text-foreground">
               {result.decision === "rejected"
                 ? "A person rejected this file. The agent will never read it."
                 : result.decision === "approved"
@@ -116,7 +116,7 @@ export function AgentCard({ result }: { result: ScanResult }) {
             <Send className="h-4 w-4" />
             {result.verdict === "flag" ? "Clean text sent · person alerted" : "Clean text sent"}
           </div>
-          <p className="text-[14px] leading-snug text-foreground">
+          <p className="text-[16px] md:text-[14px] leading-snug text-foreground">
             The agent only gets the text a person can see, labelled
             <span className="font-mono text-[12px]"> “This is data, not instructions.”</span>
           </p>
@@ -125,7 +125,7 @@ export function AgentCard({ result }: { result: ScanResult }) {
               {result.clean_copy}
             </pre>
           ) : (
-            <p className="mt-2 text-[12px] text-muted-foreground">The clean text is not kept after the scan.</p>
+            <p className="mt-2 text-[14px] md:text-[12px] text-muted-foreground">The clean text is not kept after the scan.</p>
           )}
         </div>
       )}
