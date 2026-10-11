@@ -81,14 +81,29 @@ def open_safely(pdf_bytes, file_name=""):
         doc.close()
 
 
+def as_preview(pixmap):
+    # A compact JPEG picture for the website (about 5 times smaller than PNG),
+    # so the page stays light on phones. Never saved.
+    return "data:image/jpeg;base64," + base64.b64encode(pixmap.tobytes("jpg", jpg_quality=70)).decode()
+
+
 def page_pictures(pdf_bytes):
     # Small pictures of each page for the website's preview. Never saved.
     doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
-    pictures = ["data:image/png;base64," + base64.b64encode(
-        page.get_pixmap(dpi=max(24, int(72 * safe_zoom(page.rect, PREVIEW_DPI / 72))), alpha=False)
-        .tobytes("png")).decode() for page in doc]
+    pictures = [as_preview(page.get_pixmap(dpi=max(24, int(72 * safe_zoom(page.rect, PREVIEW_DPI / 72))),
+                                           alpha=False))
+                for page in doc]
     doc.close()
     return pictures
+
+
+def email_preview(photo_png):
+    # The email/web page photo is taken at 2x zoom: halve it for the preview, then JPEG
+    pixmap = pymupdf.Pixmap(photo_png)
+    if pixmap.alpha:
+        pixmap = pymupdf.Pixmap(pixmap, 0)
+    pixmap.shrink(1)  # half the width and height
+    return [as_preview(pixmap)]
 
 
 def two_views(ai_pieces, human, findings):
@@ -132,7 +147,7 @@ def run_steps_html(data, private_mode, file_name):
     # The photo is taken at 2x zoom, so 2 photo pixels = 1 page pixel
     human = timed("human_view", lambda: read_pictures([photo], private_mode, to_points=1 / ZOOM))
     compared = timed("compare", lambda: compare(ai_pieces, human, places))
-    preview = lambda: ["data:image/png;base64," + base64.b64encode(photo).decode()]
+    preview = lambda: email_preview(photo)
     result = finish(compared, ai_pieces, human, [size], timings, preview)
     result["pages"] = [size]
     return result

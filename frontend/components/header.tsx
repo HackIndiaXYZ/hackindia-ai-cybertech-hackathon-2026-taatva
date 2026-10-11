@@ -81,7 +81,7 @@ export function Header() {
             tip: "Every page is read by two page readers: Google's Gemini (online) and Tesseract (on this computer)." };
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur" data-scanner={scanner}>
+    <header className="sticky top-0 z-30 border-b bg-card md:bg-card/90 md:backdrop-blur" data-scanner={scanner}>
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2.5 sm:px-4 md:px-8 md:py-3">
         <Link href="/scan" aria-label="Obsidian home">
           <Brand />

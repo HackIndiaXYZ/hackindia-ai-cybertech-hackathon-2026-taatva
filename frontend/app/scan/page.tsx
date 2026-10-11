@@ -7,12 +7,12 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle, Loader2 } from "lucide-react";
+import { AlertTriangle, Loader2, Smartphone } from "lucide-react";
 import { getScan, getStatus, scanFile, SignInNeeded, type ScanResult } from "@/lib/api";
 import { useSettings } from "@/components/settings";
 import { Stepper } from "@/components/scan/stepper";
 import { VerdictCard } from "@/components/scan/verdict-card";
-import { DropZone, UploadCard } from "@/components/scan/upload-card";
+import { closedWhilePicking, DropZone, UploadCard } from "@/components/scan/upload-card";
 import { DocumentViewer } from "@/components/scan/document-viewer";
 import { AgentCard, FindingsList } from "@/components/scan/findings-list";
 
@@ -73,6 +73,10 @@ function ScanScreen() {
   const [file, setFile] = useState<File | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [phoneNote, setPhoneNote] = useState(false);
+
+  // Did the phone close this page while a file was being chosen? Then explain, kindly.
+  useEffect(() => setPhoneNote(closedWhilePicking()), []);
 
   // Open a saved report from History
   useEffect(() => {
@@ -82,6 +86,7 @@ function ScanScreen() {
 
   async function scan(newFile: File) {
     setFile(newFile);
+    setPhoneNote(false);
     setError(null);
     setResult(null);
     setSelected(null);
@@ -132,6 +137,16 @@ function ScanScreen() {
     <div className="space-y-6">
       <Stepper result={result} scanning={scanning} fileName={file?.name} fileSize={file?.size} />
 
+      {phoneNote && (
+        <div className="flex items-start gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-foreground" role="status">
+          <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-flag" />
+          <span>
+            <b>Your phone reloaded this page to save memory</b> while you were choosing a file, so the file did not arrive.
+            Please choose it again. If this keeps happening, close a few other apps or browser tabs first.
+          </span>
+          <button onClick={() => setPhoneNote(false)} className="ml-auto text-[12px] text-muted-foreground underline">OK</button>
+        </div>
+      )}
       {notice && (
         <div className="flex items-center gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-foreground" role="status">
           <Loader2 className="h-5 w-5 shrink-0 animate-spin text-flag" />

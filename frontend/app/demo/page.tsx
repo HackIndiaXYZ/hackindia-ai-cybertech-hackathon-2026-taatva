@@ -94,7 +94,7 @@ export default function DemoPage() {
                 className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] hover:bg-muted disabled:opacity-40">
                 <Upload className="h-4 w-4" /> Add my own
               </button>
-              <input ref={input} type="file" multiple accept=".pdf,.html,.htm,.eml" className="hidden"
+              <input ref={input} type="file" multiple accept=".pdf,.html,.htm,.eml,application/pdf,text/html,message/rfc822" className="hidden"
                 onChange={(e) => { addFiles(e.target.files); e.target.value = ""; }} />
             </div>
           </div>
