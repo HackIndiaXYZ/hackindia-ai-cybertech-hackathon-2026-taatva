@@ -44,12 +44,12 @@ function Brand({ small = false }: { small?: boolean }) {
 
 export function Header() {
   const path = usePathname();
-  const { email, signOut, privateMode, setPrivateMode, status, backendDown, waitingCount } = useSettings();
+  const { email, signOut, privateMode, setPrivateMode, status, scanner, waitingCount } = useSettings();
 
   // The sign-in page only shows the logo and the light/dark switch
   if (path.startsWith("/login") || path.startsWith("/auth")) {
     return (
-      <header className="border-b bg-card/90">
+      <header className="border-b bg-card/90" data-scanner={scanner}>
         <div className="mx-auto flex max-w-[1440px] items-center justify-between px-3 py-3 sm:px-4 md:px-8">
           <Brand />
           <ThemeToggle />
@@ -65,8 +65,12 @@ export function Header() {
   ];
 
   // Who reads the pages right now, in plain words
-  const readers = backendDown
-    ? { dot: "bg-quarantine", text: "Scanner offline", tip: "The scanner (backend) is not answering. Start it, then refresh." }
+  const readers = scanner === "offline"
+    ? { dot: "bg-quarantine", text: "Scanner offline",
+        tip: "The scanner has not answered for 2 minutes. We keep trying every 15 seconds. If this lasts, check the backend on Render." }
+    : scanner === "waking" || scanner === "checking"
+      ? { dot: "bg-flag animate-pulse", text: scanner === "waking" ? "Waking up scanner…" : "Checking scanner…",
+          tip: "The scanner sleeps when nobody has used it for a while. It takes about a minute to wake up. This updates by itself." }
     : privateMode
       ? { dot: "bg-pass", text: "Tesseract only · nothing leaves",
           tip: "Private mode: pages are read only on this computer. Nothing is sent to Google." }
@@ -77,7 +81,7 @@ export function Header() {
             tip: "Every page is read by two page readers: Google's Gemini (online) and Tesseract (on this computer)." };
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b bg-card/90 backdrop-blur" data-scanner={scanner}>
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2.5 sm:px-4 md:px-8 md:py-3">
         <Link href="/scan" aria-label="Obsidian home">
           <Brand />

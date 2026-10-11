@@ -65,7 +65,13 @@ def load():
 
 
 def status():
-    # "ready", or the reason it is not available
+    # "ready", "loading", or the reason it is not available.
+    # Never waits: if the model is still loading, say so and answer at once.
+    if _model is not None:
+        return "ready"
+    if not _lock.acquire(blocking=False):
+        return "loading"
+    _lock.release()
     return "ready" if load() else _problem
 
 

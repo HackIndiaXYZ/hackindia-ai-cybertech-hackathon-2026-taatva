@@ -14,10 +14,12 @@ type Settings = {
   privateMode: boolean;
   setPrivateMode: (on: boolean) => void;
   status: Status | null;
-  backendDown: boolean;
+  scanner: ScannerState;
   waitingCount: number;
   refreshWaiting: () => void;
 };
+
+export type ScannerState = "checking" | "waking" | "online" | "offline";
 
 const SettingsContext = createContext<Settings | null>(null);
 
@@ -27,7 +29,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState<string | null>(null);
   const [privateMode, setPrivateModeState] = useState(false);
   const [status, setStatus] = useState<Status | null>(null);
-  const [backendDown, setBackendDown] = useState(false);
+  // "checking" at first, "waking" while the scanner starts up, then "online" or "offline"
+  const [scanner, setScanner] = useState<ScannerState>("checking");
   const [waitingCount, setWaitingCount] = useState(0);
 
   const refreshWaiting = useCallback(() => {
@@ -50,17 +53,56 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, [email, path, refreshWaiting]);
 
   useEffect(() => {
-    // Ask the backend which readers are on. Remember the private mode choice.
-    getStatus()
-      .then((s) => {
+    // Keep asking the scanner (backend) "are you there?".
+    // On the free Render plan the scanner falls asleep after 15 quiet minutes and
+    // needs about a minute to wake up. So: while it is not answering, we say
+    // "waking up" and ask again every 5 seconds. Only after 2 minutes of silence
+    // do we say "offline" (and we still keep asking, every 15 seconds).
+    // Once it answers, we check again every minute (this also keeps it awake).
+    let stopped = false;
+    let timer: ReturnType<typeof setTimeout>;
+    let firstFailure: number | null = null;
+    let privateModeChosen = false;
+
+    async function check() {
+      try {
+        const s = await getStatus();
+        if (stopped) return;
         setStatus(s);
-        let saved: string | null = null;
-        try {
-          saved = localStorage.getItem("obsidian-private-mode");
-        } catch {}
-        setPrivateModeState(saved === null ? s.private_mode_default : saved === "true");
-      })
-      .catch(() => setBackendDown(true));
+        setScanner("online");
+        firstFailure = null;
+        if (!privateModeChosen) {
+          // Remember the private mode choice (only the first time)
+          privateModeChosen = true;
+          let saved: string | null = null;
+          try {
+            saved = localStorage.getItem("obsidian-private-mode");
+          } catch {}
+          setPrivateModeState(saved === null ? s.private_mode_default : saved === "true");
+        }
+        timer = setTimeout(check, 60_000);
+      } catch {
+        if (stopped) return;
+        firstFailure ??= Date.now();
+        const longTime = Date.now() - firstFailure > 120_000;
+        setScanner(longTime ? "offline" : "waking");
+        timer = setTimeout(check, longTime ? 15_000 : 5_000);
+      }
+    }
+
+    // Check straight away when someone comes back to this browser tab
+    function onFocus() {
+      clearTimeout(timer);
+      check();
+    }
+
+    check();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      stopped = true;
+      clearTimeout(timer);
+      window.removeEventListener("focus", onFocus);
+    };
   }, []);
 
   function setPrivateMode(on: boolean) {
@@ -79,7 +121,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <SettingsContext.Provider
-      value={{ email, signOut, privateMode, setPrivateMode, status, backendDown, waitingCount, refreshWaiting }}>
+      value={{ email, signOut, privateMode, setPrivateMode, status, scanner, waitingCount, refreshWaiting }}>
       {children}
     </SettingsContext.Provider>
   );

@@ -83,7 +83,8 @@ export async function scanFile(file: File, privateMode: boolean) {
   });
 }
 
-export const getStatus = () => ask<Status>("/status");
+// Give up after 10 seconds, so a sleeping scanner never makes the page hang
+export const getStatus = () => ask<Status>("/status", { signal: AbortSignal.timeout(10_000) });
 
 // ----- The "AI recruiter" demo -----
 
