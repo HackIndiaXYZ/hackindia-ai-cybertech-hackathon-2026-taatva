@@ -27,8 +27,11 @@ type Props = { result: ScanResult | null; scanning: boolean; fileName?: string; 
 
 export function Stepper({ result, scanning, fileName, fileSize }: Props) {
   const hiddenItems = result ? importantFindings(result.findings).length : null;
+  // Which step stopped the scan? A file refused at the start (too big, not a PDF...) only has
+  // the "open" time, so "Open safely" is the step that held it (QA-19).
+  const timed = result ? Object.keys(result.timings) : [];
   const failedAt = result && result.verdict === "quarantine" && result.findings.length === 0
-    ? STEPS.findIndex((s) => result.timings[s.key] === undefined) : -1;
+    ? (timed.length <= 1 ? 0 : STEPS.findIndex((s) => result.timings[s.key] === undefined)) : -1;
 
   return (
     <section className="panel flex flex-col gap-5 p-5 lg:flex-row lg:items-center">
@@ -61,7 +64,7 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
                   failed ? "bg-quarantine ring-quarantine/40" : done ? "bg-primary ring-primary/30" : scanning ? "bg-card ring-primary/40" : "bg-muted ring-border",
                 )}
               >
-                {failed ? <span className="font-bold text-white dark:text-neutral-950">!</span>
+                {failed ? <span className="font-bold text-white dark:text-neutral-950" aria-label="This step held the file">!</span>
                   : done ? <Check className="h-4 w-4 text-primary-foreground" strokeWidth={3} />
                   : scanning ? <Loader2 className="h-4 w-4 animate-spin text-primary" style={{ animationDelay: `${i * 120}ms` }} />
                   : null}

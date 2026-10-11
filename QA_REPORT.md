@@ -12,6 +12,22 @@ Safety checkpoint: git tag `before-full-audit` (to go back: `git checkout before
 
 (Both are also in `.claude/launch.json`, and `start.ps1` starts both in two windows.)
 
+## How to run the QA tools (copy these into a terminal, from the `Obsidian` folder)
+
+| What | Command |
+|---|---|
+| All automated tests (scoring, pipeline, API, nasty files, code safety) | `cd backend` then `.venv\Scripts\python.exe -m pytest` |
+| Only the quick tests | `.venv\Scripts\python.exe -m pytest -m "not slow"` |
+| The 4 proof numbers (20 files) | `backend\.venv\Scripts\python.exe test_files\run_tests.py --private` |
+| Example results for the website test mode | `backend\.venv\Scripts\python.exe qa\make_fixtures.py` |
+| Special website test build (port 3001) | `cd frontend`, then `set NEXT_DIST_DIR=.next-qa`, `set NEXT_PUBLIC_QA_MODE=1`, `npm run build`, `npx next start -p 3001` |
+| Screenshots at every size, 3 browsers | `backend\.venv\Scripts\python.exe qa\screens.py` → pictures in `qa-screenshots\` |
+| Behaviour checks (tap upload, double-click, X-Ray, rotate, keyboard, offline, memory) | `backend\.venv\Scripts\python.exe qa\behaviour.py` |
+
+**Test mode is safe:** pages only use the example results when the address has `?qa=1` AND the website runs on a
+developer's computer (`npm run dev`) or in the special test build (`NEXT_PUBLIC_QA_MODE=1`). Vercel never sets that,
+so the live website always needs a real sign-in.
+
 ## Severity words
 
 - **Critical**: unsafe (an attack gets through, secrets leak, or a crash gives a silent Pass).
@@ -39,6 +55,10 @@ Safety checkpoint: git tag `before-full-audit` (to go back: `git checkout before
 | QA-15 | `frontend/app/globals.css` colours | Three colour pairs were below the readability standard (WCAG): **yellow Flag words on white** 3.35 (needs 4.5) in light mode, grey text in grey boxes 4.33 (light), red Quarantine text in its soft red box 4.43 (dark). | Light mode → a Flag result → the yellow "FLAG" word is faint. | Medium | **Fixed**: a darker yellow used **only for words** (`flag-ink`, 5.2); bars and badges keep the bright yellow. Grey text 1 shade darker (4.66), dark-mode red 1 shade lighter (4.55). No purple found anywhere. |
 | QA-16 | All pages (keyboard) | With the Tab key it was not always clear which button was selected (no clear focus outline, especially in dark mode). | Press Tab repeatedly on the Scan page. | Low | **Fixed**: one clear outline for every focused item (contrast 6.2 light, 10.4 dark), only for keyboard use. |
 | QA-17 | `backend/main.py` start-up | The backend printed a "deprecated" warning on every start (old FastAPI start-up style). | Start the backend. | Low | **Fixed**: new "lifespan" style; the backend starts with zero warnings of its own. (One warning inside Google's Gemini library appears only on Python 3.14; Render uses 3.12.) |
+| QA-18 | `frontend/components/scan/document-viewer.tsx` (X-Ray Reveal) | (a) The red X-Ray box was stretched to at least 30% of the page width, so it was **not exactly on the hidden text**. (b) When two hidden texts were close together, their red notes **covered each other** and could not be read. (c) The page switcher (‹ 1/2 ›) was tiny and sat on top of the page. | (a) Any short hidden text. (b) The `<script>` example: two notes on top of each other. (c) A 2-page file on a phone. | Medium | **Fixed**: the outline is now exactly the hidden text's size (measured: within 1.5 px at every screen size); the hidden words show in one note under the chosen box (tap another box to see its note); the page switcher sits under the page with 44 px buttons. Labels and notes never stick out of the page. |
+| QA-19 | `frontend/components/scan/stepper.tsx` | A file refused at the very start (too big, not a PDF, locked) showed the **second** step "AI view" as the failed step instead of "Open safely". | Upload a .txt renamed to .pdf. | Low | **Fixed**. |
+| QA-20 | `frontend/lib/api.ts` | When the scanner was down, people saw computer talk: "The backend said 502". | Stop the backend and scan. | Low | **Fixed**: "The scanner is not working right now. Please try again in a minute." |
+| QA-21 | `frontend/app/scan/page.tsx` | (a) A file picked through the second upload box while a scan was running could start a **second scan** at the same time. (b) Refreshing or pressing Back during a scan lost the result on screen without warning. | (a) Pick a file, then quickly pick another one in the other upload box. (b) Press F5 while "Checking the file…" shows. | Medium | **Fixed**: only one scan can run at a time (a guard that does not depend on screen updates); the browser asks "Leave this page?" while a scan runs (the result is still saved in History). Tested in `qa/behaviour.py`. |
 | QA-02 | `backend/pipeline/hidden_parts.py` lines 25–41, 128–129 | The list of invisible letters was typed into the code **as real invisible characters** (some are right-to-left override marks). An editor or copy-paste could delete them silently and the detector would go blind with no warning. | Open the file: the list looks like empty strings `"": "zero-width space"`. | Medium | **Fixed**: written as visible codes (`​` …). Test `test_no_invisible_characters_typed_into_our_code` stops it coming back. |
 
 ## Proof numbers

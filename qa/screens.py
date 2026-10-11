@@ -17,7 +17,7 @@ from playwright.sync_api import sync_playwright
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / "qa-screenshots"
 OUT.mkdir(exist_ok=True)
-BASE = "http://localhost:3000"
+BASE = "http://localhost:3001"  # the special test build (see qa/README in QA_REPORT.md)
 FIXTURES = ROOT / "frontend" / "public" / "qa"
 
 SIZES = {

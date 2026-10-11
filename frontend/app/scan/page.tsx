@@ -5,7 +5,7 @@
 // the findings, and what the AI agent gets.
 // /scan?id=... opens a saved report from History.
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, Loader2, Smartphone } from "lucide-react";
 import { getScan, getStatus, scanFile, SignInNeeded, type ScanResult } from "@/lib/api";
@@ -74,6 +74,17 @@ function ScanScreen() {
   const [selected, setSelected] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [phoneNote, setPhoneNote] = useState(false);
+  // Only ONE scan at a time, even after a double-click or picking two files fast
+  const busy = useRef(false);
+
+  // While a scan runs, refreshing or going back would lose the result on screen:
+  // the browser asks "Leave this page?" first (the result is still saved in History).
+  useEffect(() => {
+    if (!scanning) return;
+    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [scanning]);
 
   // Did the phone close this page while a file was being chosen? Then explain, kindly.
   useEffect(() => setPhoneNote(closedWhilePicking()), []);
@@ -85,6 +96,7 @@ function ScanScreen() {
   }, [params]);
 
   async function scan(newFile: File) {
+    if (busy.current) return;
     setFile(newFile);
     setPhoneNote(false);
     setError(null);
@@ -95,6 +107,7 @@ function ScanScreen() {
     const problem = checkFileFirst(newFile);
     if (problem) return setError(problem);
 
+    busy.current = true;
     setScanning(true);
     try {
       setResult(await scanWithOneRetry(newFile));
@@ -106,6 +119,7 @@ function ScanScreen() {
       }
       setError(e instanceof Error ? e.message : "Something went wrong.");
     } finally {
+      busy.current = false;
       setScanning(false);
     }
   }

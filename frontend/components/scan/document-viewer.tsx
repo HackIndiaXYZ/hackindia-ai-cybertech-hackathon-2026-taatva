@@ -99,6 +99,10 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
               )}
 
               {xray && size && onThisPage.map(({ f, i }) => {
+                // Only ONE note with the hidden words at a time (notes of nearby boxes would
+                // cover each other, bug QA-18): the box picked by the person, or else the
+                // most dangerous one on this page. All words are in the Findings list too.
+                const noteFor = onThisPage.some((x) => x.i === selected) ? selected : onThisPage[0]?.i;
                 const [x0, y0, x1, y1] = f.where.box!;
                 const active = selected === i;
                 // Boxes are in page units (PDF points or web pixels). We turn them into
@@ -128,11 +132,11 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
                       ⊘ {f.how_label} · {f.danger}
                     </span>
                     {/* The hidden words, made readable, in a note just under the box */}
-                    <button onClick={() => onSelect(i)} tabIndex={-1} aria-hidden="true"
+                    {noteFor === i && <button onClick={() => onSelect(i)} tabIndex={-1} aria-hidden="true"
                       className="absolute z-10 w-max break-words rounded-sm border border-quarantine/40 bg-white px-1.5 py-0.5 text-left text-[11px] font-semibold leading-tight text-quarantine shadow-sm md:text-[12px]"
                       style={{ ...side, top: `calc(${top}% + max(${height}%, 4px) + 3px)` }}>
                       {f.reads_as || f.text}
-                    </button>
+                    </button>}
                   </Fragment>
                 );
               })}

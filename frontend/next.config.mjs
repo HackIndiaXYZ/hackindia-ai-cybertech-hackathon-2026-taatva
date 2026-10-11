@@ -6,6 +6,8 @@
 //   - Referrer-Policy: other websites do not see our full page addresses
 //   - Permissions-Policy: no camera, microphone or location, ever
 const nextConfig = {
+  // Test builds go to their own folder, so they never mix with the normal one
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   async headers() {
     return [
       {

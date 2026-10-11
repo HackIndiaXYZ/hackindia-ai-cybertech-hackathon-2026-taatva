@@ -66,7 +66,10 @@ async function ask<T>(path: string, options?: RequestInit): Promise<T> {
   if (!response.ok) {
     const body = await response.json().catch(() => ({}));
     if (response.status === 401) throw new SignInNeeded(body.detail ?? "Please sign in again.");
-    throw new Error(body.detail ?? `The backend said ${response.status}`);
+    // Plain words when the scanner itself is down or broken (QA-20)
+    throw new Error(body.detail ?? (response.status >= 500
+      ? "The scanner is not working right now. Please try again in a minute."
+      : `The scanner refused this request (code ${response.status}).`));
   }
   return response.json();
 }
