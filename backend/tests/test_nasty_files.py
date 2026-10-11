@@ -197,3 +197,11 @@ def test_long_normal_web_page_is_not_a_false_alarm():
 def test_hidden_text_at_the_bottom_of_a_long_page_is_still_caught():
     result = scan_pdf(long_page(f"<p style='color:#ffffff'>{ORDER}</p>"), True, "long_attack.html")
     assert result["verdict"] == "quarantine"
+
+
+def test_email_pictures_are_replaced_by_a_light_grey_box():
+    # Bug QA-23: the placeholder picture had random colours (it showed up purple)
+    import base64
+    from pipeline.html_view import GREY_PIXEL
+    pixel = pymupdf.Pixmap(base64.b64decode(GREY_PIXEL.split(",", 1)[1]))
+    assert pixel.pixel(0, 0) == (200, 200, 200)

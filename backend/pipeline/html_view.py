@@ -50,8 +50,15 @@ LOW_MEMORY = [
 ]
 
 # A tiny grey picture used instead of every real picture (no internet, no tracking)
-GREY_PIXEL = ("data:image/png;base64," + base64.b64encode(
-    pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 1, 1), False).tobytes("png")).decode())
+def grey_pixel():
+    # The colour MUST be set: a new picture otherwise holds random leftover colours
+    # (it showed up purple in email previews, bug QA-23)
+    pixel = pymupdf.Pixmap(pymupdf.csRGB, pymupdf.IRect(0, 0, 1, 1), False)
+    pixel.clear_with(200)  # light grey
+    return "data:image/png;base64," + base64.b64encode(pixel.tobytes("png")).decode()
+
+
+GREY_PIXEL = grey_pixel()
 
 
 # ---------- 1. Open the file ----------

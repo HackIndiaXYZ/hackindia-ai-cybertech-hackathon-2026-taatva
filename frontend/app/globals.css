@@ -79,6 +79,10 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    /* Very long words with no spaces (attackers write such text, e.g.
+       "onmouseover=alert(1)>hover</b>") may break onto the next line, but ONLY
+       when they do not fit. Without this, they pushed the page sideways on phones (QA-22). */
+    overflow-wrap: anywhere;
   }
 }
 

@@ -48,3 +48,9 @@ def test_env_files_are_ignored_by_git():
     ignore = (ROOT / ".gitignore").read_text(encoding="utf-8")
     assert ".env" in ignore
     assert ".env*.local" in (ROOT / "frontend" / ".gitignore").read_text(encoding="utf-8")
+
+
+def test_long_attacker_words_cannot_push_the_page_sideways():
+    # Bug QA-22: words without spaces must be allowed to wrap everywhere
+    css = (ROOT / "frontend" / "app" / "globals.css").read_text(encoding="utf-8")
+    assert "overflow-wrap: anywhere" in css
