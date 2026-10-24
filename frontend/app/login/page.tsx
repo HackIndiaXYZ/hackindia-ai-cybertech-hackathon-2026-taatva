@@ -6,11 +6,13 @@
 
 import { Suspense, useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { CheckCircle2, Loader2, LogIn, MailCheck, TriangleAlert, UserPlus } from "lucide-react";
+import { Check, CheckCircle2, Circle, Loader2, LogIn, MailCheck, TriangleAlert, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { safeNextPage } from "@/lib/safe-next";
 import { domainProblem, formatProblem, typoProblem, type EmailProblem } from "@/lib/email-check";
+import { PASSWORD_RULES, passwordIsStrong } from "@/lib/password-rules";
 import { EmailPopup } from "@/components/email-popup";
+import { PasswordInput } from "@/components/password-input";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -37,7 +39,7 @@ function plainError(message: string, code?: string) {
     return "Too many emails were sent in a short time. Please wait a few minutes and try again.";
   }
   if (text.includes("password") && (text.includes("short") || text.includes("at least") || text.includes("weak"))) {
-    return "That password is too weak. Use at least 8 characters, mixing letters and numbers.";
+    return "That password is too weak. Use at least 8 characters with a capital letter, a small letter, a number and a special character.";
   }
   if (text.includes("invalid") && text.includes("email")) {
     return "That does not look like a real email address. Please check it.";
@@ -89,7 +91,8 @@ function LoginForm() {
     // Check the email first. Anything wrong -> a pop-up, and no account is made.
     const problem = formatProblem(address) ?? (keepTyped ? null : typoProblem(address)) ?? (await domainProblem(address));
     if (problem) return setPopup(problem);
-    if (password.length < 8) return setError("Please use a password of at least 8 characters.");
+    if (!passwordIsStrong(password))
+      return setError("Your password does not follow all the rules yet. Check the list under the password box.");
     if (password !== repeat) return setError("The two passwords are not the same.");
     const { data, error } = await supabase().auth.signUp({
       email: address,
@@ -177,16 +180,38 @@ function LoginForm() {
             </label>
             <label className="block">
               <span className="text-[13px] font-medium text-foreground">Password</span>
-              <Input type="password" required minLength={mode === "signup" ? 8 : undefined}
+              <PasswordInput required minLength={mode === "signup" ? 8 : undefined} aria-describedby={mode === "signup" ? "password-rules" : undefined}
                 autoComplete={mode === "signin" ? "current-password" : "new-password"} value={password}
-                onChange={(e) => setPassword(e.target.value)} className="mt-1 h-11 bg-card" />
-              {mode === "signup" && <span className="mt-1 block text-[12px] text-muted-foreground">At least 8 characters.</span>}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setError(null); // an old "password" warning goes away as soon as they fix it
+                }} className="mt-1 h-11 bg-card" />
             </label>
+            {mode === "signup" && (
+              // Each rule gets a green tick as soon as the password follows it
+              <ul id="password-rules" className="space-y-1 text-[14px] md:text-[12px]" aria-label="Password rules">
+                {PASSWORD_RULES.map((rule) => {
+                  const met = rule.met(password);
+                  return (
+                    <li key={rule.label} className={cn("flex items-center gap-2", met ? "text-pass" : "text-muted-foreground")}>
+                      {met ? <Check className="h-4 w-4 shrink-0" /> : <Circle className="h-3.5 w-3.5 shrink-0" />}
+                      <span>{rule.label}</span>
+                      <span className="sr-only">{met ? "(done)" : "(not yet)"}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
             {mode === "signup" && (
               <label className="block">
                 <span className="text-[13px] font-medium text-foreground">Type the password again</span>
-                <Input type="password" required autoComplete="new-password" value={repeat}
+                <PasswordInput required autoComplete="new-password" value={repeat}
                   onChange={(e) => setRepeat(e.target.value)} className="mt-1 h-11 bg-card" />
+                {repeat && (
+                  <span className={cn("mt-1 block text-[14px] md:text-[12px]", repeat === password ? "text-pass" : "text-quarantine")}>
+                    {repeat === password ? "Both passwords match." : "The two passwords are not the same yet."}
+                  </span>
+                )}
               </label>
             )}
 
