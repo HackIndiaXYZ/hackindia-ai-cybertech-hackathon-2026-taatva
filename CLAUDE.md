@@ -70,6 +70,18 @@ Must work on a phone screen too.
 Big "X-Ray Reveal" switch: red boxes around hidden text on the page preview.
 Use words an HR person understands (e.g. "file details", not "metadata").
 "Copy clean text" never appears for Quarantine.
+History badge = only Quarantine files waiting for Approve / Reject, written as "10 waiting" (never a bare number).
+Open pages show a "Refresh now" bar when a newer version is live; no scan from an old page.
+
+## Sign-up rules
+- Invalid email = pop-up, no account made: badly written, typo of a common provider
+  (offer the fix), or the part after @ cannot receive email.
+- Password: 8+ characters, a capital, a small letter, a number, a special character.
+  Live green ticks; eye button to show/hide. Same rules set in Supabase too.
+
+## Prompt Guard
+Built and works on the team laptop. OFF on the free live server (needs about 1 GB).
+Demo it from the laptop: Obsidian_Laptop_Demo_Guide.pdf.
 
 ## Privacy and safety
 - Keys live only in .env files, never in code or GitHub.

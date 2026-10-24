@@ -8,6 +8,11 @@ All 4 targets are met in private mode (14/14 attacks caught, 0/6 false alarms, 2
 Delta 4 still holds: Obsidian first asks "could a human even see this?" — every attack was caught by *how* it was hidden.
 Safety checkpoint: git tag `before-full-audit` (to go back: `git checkout before-full-audit`).
 
+**Update 24 Oct 2026: 6 more problems found by the team after the audit (QA-25 to QA-30), all fixed and live.**
+Sign-up now catches invalid emails and enforces strong passwords, the History badge says what it counts, old pages left
+open on phones ask to be refreshed, and phones low on memory get a clear message. Screen test re-run: 0 problems.
+See [Follow-up fixes (24 Oct 2026)](#follow-up-fixes-24-oct-2026).
+
 ## How the app was started for testing
 
 | Part | Command (run from the `Obsidian` folder) | Address |
@@ -26,7 +31,7 @@ Safety checkpoint: git tag `before-full-audit` (to go back: `git checkout before
 | The 4 proof numbers (20 files) | `backend\.venv\Scripts\python.exe test_files\run_tests.py --private` |
 | Example results for the website test mode | `backend\.venv\Scripts\python.exe qa\make_fixtures.py` |
 | Special website test build (port 3001) | `cd frontend`, then `set NEXT_DIST_DIR=.next-qa`, `set NEXT_PUBLIC_QA_MODE=1`, `npm run build`, `npx next start -p 3001` |
-| Screenshots at every size, 3 browsers | `backend\.venv\Scripts\python.exe qa\screens.py` → pictures in `qa-screenshots\` |
+| Screenshots at every size, 3 browsers (11 pages, incl. sign-up) | `backend\.venv\Scripts\python.exe qa\screens.py` → pictures in `qa-screenshots\` |
 | Behaviour checks (tap upload, double-click, X-Ray, rotate, keyboard, offline, memory) | `backend\.venv\Scripts\python.exe qa\behaviour.py` |
 
 **Test mode is safe:** pages only use the example results when the address has `?qa=1` AND the website runs on a
@@ -69,6 +74,23 @@ so the live website always needs a real sign-in.
 | QA-23 | `backend/pipeline/html_view.py` | Email pictures are swapped for a "grey box" (no tracking), but the box was made without setting its colour, so it held **random colours** — it showed as a **purple** rectangle in email previews. | Scan `email_2_tiny_grey_footer.eml` → purple box where the logo was. | Low | **Fixed**: the placeholder is always light grey. Test `test_email_pictures_are_replaced_by_a_light_grey_box`. |
 | QA-24 | `frontend/app/layout.tsx`, `app/scan/page.tsx`, `document-viewer.tsx` | Lighthouse on a phone: speed 76–82 on Sign in and Scan (target 90); accessibility 96 on Scan, because the red hidden-words note used a theme colour that turns light in dark mode while the page picture stays white. | Lighthouse, mobile, `/login` and `/scan`. | Medium | **Partly fixed**: one unused font file removed, the "typewriter" font loads a moment later, the Scan page's result parts load only after a scan (page code 15.1 → 7.5 KB); the note now uses a fixed dark red. Now: accessibility **100** everywhere; phone speed Sign in **90–95**, empty Scan **92–95**. **Still below 90 (81–82):** Scan with a result and History on a slow simulated phone network, because their content needs data from the server first (would need server-side loading, a bigger change). Desktop speed **100** on all pages. |
 
+## Follow-up fixes (24 Oct 2026)
+
+Found by the team while using the live website. Each has its own git checkpoint and is live on Vercel.
+
+| ID | Where | What breaks | How to repeat | Severity | Status |
+|---|---|---|---|---|---|
+| QA-25 | `frontend/app/login/page.tsx`, `lib/email-check.ts`, `app/api/check-email/route.ts`, `components/email-popup.tsx` | Sign-up accepted **invalid email addresses** with no warning (e.g. `abc@gmail`, `abc@gmial.com`, an address at a company that does not exist). The person waited for a verification email that could never arrive. | Sign up with `abc@gmail`. | Medium | **Fixed**: a pop-up says "This email address is not valid" (badly written, or the part after @ cannot receive emails, checked in the internet's address book) or "Is there a typo?" with a one-tap **Use abc@gmail.com** button. No account is made. If the check itself cannot run (no internet), the person may continue. |
+| QA-26 | `frontend/app/login/page.tsx`, `components/password-input.tsx`, `lib/password-rules.ts` | Passwords only needed 8 characters, and there was no way to **see what you typed**. | Sign up with `abcdefgh`. | Medium | **Fixed**: 👁 show/hide button on every password box; new passwords need 8+ characters, a capital, a small letter, a number and a special character, each shown with a live green tick; the repeat box says whether both match. **Also set the same rules in Supabase** (see DEPLOY.md Step 3) so they cannot be skipped. |
+| QA-27 | `frontend/components/header.tsx` | The red **"10" next to History** looked like the total number of scans. It only counts Quarantine files waiting for Approve / Reject. | Have 10 waiting Quarantine files and look at the header. | Low | **Fixed**: the badge reads **"⏳ 10 waiting"** (same words as the "Waiting for you" card on History); hovering explains it in full. On phones it sits under the word HISTORY. |
+| QA-28 | `frontend/app/login/page.tsx` | On phones, the "Sign in" link on the sign-up page was 43 px wide (finger size is 44 px). | Screen test at 320–390 px. | Low | **Fixed**: 44 × 44 px. |
+| QA-29 | `frontend/components/update-check.tsx`, `app/api/version/route.ts`, `next.config.mjs` | Phones kept **old copies of the website** open for days (tabs left open, in-app browsers). They still had old bugs, e.g. the raw "Failed to fetch. Is the scanner running?" error that was fixed on 11 Oct. | Open the site, leave the tab open, publish a new version, scan in the old tab. | Medium | **Fixed**: open pages ask "which version is live?" when shown again and every 5 minutes; if newer, a bar says **"A newer version of Obsidian is ready. Refresh now"**, and the Scan page will not scan from an old page. Phones that still have a copy from before this fix need **one manual refresh**. |
+| QA-30 | `frontend/components/scan/upload-card.tsx`, `app/scan/page.tsx` | On Android phones low on memory, the file picked in the phone's file picker **never reached the page** ("Unable to complete previous operation due to low memory", shown by Android). Nothing happened and nothing explained why. | Android phone with many apps open → browse → pick a file from Google Drive. | Medium | **Fixed (explained, cannot be prevented)**: if the picker closes and neither a file nor "Cancel" arrives within 3 seconds, the Scan page says the phone was low on memory and how to avoid it (close apps, pick from Downloads). Tested in a simulated phone browser, not yet on a real low-memory phone. |
+
+**Prompt Guard on the live website:** not switched on, on purpose. It needs about 1 GB of memory and the free Render
+server has 512 MB. The code is finished and works on the team laptop (Meta access approved, token set, score 1.00 for an
+attack and 0.00 for a normal sentence). For Demo Day it is shown from the laptop: follow `Obsidian_Laptop_Demo_Guide.pdf`.
+
 ## Proof numbers (real, measured on 11 Oct 2026)
 
 From `test_files\run_tests.py --private` (20 files: 14 attacked, 6 clean), after all fixes:
@@ -92,6 +114,7 @@ identical (14/14, 0/6). On Render, scans are slower than on this laptop (smaller
 | Nasty files (Phase 3) | 31 cases, all handled: empty, .txt/.exe renamed, locked, half PDF, 0 pages, 301 pages, too big, scanned pages, 4 rotations, mixed sizes + CropBox, other languages + emoji, right-to-left trick, Russian look-alikes, 7 strange file names (incl. `../../etc/passwd.pdf`), 3 scans at once, long web pages |
 | Behaviour checks (`qa\behaviour.py`) | **15 of 15 passed** (logged-out redirect, broken email link, tap-upload on a phone, no copy button on Quarantine, double upload = one scan, X-Ray on page 3, 21 quick toggles, box exact after rotate/resize (worst 0.02 px), keyboard only, focus outline, internet off mid-scan, memory flat over 10 scans (10.0 → 10.0 MB), no console errors) |
 | Screen test (`qa\screens.py`) | **210 screenshots**: Chromium at all 16 sizes (incl. tablets both ways), WebKit (Safari engine) at 5 sizes, 10 pages each. **0 X-Ray box errors, 0 console errors, 0 attack code ran.** Sideways scrolling found on 4 → fixed (QA-22), recheck 0. Dark mode checked too. |
+| Screen test re-run (24 Oct 2026) | **231 page checks** (sign-up page added): **0 problems** (no sideways scrolling, X-Ray boxes exact, no console errors apart from "scanner not running" pings). Extra sign-up check (email pop-ups, password rules, eye buttons) at all 16 sizes, Chromium + WebKit, light + dark: **64 checks, 0 problems**; the pop-up always fits on screen. One tap target 1 px too small → fixed (QA-28). |
 | Firefox | **Could not test**: Windows on this laptop blocks the Firefox test program from starting ("spawn UNKNOWN", also outside the sandbox). |
 
 ### Lighthouse (phone = slow simulated 4G phone, desktop = normal)
@@ -115,9 +138,12 @@ identical (14/14, 0/6). On Render, scans are slower than on this laptop (smaller
 | Error messages | Plain words; no file paths, stack traces or keys (tested). |
 | Uploaded files | Read into memory and closed straight away (QA-05); no leftover temp files found on disk. |
 | `eval`, `exec`, `shell=True`, running files | None (automatic test). |
+| New open website addresses (24 Oct) | `/api/check-email` (can this email company receive mail?) and `/api/version` (which version is live?) work without sign-in, because they are needed before sign-in. They only answer yes/no or a version name; they read no scans, accounts or keys. |
+| Sign-up rules | Email and password rules are checked on the website; the same password rules must also be set in Supabase so they cannot be skipped (DEPLOY.md Step 3). |
 
-## Demo Day Checklist (10 things to click before going on stage)
+## Demo Day Checklist (things to click before going on stage)
 
+0. **On every phone and laptop you will use: refresh the website once** (or close the tab and open the link again), so it is the newest version. If a blue "A newer version of Obsidian is ready" bar shows, press **Refresh now**. To show Prompt Guard, run the demo from the team laptop with `Obsidian_Laptop_Demo_Guide.pdf`.
 1. Open the live website and the backend health page `https://<render-name>.onrender.com/health` → you see `"status":"ok"` (this also wakes the free Render server up; wait 1 minute if it was asleep).
 2. Sign in. The header badge turns **green** ("Gemini + Tesseract live" or "Private"), not "Waking up" / "offline".
 3. Turn **Private mode on** for the demo (fast and reliable, no Gemini limits).
@@ -140,3 +166,6 @@ identical (14/14, 0/6). On Render, scans are slower than on this laptop (smaller
 7. **Hindi text hidden inside PDFs** is still caught by *how* it is hidden, but its words often come out garbled from PDFs, so the order checker cannot read them (works fully in emails and web pages).
 8. **A scan stuck for 3 minutes is held (Quarantine) but keeps using the server in the background** until it ends by itself (Python cannot stop a running job safely). Each step has its own time limit, so this is rare.
 9. **Free Render server sleeps** after 15 quiet minutes; the first visit then takes about a minute (the website shows "Waking up scanner…"). Fix: Starter plan or a free uptime pinger.
+10. **Prompt Guard is not on the live website** (needs about 1 GB of memory; the free server has 512 MB). It runs on the team laptop. Turning it on is a bigger server plus 3 settings (DEPLOY.md). The live version caught 14/14 test attacks without it.
+11. **Phones low on memory can lose the chosen file** on the way back from the file picker. Android decides this, not the website; Obsidian now explains it (QA-30).
+12. **Sign-up cannot know whether a mailbox really exists** (e.g. `madeupname123@gmail.com`). Badly written addresses, typos and companies that cannot receive email are caught; for the rest, the verification email is the check.

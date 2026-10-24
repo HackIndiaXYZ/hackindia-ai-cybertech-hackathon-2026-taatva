@@ -64,7 +64,8 @@ Secret keys are typed into Render and Vercel. They are **never** in GitHub.
 8. Check it: open `https://obsidian-backend.onrender.com/health` → you should see
    `{"status":"ok","app":"Obsidian","team":"TAATVA"}`.
 
-**Optional — Prompt Guard on Render** (needs a 2 GB instance, e.g. *Standard*):
+**Optional — Prompt Guard on Render** (needs a 2 GB instance, e.g. *Standard*; it is OFF on our free live server,
+and shown from the team laptop instead: see `Obsidian_Laptop_Demo_Guide.pdf`):
 Settings → **Build & Deploy** → Docker build arguments: add `PROMPT_GUARD_BUILD` = `true`.
 Environment: set `PROMPT_GUARD` = `true` and add `HF_TOKEN` = your Hugging Face read token. Redeploy.
 
@@ -89,6 +90,10 @@ Environment: set `PROMPT_GUARD` = `true` and add `HF_TOKEN` = your Hugging Face 
    | `NEXT_PUBLIC_API_URL` | your Render address from Step 1, e.g. `https://obsidian-backend.onrender.com` (no `/` at the end) |
 5. Click **Deploy**. When it finishes, copy your address, e.g. `https://obsidian-taatva.vercel.app`.
 
+After this, every push to GitHub (`main`) updates the website by itself in about 2 minutes. Pages that people
+already have open notice the new version and show a **"Refresh now"** bar. Nothing to set up for that: it uses the
+git commit name that Vercel gives every build.
+
 ---
 
 ## Step 3 — Connect the pieces
@@ -100,7 +105,10 @@ Environment: set `PROMPT_GUARD` = `true` and add `HF_TOKEN` = your Hugging Face 
    - **Site URL**: `https://obsidian-taatva.vercel.app`
    - **Redirect URLs** → **Add URL**: `https://obsidian-taatva.vercel.app/auth/callback`
      (keep `http://localhost:3000/auth/callback` too, for testing on your computer)
-3. (Recommended) **Supabase → Authentication → Emails → SMTP Settings**: connect your own email
+3. **Supabase → Authentication → Sign In / Providers → Email** (the same password rules as the website, so nobody can
+   skip them): **Minimum password length** `8`, **Password Requirements** "Lowercase, uppercase letters, digits and
+   symbols" → **Save**. Direct link: `https://supabase.com/dashboard/project/seexoapqnhqyqkhhdpsj/auth/providers`
+4. (Recommended) **Supabase → Authentication → Emails → SMTP Settings**: connect your own email
    service, because Supabase's built-in email only sends a few emails per hour.
 
 ---
@@ -108,9 +116,11 @@ Environment: set `PROMPT_GUARD` = `true` and add `HF_TOKEN` = your Hugging Face 
 ## Step 4 — Check it works
 
 1. Open your Vercel address → you see **Sign in**.
-2. Sign up with a real email → click the link in the email → you land on **Scan**.
+2. Sign up: type `abc@gmail` → a red **"This email address is not valid"** pop-up; type `abc@gmial.com` → a yellow
+   **"Is there a typo?"** pop-up. Then sign up with a real email and a password that turns all 5 rules green → click the
+   link in the email → you land on **Scan**.
 3. Scan `test_files/attacked_1_white_text.pdf` → **QUARANTINE 100**, red X-Ray box, no "Copy clean text" button.
-4. Open **History** → the scan is there with Approve / Reject.
+4. Open **History** → the scan is there with Approve / Reject. The header badge reads **"⏳ 1 waiting"**.
 
 If something fails: Render → `obsidian-backend` → **Logs**; Vercel → project → **Deployments → (latest) → Logs**.
 
