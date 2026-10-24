@@ -34,6 +34,7 @@ QUICK_SIZES = ["mobile-360x800", "tablet-820x1180", "laptop-1366x768", "desktop-
 
 PAGES = {
     "login": "/login",
+    "signup": "/login?mode=signup",
     "scan-empty": "/scan?qa=1",
     "scan-white": "/scan?qa=1&id=white",
     "scan-multipage": "/scan?qa=1&id=multipage",

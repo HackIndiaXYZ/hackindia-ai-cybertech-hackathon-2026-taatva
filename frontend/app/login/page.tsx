@@ -247,8 +247,8 @@ function LoginForm() {
 
         <p className="mt-6 text-[14px] md:text-[12px] text-muted-foreground">
           {mode === "signin"
-            ? <>New to Obsidian? <button onClick={() => switchTo("signup")} className="font-medium text-primary underline max-md:inline-flex max-md:min-h-11 max-md:items-center">Create an account</button>.</>
-            : <>Already have an account? <button onClick={() => switchTo("signin")} className="font-medium text-primary underline max-md:inline-flex max-md:min-h-11 max-md:items-center">Sign in</button>.</>}
+            ? <>New to Obsidian? <button onClick={() => switchTo("signup")} className="font-medium text-primary underline max-md:inline-flex max-md:min-h-11 max-md:min-w-11 max-md:items-center max-md:justify-center">Create an account</button>.</>
+            : <>Already have an account? <button onClick={() => switchTo("signin")} className="font-medium text-primary underline max-md:inline-flex max-md:min-h-11 max-md:min-w-11 max-md:items-center max-md:justify-center">Sign in</button>.</>}
         </p>
       </div>
     </div>
