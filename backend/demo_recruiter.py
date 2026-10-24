@@ -83,7 +83,8 @@ def ask_recruiter(job, resumes):
     parts = [f"JOB:\n{job}\n"]
     for number, file_name, text in resumes:
         parts.append(f"=== RESUME {number} (file: {file_name}) ===\n{text}\n")
-    models = [config.GEMINI_MODEL, config.GEMINI_BACKUP_MODEL]
+    # The light "screening tool" model first (see config.py), the main model if it is busy
+    models = list(dict.fromkeys([config.DEMO_RECRUITER_MODEL, config.GEMINI_MODEL]))
     last_error = None
     for model in models:
         try:

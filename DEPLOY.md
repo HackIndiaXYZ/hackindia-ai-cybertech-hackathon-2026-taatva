@@ -54,6 +54,7 @@ Secret keys are typed into Render and Vercel. They are **never** in GitHub.
    | `GEMINI_API_KEY` | your Gemini key (Google AI Studio → Get API key) |
    | `GEMINI_MODEL` | `gemini-3.5-flash` |
    | `GEMINI_BACKUP_MODEL` | `gemini-3.1-flash-lite` |
+   | `DEMO_RECRUITER_MODEL` | optional; leave it out (the Demo's pretend AI recruiter then uses `gemini-3.1-flash-lite`, a typical low-cost screening model, so Button A shows the danger) |
    | `PRIVATE_MODE` | `false` |
    | `PROMPT_GUARD` | `false` |
    | `FRONTEND_URLS` | your Vercel address from Step 2, e.g. `https://obsidian-taatva.vercel.app` (fill in after Step 2) |

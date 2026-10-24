@@ -17,6 +17,10 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
 # Used for the last try if the main model is too busy
 GEMINI_BACKUP_MODEL = os.getenv("GEMINI_BACKUP_MODEL", "gemini-3.1-flash-lite")
+# The pretend "AI recruiter" in the Demo plays a typical low-cost screening tool, so it uses the
+# light model first. Measured 24 Oct 2026: the light model followed the hidden order 4 of 4 times;
+# the main model 0 of 4 (so with it, Button A would not show the danger). Main model = its backup.
+DEMO_RECRUITER_MODEL = os.getenv("DEMO_RECRUITER_MODEL", GEMINI_BACKUP_MODEL)
 TESSERACT_CMD = os.getenv("TESSERACT_CMD", "tesseract")
 
 # Which installed browser Playwright uses to open emails and web pages
