@@ -7,6 +7,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { usePathname, useRouter } from "next/navigation";
 import { getHistory, getStatus, type Status } from "@/lib/api";
 import { supabase } from "@/lib/supabase";
+import { qaMode } from "@/lib/qa";
 
 type Settings = {
   email: string | null;
@@ -49,7 +50,8 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (email) refreshWaiting();
+    // QA test mode has no sign-in, but testers still need to see the History badge
+    if (email || qaMode()) refreshWaiting();
   }, [email, path, refreshWaiting]);
 
   useEffect(() => {

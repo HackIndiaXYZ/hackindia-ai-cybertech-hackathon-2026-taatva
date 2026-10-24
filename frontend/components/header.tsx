@@ -7,10 +7,17 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Lock, LockOpen, LogOut } from "lucide-react";
+import { Hourglass, Lock, LockOpen, LogOut } from "lucide-react";
 import { useSettings } from "./settings";
 import { ThemeToggle } from "./theme";
 import { cn } from "@/lib/utils";
+
+// What the History badge counts, in full words (for the tooltip and screen readers)
+function waitingText(count: number) {
+  return count === 1
+    ? "1 Quarantine file is waiting for you to Approve or Reject it"
+    : `${count} Quarantine files are waiting for you to Approve or Reject them`;
+}
 
 // The Obsidian logo: a dark cut gemstone (with a silver edge in dark mode)
 export function Logo({ className }: { className?: string }) {
@@ -98,20 +105,25 @@ export function Header() {
                   key={tab.href}
                   href={tab.href}
                   className={cn(
-                    "flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition sm:flex-none sm:px-5 sm:text-[17px] sm:tracking-[0.16em]",
+                    // On a phone the "waiting" note sits under the word, so the three tabs still fit
+                    "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition sm:flex-none sm:flex-row sm:gap-2 sm:px-5 sm:text-[17px] sm:tracking-[0.16em]",
                     active ? "bg-primary text-primary-foreground shadow" : "text-foreground hover:bg-card",
                   )}
+                  aria-label={tab.badge ? `${tab.label}: ${waitingText(tab.badge)}` : undefined}
                 >
                   {tab.label}
+                  {/* Not the total number of scans: only Quarantine files still waiting
+                      for Approve / Reject (the same number as "Waiting for you" on History) */}
                   {!!tab.badge && (
                     <span
                       className={cn(
-                        "grid h-5 min-w-5 place-items-center rounded-full px-1.5 font-mono text-[11px] tracking-normal",
+                        "flex h-5 items-center gap-1 whitespace-nowrap rounded-full px-2 font-sans text-[11px] font-semibold normal-case tracking-normal",
                         active ? "bg-primary-foreground text-primary" : "bg-quarantine text-white dark:text-neutral-950",
                       )}
-                      title={`${tab.badge} file${tab.badge === 1 ? "" : "s"} waiting for your decision`}
+                      title={waitingText(tab.badge)}
                     >
-                      {tab.badge}
+                      <Hourglass className="h-3 w-3" aria-hidden />
+                      {tab.badge > 99 ? "99+" : tab.badge} waiting
                     </span>
                   )}
                 </Link>
