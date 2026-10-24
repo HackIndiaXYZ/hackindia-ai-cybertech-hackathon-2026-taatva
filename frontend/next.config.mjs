@@ -1,3 +1,18 @@
+import { execSync } from "node:child_process";
+
+// A name for this version of the website. Open pages compare it with /api/version to notice
+// when they are old (components/update-check.tsx). It must be the SAME every time this file
+// is read: a build reads it several times, so never use the clock here.
+// Vercel gives the git commit; on our own computers we ask git for it.
+function versionName() {
+  if (process.env.VERCEL_GIT_COMMIT_SHA) return process.env.VERCEL_GIT_COMMIT_SHA;
+  try {
+    return execSync("git rev-parse HEAD", { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+  } catch {
+    return "local"; // no git: every copy has the same name, so no false "Refresh now"
+  }
+}
+
 /** @type {import('next').NextConfig} */
 // TAATVA Obsidian - website settings.
 // Safety headers on every page (bug QA-11):
@@ -8,9 +23,7 @@
 const nextConfig = {
   // Test builds go to their own folder, so they never mix with the normal one
   distDir: process.env.NEXT_DIST_DIR || ".next",
-  // A name for this version of the website (Vercel gives the git commit). Open pages
-  // compare it with /api/version to notice when they are old (components/update-check.tsx).
-  env: { NEXT_PUBLIC_BUILD_ID: process.env.VERCEL_GIT_COMMIT_SHA || `local-${Date.now()}` },
+  env: { NEXT_PUBLIC_BUILD_ID: versionName() },
   async headers() {
     return [
       {
