@@ -4,6 +4,7 @@ import "./globals.css";
 import { Header } from "@/components/header";
 import { SettingsProvider } from "@/components/settings";
 import { THEME_SCRIPT } from "@/components/theme";
+import { UpdateBar } from "@/components/update-check";
 
 // Three fonts: bold tall letters for titles, a clean font for reading,
 // and a "typewriter" font for file names and technical tags.
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className={`${display.variable} ${sans.variable} ${mono.variable}`}>
         <SettingsProvider>
           <Header />
+          <UpdateBar />
           <main className="mx-auto max-w-[1440px] px-3 pb-16 pt-4 sm:px-4 md:px-8 md:pt-6">{children}</main>
         </SettingsProvider>
       </body>

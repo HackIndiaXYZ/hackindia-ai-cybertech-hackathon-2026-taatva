@@ -34,6 +34,8 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname.startsWith("/auth/")) return response;
   // The sign-up page checks email addresses before anyone has an account
   if (request.nextUrl.pathname === "/api/check-email") return response;
+  // Any open page may ask "which version is live?", signed in or not
+  if (request.nextUrl.pathname === "/api/version") return response;
 
   if (!user && !onLoginPage) {
     const url = request.nextUrl.clone();

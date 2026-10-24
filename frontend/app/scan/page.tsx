@@ -9,6 +9,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, Loader2, Smartphone } from "lucide-react";
 import { getScan, getStatus, scanFile, SignInNeeded, type ScanResult } from "@/lib/api";
+import { pageIsOutdated } from "@/components/update-check";
 import { useSettings } from "@/components/settings";
 import { Stepper } from "@/components/scan/stepper";
 import { VerdictCard } from "@/components/scan/verdict-card";
@@ -115,6 +116,11 @@ function ScanScreen() {
     busy.current = true;
     setScanning(true);
     try {
+      // An old copy of this page may have old bugs: ask for a refresh before scanning
+      if (await pageIsOutdated()) {
+        setError("Obsidian was updated since this page was opened. Press “Refresh now” at the top, then choose your file again.");
+        return;
+      }
       setResult(await scanWithOneRetry(newFile));
       refreshWaiting();
     } catch (e) {

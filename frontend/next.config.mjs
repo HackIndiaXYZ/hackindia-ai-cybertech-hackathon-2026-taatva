@@ -8,6 +8,9 @@
 const nextConfig = {
   // Test builds go to their own folder, so they never mix with the normal one
   distDir: process.env.NEXT_DIST_DIR || ".next",
+  // A name for this version of the website (Vercel gives the git commit). Open pages
+  // compare it with /api/version to notice when they are old (components/update-check.tsx).
+  env: { NEXT_PUBLIC_BUILD_ID: process.env.VERCEL_GIT_COMMIT_SHA || `local-${Date.now()}` },
   async headers() {
     return [
       {
