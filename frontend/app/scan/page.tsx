@@ -5,7 +5,7 @@
 // the findings, and what the AI agent gets.
 // /scan?id=... opens a saved report from History.
 
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, Loader2, Smartphone } from "lucide-react";
 import { getScan, getStatus, scanFile, SignInNeeded, type ScanResult } from "@/lib/api";
@@ -79,7 +79,10 @@ function ScanScreen() {
   const [file, setFile] = useState<File | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [phoneNote, setPhoneNote] = useState(false);
+  // A note when the phone lost the chosen file: it reloaded the page, or lost the file on the way
+  const [phoneNote, setPhoneNote] = useState<"reloaded" | "lost" | null>(null);
+  const phoneNoteBox = useRef<HTMLDivElement>(null);
+  const fileLost = useCallback(() => setPhoneNote("lost"), []);
   // Only ONE scan at a time, even after a double-click or picking two files fast
   const busy = useRef(false);
 
@@ -93,7 +96,14 @@ function ScanScreen() {
   }, [scanning]);
 
   // Did the phone close this page while a file was being chosen? Then explain, kindly.
-  useEffect(() => setPhoneNote(closedWhilePicking()), []);
+  // (Only ever switches the note ON: in developer mode this runs twice, and the 2nd run finds nothing)
+  useEffect(() => {
+    if (closedWhilePicking()) setPhoneNote("reloaded");
+  }, []);
+  // Bring the note into view: on a phone the person is further down, at the upload box
+  useEffect(() => {
+    if (phoneNote) phoneNoteBox.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [phoneNote]);
 
   // Open a saved report from History
   useEffect(() => {
@@ -104,7 +114,7 @@ function ScanScreen() {
   async function scan(newFile: File) {
     if (busy.current) return;
     setFile(newFile);
-    setPhoneNote(false);
+    setPhoneNote(null);
     setError(null);
     setResult(null);
     setSelected(null);
@@ -163,13 +173,21 @@ function ScanScreen() {
       <Stepper result={result} scanning={scanning} fileName={file?.name} fileSize={file?.size} />
 
       {phoneNote && (
-        <div className="flex items-start gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-foreground" role="status">
+        <div ref={phoneNoteBox} className="flex items-start gap-3 rounded-xl border border-flag/30 bg-flag/10 p-4 text-[14px] text-foreground" role="status">
           <Smartphone className="mt-0.5 h-5 w-5 shrink-0 text-flag-ink" />
-          <span>
-            <b>Your phone reloaded this page to save memory</b> while you were choosing a file, so the file did not arrive.
-            Please choose it again. If this keeps happening, close a few other apps or browser tabs first.
-          </span>
-          <button onClick={() => setPhoneNote(false)} className="ml-auto text-[12px] text-muted-foreground underline">OK</button>
+          {phoneNote === "reloaded" ? (
+            <span>
+              <b>Your phone reloaded this page to save memory</b> while you were choosing a file, so the file did not arrive.
+              Please choose it again. If this keeps happening, close a few other apps or browser tabs first.
+            </span>
+          ) : (
+            <span>
+              <b>Your phone was low on memory, so the file you chose did not reach Obsidian.</b> Nothing was scanned.
+              Close a few other apps or browser tabs, then choose the file again. Tip: picking it from <b>Downloads</b> or <b>Files</b> uses
+              less memory than Google Drive or WhatsApp.
+            </span>
+          )}
+          <button onClick={() => setPhoneNote(null)} className="ml-auto text-[12px] text-muted-foreground underline max-md:min-h-11 max-md:min-w-11">OK</button>
         </div>
       )}
       {notice && (
@@ -196,7 +214,7 @@ function ScanScreen() {
         {/* Left column */}
         <div className="space-y-6">
           <VerdictCard result={result} scanning={scanning} />
-          <UploadCard onFile={scan} busy={scanning} />
+          <UploadCard onFile={scan} busy={scanning} onFileLost={fileLost} />
         </div>
 
         {/* Middle column */}
@@ -207,7 +225,7 @@ function ScanScreen() {
             <section className="panel p-5">
               <h2 className="section-title">Document</h2>
               <div className="mt-5">
-                <DropZone onFile={scan} busy={scanning} big />
+                <DropZone onFile={scan} busy={scanning} big onFileLost={fileLost} />
               </div>
               <p className="mt-4 text-center text-[15px] md:text-[13px] text-muted-foreground">
                 Obsidian reads the file the way an AI would, and the way a person would.

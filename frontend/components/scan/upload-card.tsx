@@ -38,24 +38,67 @@ export function closedWhilePicking() {
   }
 }
 
-export function DropZone({ onFile, busy, big = false }: { onFile: (file: File) => void; busy: boolean; big?: boolean }) {
+// Can this browser tell us "the person pressed Cancel in the picker"? (Chrome 113+, Safari 16.4+, Firefox 91+)
+// Only then can we tell a Cancel apart from a file that got lost on the way.
+const CAN_SEE_CANCEL = typeof HTMLElement !== "undefined" && "oncancel" in HTMLElement.prototype;
+
+type DropZoneProps = {
+  onFile: (file: File) => void;
+  busy: boolean;
+  big?: boolean;
+  onFileLost?: () => void; // the picker closed, but no file and no Cancel arrived
+};
+
+export function DropZone({ onFile, busy, big = false, onFileLost }: DropZoneProps) {
   const input = useRef<HTMLInputElement>(null);
   const [over, setOver] = useState(false);
+  // true from "picker opened" until a file or a Cancel arrives
+  const waiting = useRef(false);
 
-  // When the picker closes (file chosen OR cancelled) and this page is still alive,
-  // focus comes back here: then nothing went wrong, so forget the note.
+  function pick() {
+    if (busy) return;
+    waiting.current = true;
+    openPicker(input.current);
+  }
+
+  // When the picker closes and this page is still alive, the page comes back into view.
+  // Normally a file (or a Cancel) arrives within a moment. On phones low on memory,
+  // Android can lose the file on the way ("Unable to complete previous operation due to
+  // low memory"): then NOTHING arrives, and we explain what happened.
   useEffect(() => {
-    const onFocus = () => setTimeout(pickerDone, 1500);
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, []);
+    let timer: ReturnType<typeof setTimeout>;
+    const onBack = () => {
+      if (document.visibilityState !== "visible" || !waiting.current) return;
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        pickerDone();
+        if (waiting.current && CAN_SEE_CANCEL) onFileLost?.();
+        waiting.current = false;
+      }, 3000);
+    };
+    window.addEventListener("focus", onBack);
+    document.addEventListener("visibilitychange", onBack);
+    // "Cancel" in the picker: the person changed their mind, nothing went wrong
+    const field = input.current;
+    const onCancel = () => {
+      waiting.current = false;
+      pickerDone();
+    };
+    field?.addEventListener("cancel", onCancel);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener("focus", onBack);
+      document.removeEventListener("visibilitychange", onBack);
+      field?.removeEventListener("cancel", onCancel);
+    };
+  }, [onFileLost]);
 
   return (
     <div
       role="button"
       tabIndex={0}
-      onClick={() => !busy && openPicker(input.current)}
-      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && !busy && openPicker(input.current)}
+      onClick={pick}
+      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && pick()}
       onDragOver={(e) => { e.preventDefault(); setOver(true); }}
       onDragLeave={() => setOver(false)}
       onDrop={(e) => {
@@ -90,6 +133,7 @@ export function DropZone({ onFile, busy, big = false }: { onFile: (file: File) =
         accept={ACCEPTED}
         className="hidden"
         onChange={(e) => {
+          waiting.current = false;
           pickerDone();
           const file = e.target.files?.[0];
           if (file) onFile(file);
@@ -100,12 +144,12 @@ export function DropZone({ onFile, busy, big = false }: { onFile: (file: File) =
   );
 }
 
-export function UploadCard({ onFile, busy }: { onFile: (file: File) => void; busy: boolean }) {
+export function UploadCard({ onFile, busy, onFileLost }: { onFile: (file: File) => void; busy: boolean; onFileLost?: () => void }) {
   return (
     <section className="panel p-5">
       <h2 className="section-title">Scan another file</h2>
       <div className="mt-4">
-        <DropZone onFile={onFile} busy={busy} />
+        <DropZone onFile={onFile} busy={busy} onFileLost={onFileLost} />
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         <span className="tag">PDF</span>
