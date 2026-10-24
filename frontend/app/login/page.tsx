@@ -4,11 +4,13 @@
 // Anyone can create an account, but must confirm their email address first:
 // Supabase sends a link, and until it is clicked, sign-in is refused.
 
-import { Suspense, useState } from "react";
+import { Suspense, useCallback, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { CheckCircle2, Loader2, LogIn, MailCheck, TriangleAlert, UserPlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { safeNextPage } from "@/lib/safe-next";
+import { domainProblem, formatProblem, typoProblem, type EmailProblem } from "@/lib/email-check";
+import { EmailPopup } from "@/components/email-popup";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
@@ -58,6 +60,11 @@ function LoginForm() {
     params.get("error") === "link" ? "That verification link did not work or has expired. Try signing in, or sign up again for a new link." : null,
   );
   const [checkInbox, setCheckInbox] = useState<string | null>(null);
+  const [popup, setPopup] = useState<EmailProblem | null>(null);
+  const closePopup = useCallback(() => {
+    setPopup(null);
+    document.getElementById("email")?.focus();
+  }, []);
   const confirmed = params.get("confirmed") === "1";
 
   function switchTo(next: Mode) {
@@ -77,10 +84,13 @@ function LoginForm() {
     router.refresh();
   }
 
-  async function signUp() {
+  // keepTyped = the person saw "is there a typo?" and chose to keep their address
+  async function signUp(address = email.trim(), keepTyped = false) {
+    // Check the email first. Anything wrong -> a pop-up, and no account is made.
+    const problem = formatProblem(address) ?? (keepTyped ? null : typoProblem(address)) ?? (await domainProblem(address));
+    if (problem) return setPopup(problem);
     if (password.length < 8) return setError("Please use a password of at least 8 characters.");
     if (password !== repeat) return setError("The two passwords are not the same.");
-    const address = email.trim();
     const { data, error } = await supabase().auth.signUp({
       email: address,
       password,
@@ -101,12 +111,12 @@ function LoginForm() {
     setCheckInbox(address);
   }
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
+  async function submit(e?: React.FormEvent, address?: string, keepTyped = false) {
+    e?.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      await (mode === "signin" ? signIn() : signUp());
+      await (mode === "signin" ? signIn() : signUp(address, keepTyped));
     } catch {
       setError("Could not reach the sign-in service. Check your internet connection and try again.");
     } finally {
@@ -158,10 +168,11 @@ function LoginForm() {
             </button>
           </div>
         ) : (
-          <form onSubmit={submit} className="mt-6 space-y-4">
+          // Sign up: our own pop-up checks the email (noValidate turns off the browser's small tooltip)
+          <form onSubmit={submit} noValidate={mode === "signup"} className="mt-6 space-y-4">
             <label className="block">
               <span className="text-[13px] font-medium text-foreground">Email</span>
-              <Input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)}
+              <Input id="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)}
                 className="mt-1 h-11 bg-card" placeholder="you@company.com" />
             </label>
             <label className="block">
@@ -192,6 +203,21 @@ function LoginForm() {
               {mode === "signin" ? "Sign in" : "Create account"}
             </button>
           </form>
+        )}
+
+        {popup && (
+          <EmailPopup problem={popup} onClose={closePopup}
+            onUseSuggestion={() => {
+              // Fill in the address we suggested and carry on creating the account
+              const suggestion = popup.suggestion!;
+              setEmail(suggestion);
+              setPopup(null);
+              submit(undefined, suggestion);
+            }}
+            onKeepTyped={() => {
+              setPopup(null);
+              submit(undefined, email.trim(), true);
+            }} />
         )}
 
         <p className="mt-6 text-[14px] md:text-[12px] text-muted-foreground">

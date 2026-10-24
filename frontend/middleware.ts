@@ -32,6 +32,8 @@ export async function middleware(request: NextRequest) {
   if (qaAllowed && request.nextUrl.searchParams.has("qa")) return response;
   // The email verification link must work for people who are not signed in yet
   if (request.nextUrl.pathname.startsWith("/auth/")) return response;
+  // The sign-up page checks email addresses before anyone has an account
+  if (request.nextUrl.pathname === "/api/check-email") return response;
 
   if (!user && !onLoginPage) {
     const url = request.nextUrl.clone();
