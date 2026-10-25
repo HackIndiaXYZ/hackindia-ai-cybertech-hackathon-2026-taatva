@@ -44,6 +44,7 @@ Console errors / warnings: none. Sideways scrolling: none.
 | 2. Tokens, colours, fonts | ✅ | ✅ | ✅ | ✅ | none |
 | 3. Background animation (61 fps, clicks pass through) | ✅ | ✅ | ✅ | ✅ | none |
 | 4. Header, phone menu, footer (checked at 1440 and 375 px) | ✅ | ✅ | ✅ | ✅ | none |
+| 5. Landing page at / (open to everyone; 320, 375, 768, 1440 px) | ✅ | ✅ | ✅ | ✅ | none |
 
 ## AFTER PROOF
 

@@ -36,6 +36,9 @@ export async function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === "/api/check-email") return response;
   // Any open page may ask "which version is live?", signed in or not
   if (request.nextUrl.pathname === "/api/version") return response;
+  // The landing page (home) is open to everyone, e.g. judges. It shows no data;
+  // its buttons lead to pages that still ask for sign-in. (Team decision, 25 Oct 2026)
+  if (request.nextUrl.pathname === "/") return response;
 
   if (!user && !onLoginPage) {
     const url = request.nextUrl.clone();
