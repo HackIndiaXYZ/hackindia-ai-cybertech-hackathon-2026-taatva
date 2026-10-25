@@ -5,10 +5,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowRight, Check, Copy, Lock, Send } from "lucide-react";
+import { ArrowRight, Check, ChevronDown, Copy, Lock, Send } from "lucide-react";
 import type { Finding, ScanResult } from "@/lib/api";
 import { DANGER_TIP, QUARANTINE_FROM, VERDICT_STYLE, verdictFor } from "@/lib/verdict";
 import { ScoreRing, VerdictPill } from "@/components/shared";
+import { Appear, Collapse } from "@/components/motion/Results";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -33,34 +34,43 @@ export function FindingsList({ shown, harmless, selected, onSelect }: Props) {
 
       <div className="mt-4 space-y-3">
         {shown.map((f, i) => (
-          <button key={i} onClick={() => onSelect(i)}
-            className={cn("w-full rounded-xl border bg-card p-4 text-left transition hover:border-primary/40",
-              selected === i && "border-primary ring-2 ring-primary/20")}>
-            <div className="flex gap-3">
-              <ScoreRing danger={f.danger} />
-              <div className="min-w-0">
-                <div className="text-[15px] font-semibold leading-snug text-foreground">
-                  <span className="mr-1 text-muted-foreground">{i + 1}.</span>{f.title}
+          // Each finding slides in, one after another
+          <Appear key={i} delay={i * 0.06}>
+            <button onClick={() => onSelect(i)}
+              className={cn("lift group relative w-full overflow-hidden rounded-xl border bg-card p-4 text-left hover:border-primary/40",
+                selected === i && "border-primary shadow-glow ring-2 ring-primary/20")}>
+              {/* A thin stripe in the finding's verdict colour on the left edge */}
+              <span aria-hidden="true" className={cn("absolute inset-y-0 left-0 w-1", VERDICT_STYLE[verdictFor(f.danger)].solid)} />
+              <div className="flex gap-3">
+                <ScoreRing danger={f.danger} />
+                <div className="min-w-0">
+                  <div className="text-[15px] font-semibold leading-snug text-foreground">
+                    <span className="mr-1 font-mono text-muted-foreground">{i + 1}.</span>{f.title}
+                  </div>
+                  <div className="mt-1"><VerdictPill verdict={verdictFor(f.danger)} size="sm" /></div>
+                  <p className="mt-2 text-[15px] md:text-[13px] leading-snug text-muted-foreground">{f.explain}</p>
                 </div>
-                <div className="mt-1"><VerdictPill verdict={verdictFor(f.danger)} size="sm" /></div>
-                <p className="mt-2 text-[15px] md:text-[13px] leading-snug text-muted-foreground">{f.explain}</p>
               </div>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              <span className="tag">{f.where_label}</span>
-              <span className="tag">{f.how_label}</span>
-              <span className="tag" title={DANGER_TIP}>hidden {f.hidden_points} + bossy {f.bossy_points}</span>
-            </div>
-          </button>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <span className="tag">{f.where_label}</span>
+                <span className="tag">{f.how_label}</span>
+                <span className="tag" title={DANGER_TIP}>hidden {f.hidden_points} + bossy {f.bossy_points}</span>
+              </div>
+            </button>
+          </Appear>
         ))}
       </div>
 
       {harmless.length > 0 && (
         <div className="mt-4">
-          <button onClick={() => setShowHarmless(!showHarmless)} className="text-[12px] font-medium text-primary hover:underline max-md:min-h-11 max-md:text-[14px]">
+          <button onClick={() => setShowHarmless(!showHarmless)}
+            className="group inline-flex items-center gap-1.5 text-[12px] font-medium text-primary hover:underline max-md:min-h-11 max-md:text-[14px]"
+            aria-expanded={showHarmless}>
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-base", showHarmless && "rotate-180")} aria-hidden />
             {showHarmless ? "Hide" : "Show"} {harmless.length} harmless item{harmless.length === 1 ? "" : "s"}
           </button>
-          {showHarmless && (
+          {/* Opens and closes smoothly; the list exists only while open (as before) */}
+          <Collapse open={showHarmless}>
             <ul className="mt-2 space-y-1.5">
               {harmless.map((f, i) => (
                 <li key={i} className="rounded-lg border bg-muted/40 px-3 py-2 text-[12px]">
@@ -70,7 +80,7 @@ export function FindingsList({ shown, harmless, selected, onSelect }: Props) {
                 </li>
               ))}
             </ul>
-          )}
+          </Collapse>
         </div>
       )}
     </section>
@@ -95,8 +105,8 @@ export function AgentCard({ result }: { result: ScanResult }) {
       <h2 className="section-title">What the agent gets</h2>
 
       {locked ? (
-        <div className="mt-4 flex gap-3 rounded-xl border border-quarantine/30 bg-quarantine/5 p-4">
-          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-quarantine text-white dark:text-neutral-950"><Lock className="h-5 w-5" /></span>
+        <div className="mt-4 flex gap-3 rounded-xl border border-quarantine/30 bg-quarantine/5 p-4 shadow-[0_0_28px_-10px_hsl(var(--quarantine)/0.5)]">
+          <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-quarantine text-white shadow-[0_0_14px_hsl(var(--quarantine)/0.55)] dark:text-neutral-950"><Lock className="h-5 w-5" /></span>
           <div>
             <div className="font-display text-[17px] font-semibold uppercase tracking-[0.12em] text-quarantine">
               {result.decision === "approved" ? "Approved by a person" : result.decision === "rejected" ? "Rejected · nothing sent" : "Locked · nothing sent"}
@@ -133,15 +143,17 @@ export function AgentCard({ result }: { result: ScanResult }) {
       {/* The copy button does not exist at all for Quarantine */}
       {!locked && result.clean_copy && (
         <button onClick={copy}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-display text-[17px] font-semibold uppercase tracking-[0.16em] text-primary-foreground shadow hover:bg-primary/90">
-          {copied ? <Check className="h-5 w-5" /> : <Copy className="h-5 w-5" />}
+          className="lift group relative mt-4 flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-4 py-3 font-display text-[16px] font-semibold uppercase tracking-[0.14em] text-primary-foreground shadow-glow">
+          {/* A light sweep across the button on hover */}
+          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-[120%] bg-gradient-to-r from-transparent via-white/40 to-transparent group-hover:animate-light-sweep" />
+          {copied ? <Check className="h-5 w-5 animate-in zoom-in-50" /> : <Copy className="h-5 w-5" />}
           {copied ? "Copied" : "Copy clean text"}
         </button>
       )}
 
       <Link href={result.id ? `/history?open=${result.id}` : "/history"}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-primary/60 px-4 py-3 font-display text-[17px] font-semibold uppercase tracking-[0.16em] text-primary hover:bg-primary/5">
-        Review in history <ArrowRight className="h-5 w-5" />
+        className="lift group mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-primary/60 px-4 py-3 font-display text-[16px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5">
+        Review in history <ArrowRight className="h-5 w-5 transition-transform duration-base group-hover:translate-x-1" />
       </Link>
     </section>
   );

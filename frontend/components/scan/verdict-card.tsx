@@ -5,7 +5,15 @@ import { Info, ShieldAlert, ShieldCheck, ShieldQuestion } from "lucide-react";
 import type { ScanResult } from "@/lib/api";
 import { BOSSY_TIP, HIDDEN_TIP, VERDICT_MEANING, VERDICT_STYLE } from "@/lib/verdict";
 import { importantFindings } from "@/components/shared";
+import { Appear, CountUp, DrawPath, SpringIn } from "@/components/motion/Results";
 import { cn } from "@/lib/utils";
+
+// A soft glow in the verdict colour around the card (only verdict elements glow)
+const GLOW = {
+  pass: "shadow-[0_0_0_1px_hsl(var(--pass)/0.25),0_12px_40px_-12px_hsl(var(--pass)/0.45)]",
+  flag: "shadow-[0_0_0_1px_hsl(var(--flag)/0.25),0_12px_40px_-12px_hsl(var(--flag)/0.45)]",
+  quarantine: "shadow-[0_0_0_1px_hsl(var(--quarantine)/0.3),0_12px_44px_-12px_hsl(var(--quarantine)/0.55)]",
+};
 
 // Point on the gauge arc for a score from 0 to 100
 function point(score: number, radius: number) {
@@ -21,7 +29,9 @@ function Gauge({ score, color }: { score: number; color: string }) {
   return (
     <svg viewBox="0 0 220 140" className="mx-auto w-full max-w-[260px]" aria-label={`Danger score ${score} out of 100`}>
       <path d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${tx} ${ty}`} fill="none" stroke="hsl(var(--muted))" strokeWidth="16" strokeLinecap="round" />
-      <path d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${ex} ${ey}`} fill="none" stroke={color} strokeWidth="16" strokeLinecap="round" />
+      {/* The coloured arc draws itself in, up to the real score */}
+      <DrawPath key={score} d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${ex} ${ey}`} fill="none" stroke={color} strokeWidth="16" strokeLinecap="round"
+        style={{ filter: score > 0 ? `drop-shadow(0 0 6px ${color})` : undefined }} />
       <circle cx={ex} cy={ey} r="9" fill="hsl(var(--card))" stroke={color} strokeWidth="4" />
       {/* Where Flag (30) and Quarantine (70) start */}
       {[30, 70].map((mark) => {
@@ -30,7 +40,11 @@ function Gauge({ score, color }: { score: number; color: string }) {
       })}
       <text x={sx - 6} y={sy + 16} textAnchor="middle" className="font-mono" fontSize="9" fill="hsl(var(--muted-foreground))">0</text>
       <text x={tx + 6} y={ty + 16} textAnchor="middle" className="font-mono" fontSize="9" fill="hsl(var(--muted-foreground))">100</text>
-      <text x="110" y="100" textAnchor="middle" className="font-display" fontSize="44" fontWeight="700" fill={color}>{score}</text>
+      {/* The number counts up from 0 and always ends on the real score (the real
+          score is in the aria-label above from the start) */}
+      <text x="110" y="100" textAnchor="middle" className="font-display tabular-nums" fontSize="44" fontWeight="700" fill={color} aria-hidden="true">
+        <CountUp value={score} />
+      </text>
       <text x="110" y="128" textAnchor="middle" className="font-mono" fontSize="10" fill="hsl(var(--muted-foreground))">out of 100</text>
     </svg>
   );
@@ -67,26 +81,35 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
       : result.reasons.filter((r) => !result.notes?.includes(r)).slice(0, 2);
 
   return (
-    <section className={cn("panel overflow-hidden", result.verdict === "quarantine" && "border-quarantine/30")}>
-      <div className={cn("px-5 pt-5", style.soft)}>
+    <section className={cn("panel overflow-hidden", style.border, GLOW[result.verdict])}>
+      <div className={cn("relative px-5 pt-5", style.soft)}>
+        {/* A soft light in the verdict colour behind the gauge */}
+        <span aria-hidden="true" className={cn("pointer-events-none absolute left-1/2 top-10 h-32 w-48 -translate-x-1/2 rounded-full opacity-25 blur-3xl", style.solid)} />
         <div className="flex items-baseline justify-between">
           <h2 className="section-title">Verdict</h2>
           <span className="font-mono text-[11px] text-muted-foreground">danger score</span>
         </div>
-        <Gauge score={result.score} color={style.hex} />
+        <div className="relative">
+          <Gauge score={result.score} color={style.hex} />
+        </div>
       </div>
       <div className="px-5 pb-5">
-        <div className={cn("mx-auto -mt-1 flex w-fit items-center gap-2.5 whitespace-nowrap rounded-full px-5 py-2.5 text-white dark:text-neutral-950 shadow-lg", style.solid)}>
-          <Icon className="h-5 w-5 shrink-0" />
-          <span className="font-display text-[24px] font-bold uppercase leading-none tracking-[0.14em]">{result.verdict}</span>
-        </div>
+        {/* The verdict badge springs in */}
+        <SpringIn replay={`${result.id}-${result.verdict}`} className="mx-auto -mt-1 w-fit">
+          <div className={cn("flex items-center gap-2.5 whitespace-nowrap rounded-full px-5 py-2.5 text-white dark:text-neutral-950", style.solid, GLOW[result.verdict])}>
+            <Icon className="h-5 w-5 shrink-0" />
+            <span className="font-display text-[22px] font-bold uppercase leading-none tracking-[0.14em]">{result.verdict}</span>
+          </div>
+        </SpringIn>
         <p className="mt-3 text-center text-[16px] md:text-[14px] leading-snug text-foreground">{VERDICT_MEANING[result.verdict]}</p>
 
         <ul className="mt-3 space-y-1 text-[15px] text-muted-foreground md:text-[13px]">
           {reasons.map((reason, i) => (
-            <li key={i} className="flex gap-2">
-              <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", style.solid)} />
-              <span>{reason}</span>
+            <li key={i}>
+              <Appear delay={0.25 + i * 0.06} className="flex gap-2">
+                <span className={cn("mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full", style.solid)} />
+                <span>{reason}</span>
+              </Appear>
             </li>
           ))}
         </ul>
@@ -103,8 +126,8 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
         {worst && (
           <div className="mt-4">
             <div className="flex h-3 overflow-hidden rounded-full bg-muted" title="Danger = how hidden + how bossy">
-              <div className={cn("h-full", style.solid)} style={{ width: `${hidden}%` }} />
-              <div className={cn("h-full opacity-45", style.solid)} style={{ width: `${bossy}%` }} />
+              <div className={cn("h-full origin-left animate-in slide-in-from-left-full duration-700", style.solid)} style={{ width: `${hidden}%` }} />
+              <div className={cn("h-full opacity-45 animate-in fade-in duration-700", style.solid)} style={{ width: `${bossy}%` }} />
             </div>
             <div className="mt-2 grid gap-1 text-[13px]">
               <div className="flex items-center gap-2 text-muted-foreground" title={HIDDEN_TIP}>

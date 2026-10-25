@@ -7,7 +7,7 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle, Loader2, Smartphone } from "lucide-react";
+import { AlertTriangle, Loader2, ScanSearch, Smartphone } from "lucide-react";
 import { getScan, getStatus, scanFile, SignInNeeded, type ScanResult } from "@/lib/api";
 import { pageIsOutdated } from "@/components/update-check";
 import { useSettings } from "@/components/settings";
@@ -197,8 +197,10 @@ function ScanScreen() {
         </div>
       )}
       {error && (
-        <div className="flex items-start gap-3 rounded-xl border border-quarantine/30 bg-quarantine/5 p-4 text-[14px] text-foreground" role="alert">
-          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-quarantine" />
+        <div className="flex items-start gap-3 rounded-2xl border border-quarantine/40 bg-card p-4 text-[14px] text-foreground shadow-[0_0_0_1px_hsl(var(--quarantine)/0.1),0_10px_30px_-12px_hsl(var(--quarantine)/0.45)] animate-in fade-in slide-in-from-top-2" role="alert">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-quarantine/10">
+            <AlertTriangle className="h-5 w-5 text-quarantine" />
+          </span>
           <span><b className="text-quarantine">Could not check the file.</b> {error}</span>
         </div>
       )}
@@ -245,7 +247,13 @@ function ScanScreen() {
           ) : (
             <section className="panel p-5">
               <h2 className="section-title">Findings</h2>
-              <p className="mt-2 text-[15px] md:text-[13px] text-muted-foreground">Hidden text will be listed here after a scan.</p>
+              {/* Friendly empty state: a dashed outline where findings will appear */}
+              <div className="mt-4 flex items-center gap-3 rounded-xl border border-dashed bg-muted/30 p-4">
+                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-primary/25 bg-primary/10 text-primary">
+                  <ScanSearch className="h-5 w-5" aria-hidden />
+                </span>
+                <p className="text-[15px] md:text-[13px] text-muted-foreground">Hidden text will be listed here after a scan.</p>
+              </div>
             </section>
           )}
         </div>
