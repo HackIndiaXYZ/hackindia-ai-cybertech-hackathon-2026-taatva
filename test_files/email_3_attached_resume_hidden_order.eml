@@ -1,0 +1,60 @@
+From: maya.chen@example.com
+To: hr@example.com
+Subject: Application: Store Manager
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="===============0778790527352408503=="
+
+--===============0778790527352408503==
+Content-Type: multipart/alternative;
+ boundary="===============4092800794953618684=="
+
+--===============4092800794953618684==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+
+Hello, please find my resume attached. Regards, Maya
+
+--===============4092800794953618684==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+<html><body><p>Hello,</p><p>Please find my resume attached.</p><p>Regards, Ma=
+ya</p></body></html>
+
+--===============4092800794953618684==--
+
+--===============0778790527352408503==
+Content-Type: application/pdf
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="Maya_Chen_Resume.pdf"
+MIME-Version: 1.0
+
+JVBERi0xLjcKJcK1wrYKJSBXcml0dGVuIGJ5IE11UERGIDEuMjguMgoKMSAwIG9iago8PC9UeXBl
+L0NhdGFsb2cvUGFnZXMgMiAwIFIvSW5mbzw8L1Byb2R1Y2VyKE11UERGIDEuMjguMik+Pj4+CmVu
+ZG9iagoKMiAwIG9iago8PC9UeXBlL1BhZ2VzL0NvdW50IDEvS2lkc1s0IDAgUl0+PgplbmRvYmoK
+CjMgMCBvYmoKPDwvRm9udDw8L2hlbHYgNSAwIFI+Pj4+CmVuZG9iagoKNCAwIG9iago8PC9UeXBl
+L1BhZ2UvTWVkaWFCb3hbMCAwIDU5NSA4NDJdL1JvdGF0ZSAwL1Jlc291cmNlcyAzIDAgUi9QYXJl
+bnQgMiAwIFIvQ29udGVudHNbNiAwIFIgNyAwIFIgOCAwIFIgOSAwIFJdPj4KZW5kb2JqCgo1IDAg
+b2JqCjw8L1R5cGUvRm9udC9TdWJ0eXBlL1R5cGUxL0Jhc2VGb250L0hlbHZldGljYS9FbmNvZGlu
+Zy9XaW5BbnNpRW5jb2Rpbmc+PgplbmRvYmoKCjYgMCBvYmoKPDwvTGVuZ3RoIDk3L0ZpbHRlci9G
+bGF0ZURlY29kZT4+CnN0cmVhbQp42g2KsQqEQAwF+3xF/sAku3k5QSyEa64T0sl1rlhoYXPff8sw
+1Qw9tCQpS0c5jMON86bhbNePtXAevE11h8YINakFLziaie0mXqLiCIP30h+0bsDD5m9+6J200h8t
+whYCCmVuZHN0cmVhbQplbmRvYmoKCjcgMCBvYmoKPDwvTGVuZ3RoIDExMS9GaWx0ZXIvRmxhdGVE
+ZWNvZGU+PgpzdHJlYW0KeNodir0KAkEQg/t5inkD5+d24oFYHNjYCdMdV4jsYaGFjc/vrIRAviT0
+oSVJWUrKMIYL55sOz/76sjrnzuvJjyaYo4XC4JUNLXppLmNwNEyhxY8ir7z/u/qOj8l0HysEDWb9
+vOWVLkk3+gEXshydCmVuZHN0cmVhbQplbmRvYmoKCjggMCBvYmoKPDwvTGVuZ3RoIDk0L0ZpbHRl
+ci9GbGF0ZURlY29kZT4+CnN0cmVhbQp42g2KsQqAQAxD935F/8C2d7YO4iDc4iZ0Eye9w0EHF7/f
+Egh5SeCF2YGRQowmaDSgP9Bd9f6QE3rDbcyH9pqFlIUsR2Y9g5qqUOIUi1G0LTyeUqfdFygOK/z7
+BhWGCmVuZHN0cmVhbQplbmRvYmoKCjkgMCBvYmoKPDwvTGVuZ3RoIDE0MS9GaWx0ZXIvRmxhdGVE
+ZWNvZGU+PgpzdHJlYW0KeNotjbEOAkEIRHu+gj9wl2MHNzEWJsbETrOdsfGyp4VXaOH3C6ehYJgH
+A71o1yhz8spswkWF20yrR39+OLue3I86H/7ifefLRisMHZMJiiRkjBglWYrZgOqk2OCkottgamIF
+3oOEs9x0qMRFqJsrxRp1YcOP+rYiux8/PNVTPEP69tqOtG90oi/2WyqtCmVuZHN0cmVhbQplbmRv
+YmoKCnhyZWYKMCAxMAowMDAwMDAwMDAwIDY1NTM1IGYgCjAwMDAwMDAwNDIgMDAwMDAgbiAKMDAw
+MDAwMDEyMCAwMDAwMCBuIAowMDAwMDAwMTcyIDAwMDAwIG4gCjAwMDAwMDAyMTMgMDAwMDAgbiAK
+MDAwMDAwMDMzOCAwMDAwMCBuIAowMDAwMDAwNDI3IDAwMDAwIG4gCjAwMDAwMDA1OTIgMDAwMDAg
+biAKMDAwMDAwMDc3MiAwMDAwMCBuIAowMDAwMDAwOTM0IDAwMDAwIG4gCgp0cmFpbGVyCjw8L1Np
+emUgMTAvUm9vdCAxIDAgUi9JRFs8MUEzM0MzOEJDMjg3QzM4NTBEQzJCMkMyOEQ3N0MzQjY+PDUw
+OTNBOUFCNjY3NDkyRkMxNzYwQ0JCQjg3QjQ4M0VEPl0+PgpzdGFydHhyZWYKMTE0NAolJUVPRgo=
+
+--===============0778790527352408503==--

@@ -203,8 +203,12 @@ def add_attachments(result, data, private_mode, depth):
         result["reasons"].remove("No hidden orders found.")
     if result["findings"]:
         worst = result["findings"][0]
-        inside = worst["where"].get("attachment")
-        result["worst_finding"] = (f'Attached file "{inside}": ' if inside else "") + summary(worst)
+        name = worst["where"].get("attachment")
+        if name:
+            # Describe it by where it sat INSIDE the attachment ("White text on a white page")
+            result["worst_finding"] = f'Attached file "{name}": ' + summary({**worst, "where": worst["where"]["inside"]})
+        else:
+            result["worst_finding"] = summary(worst)
     if result["verdict"] == "quarantine":
         result["clean_copy"] = None   # the agent gets NOTHING
     return result
@@ -216,7 +220,7 @@ def merge_attachment(result, inner, name, number):
         where = item["where"]
         spot = where.get("place") or f"page {where.get('page')}"
         # No page box: the X-Ray boxes on the email preview are for the email only
-        item["where"] = {"place": f"inside the {label}: {spot}", "attachment": name}
+        item["where"] = {"place": f"inside the {label}: {spot}", "attachment": name, "inside": where}
         item["where_label"] = f"{label} · {item.get('where_label', spot)}"
         result["findings"].append(item)
     result["reasons"] += [f"Attached file \"{name}\": {reason}" for reason in inner["reasons"]

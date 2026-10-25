@@ -74,7 +74,8 @@ def test_hidden_order_inside_an_attached_pdf_is_caught():
     assert worst["where"]["attachment"] == "resume.pdf"
     assert "box" not in worst["where"]          # no X-Ray box on the email picture
     assert 'attached file "resume.pdf"' in worst["where_label"]
-    assert result["worst_finding"].startswith('Attached file "resume.pdf"')
+    # Said once, then HOW it was hidden (bug found on the live History page: "Attached file" twice)
+    assert result["worst_finding"].startswith('Attached file "resume.pdf": White text on a white page')
     assert any(r.startswith('Attached file "resume.pdf"') for r in result["reasons"])
 
 
