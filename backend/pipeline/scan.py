@@ -22,10 +22,11 @@ import pymupdf
 import config
 from pipeline.ai_view import ZOOM, read_ai_view, safe_zoom
 from pipeline.compare import compare
-from pipeline.decide import decide
+from pipeline.decide import FLAG_FROM, WRAPPER, decide, verdict_for
 from pipeline.hidden_parts import read_hidden_places
-from pipeline.html_view import read_html
+from pipeline.html_view import attachments_in_email, read_html
 from pipeline.human_view import read_human_view, read_pictures
+from pipeline.plain_words import summary
 
 log = logging.getLogger("obsidian")
 
@@ -33,6 +34,8 @@ MAX_BYTES = 20 * 1024 * 1024   # 20 MB
 MAX_PAGES = 50
 TIME_LIMIT = int(os.getenv("SCAN_TIME_LIMIT", "180"))  # seconds per file
 PREVIEW_DPI = 110              # sharpness of the page pictures shown on the website
+MAX_ATTACHMENTS = 5            # attachments checked inside, per email
+MAX_ATTACHMENT_DEPTH = 2       # an email attached to an email attached to an email: stop there
 
 # Only MAX_PARALLEL_SCANS files are scanned at the same time; the rest wait their turn (saves memory)
 _workers = ThreadPoolExecutor(max_workers=config.MAX_PARALLEL_SCANS)
@@ -153,6 +156,83 @@ def run_steps_html(data, private_mode, file_name):
     return result
 
 
+def run_steps_email(data, private_mode, file_name, depth=0):
+    # An email: check the email itself, then what is INSIDE its attachments.
+    result = run_steps_html(data, private_mode, file_name)
+    if result["verdict"] == "quarantine" and not result["findings"]:
+        return result   # the email itself could not be read: already held
+    return add_attachments(result, data, private_mode, depth)
+
+
+def scan_attachment(file, kind, private_mode, depth):
+    # One attachment, with the same steps as an uploaded file. Problems = Quarantine.
+    pages, problem = open_safely(file, "attachment" + kind)
+    if problem:
+        return quarantine(problem)
+    if kind == ".pdf":
+        return run_steps(file, private_mode, pages)
+    if kind == ".eml":
+        return run_steps_email(file, private_mode, "attachment.eml", depth + 1)
+    return run_steps_html(file, private_mode, "attachment.html")
+
+
+def add_attachments(result, data, private_mode, depth):
+    # Puts each attachment's findings into the email's result.
+    # File score = its worst finding, attachments included (the scoring rules do not change).
+    attachments = attachments_in_email(data)
+    checked = 0
+    for number, (name, kind, file) in enumerate(attachments, start=1):
+        if kind is None:
+            note = (f'The attached file "{name}" was not checked inside: Obsidian checks PDF, '
+                    "web page and email attachments only. Only its name was checked.")
+            result["notes"].append(note)
+            result["reasons"].append(note)
+            continue
+        if depth >= MAX_ATTACHMENT_DEPTH or checked >= MAX_ATTACHMENTS:
+            # Too deep or too many: we cannot be sure, so a human should look (never a silent pass)
+            result["score"] = max(result["score"], FLAG_FROM)
+            result["reasons"].append(f'The attached file "{name}" was not checked inside (too many attachments, '
+                                     "or attachments inside attachments), so a human should look.")
+            continue
+        checked += 1
+        merge_attachment(result, scan_attachment(file, kind, private_mode, depth), name, number)
+
+    result["findings"].sort(key=lambda item: item["danger"], reverse=True)
+    result["verdict"] = verdict_for(result["score"])
+    if len(result["reasons"]) > 1 and "No hidden orders found." in result["reasons"]:
+        result["reasons"].remove("No hidden orders found.")
+    if result["findings"]:
+        worst = result["findings"][0]
+        inside = worst["where"].get("attachment")
+        result["worst_finding"] = (f'Attached file "{inside}": ' if inside else "") + summary(worst)
+    if result["verdict"] == "quarantine":
+        result["clean_copy"] = None   # the agent gets NOTHING
+    return result
+
+
+def merge_attachment(result, inner, name, number):
+    label = f'attached file "{name}"'
+    for item in inner["findings"]:
+        where = item["where"]
+        spot = where.get("place") or f"page {where.get('page')}"
+        # No page box: the X-Ray boxes on the email preview are for the email only
+        item["where"] = {"place": f"inside the {label}: {spot}", "attachment": name}
+        item["where_label"] = f"{label} · {item.get('where_label', spot)}"
+        result["findings"].append(item)
+    result["reasons"] += [f"Attached file \"{name}\": {reason}" for reason in inner["reasons"]
+                          if reason != "No hidden orders found."]
+    result["score"] = max(result["score"], inner["score"])
+    if result.get("clean_copy") and inner.get("clean_copy"):
+        # The attachment's visible, harmless text goes inside the same "data" wrapper.
+        # Numbered, not named: a file name could itself hold an order.
+        body = inner["clean_copy"].strip()
+        body = body.removeprefix(WRAPPER).removesuffix(WRAPPER).strip()
+        email_part = result["clean_copy"].rstrip().removesuffix(WRAPPER).rstrip()
+        result["clean_copy"] = f"{email_part}\n\n=== Attached file {number} ===\n{body}\n\n{WRAPPER}"
+    for step, seconds in inner.get("timings", {}).items():
+        result["timings"][f"attachment {number} {step}"] = seconds
+
+
 def finish(compared, ai_pieces, human, pages, timings, make_previews):
     # Steps 6 and 7, the same for every kind of file.
     # Tesseract is the reader we always need. If IT fails, we cannot know what a person
@@ -194,6 +274,9 @@ def scan_pdf(pdf_bytes, private_mode=None, file_name="file"):
         else:
             if file_type(file_name) == "pdf":
                 job = _workers.submit(run_steps, pdf_bytes, private_mode, pages)
+            elif file_type(file_name) == "eml":
+                # One job for the email AND its attachments, inside the same time limit
+                job = _workers.submit(run_steps_email, pdf_bytes, private_mode, file_name)
             else:
                 job = _workers.submit(run_steps_html, pdf_bytes, private_mode, file_name)
             try:

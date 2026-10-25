@@ -9,6 +9,7 @@
 # Hidden places: HTML comments, alt text, hover tips, screen-reader labels,
 # page details (meta), page code (script), hidden form fields, email headers,
 # attachment names, and a plain-text copy of the email that differs from what is shown.
+# PDF, web page and email attachments are taken out here and checked inside by the full scan.
 #
 # Safety ("open safely"): the browser runs with JavaScript OFF, no internet,
 # every outside request blocked, pictures replaced by grey boxes, and a time limit.
@@ -93,10 +94,34 @@ def open_email_or_page(data, file_name):
     for name, value in message.items():
         if name.lower().startswith("x-") and str(value).strip():
             places.append(("email header", f"email header {name}", str(value)))
-    # Attachments: we note their names (their contents are not checked yet)
+    # Attachments: their names are checked here. What is INSIDE a PDF, web page or
+    # email attachment is checked by the full scan (see attachments_in_email below).
     for part in message.iter_attachments():
         places.append(("attachment", "attached file name", part.get_filename() or "unnamed attachment"))
     return page, places, plain
+
+
+# What kind of attachment is this? By its name first, then by the email's own label.
+ATTACHMENT_LABELS = {"application/pdf": ".pdf", "text/html": ".html", "message/rfc822": ".eml"}
+
+
+def attachments_in_email(data):
+    # Returns a list of (name, kind, file bytes). kind = ".pdf", ".html", ".eml",
+    # or None for kinds we cannot check inside (Word, pictures...). Nothing is run or saved.
+    message = message_from_bytes(data, policy=policy.default)
+    found = []
+    for number, part in enumerate(message.iter_attachments(), start=1):
+        name = " ".join((part.get_filename() or f"attachment {number}").split())[:80]
+        kind = next((k for k in (".pdf", ".html", ".htm", ".eml") if name.lower().endswith(k)), None)
+        kind = ".html" if kind == ".htm" else kind or ATTACHMENT_LABELS.get(part.get_content_type())
+        if part.get_content_type() == "message/rfc822":
+            # An email attached to an email: turn it back into an .eml file
+            inner = part.get_payload(0) if part.is_multipart() else None
+            file = inner.as_bytes(policy=policy.default) if inner is not None else b""
+        else:
+            file = part.get_payload(decode=True) or b""
+        found.append((name, kind, file))
+    return found
 
 
 # ---------- 2. Hidden places in the raw code (BeautifulSoup) ----------

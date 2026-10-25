@@ -170,7 +170,7 @@ identical (14/14, 0/6). On Render, scans are slower than on this laptop (smaller
 2. **Firefox could not be tested** on this laptop: Windows blocks the test version of Firefox from starting. Chromium (Chrome/Edge) and WebKit (Safari engine) were tested at all sizes.
 3. **Phone speed score is 81–82 on Scan-with-a-result and History** (target 90) on a slow simulated phone network, because these pages wait for data from the server. Desktop is 100. A bigger change (loading the data on the server) would be needed.
 4. **Two real accounts were not tested side by side** (we are not allowed to create accounts). Database rules were reviewed and strangers are fully blocked, but please do the 2-account test once yourselves.
-5. **Only the names of email attachments are checked**, not the files inside them.
+5. **Email attachments: only PDF, web page and email attachments are checked inside** (up to 5 per email, and emails inside emails 2 levels deep; more than that = Flag, so a human looks). For other kinds (Word, Excel, pictures) only the name is checked, and the result says so in a note.
 6. **Marketing emails often hide a short "preview line" with display:none**; by our rules that scores 50 = Flag. Correct by the rules, but expect some Flags on normal newsletters.
 7. **Hindi text hidden inside PDFs** is still caught by *how* it is hidden, but its words often come out garbled from PDFs, so the order checker cannot read them (works fully in emails and web pages).
 8. **A scan stuck for 3 minutes is held (Quarantine) but keeps using the server in the background** until it ends by itself (Python cannot stop a running job safely). Each step has its own time limit, so this is rare.
