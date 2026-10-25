@@ -107,3 +107,27 @@ Real scanner (backend) not touched: Pass 25 / Flag 50 / Quarantine 100 as in par
 - No element IDs, `name` or `data-*` attributes, image sources or aria-labels removed or renamed.
 - `CLAUDE.md`: only the "Look and feel" section changed (CLAUDE.md is kept out of git on purpose by the team).
 - New packages: framer-motion, @radix-ui/react-dialog, @radix-ui/react-tooltip (lucide-react was already there).
+
+---
+
+# DESIGN ROUND 2
+
+START BRANCH: `ui-redesign` (last commit 4b94263). Work branch: `design-round-2`.
+
+## ROUND 2 BEFORE PROOF (25 Oct 2026)
+
+Real scanner (private mode): `clean_1_resume.pdf` Pass 25 · `attacked_12_base64.pdf` Flag 50 · `attacked_1_white_text.pdf` Quarantine 100 (same as round 1).
+
+| Screen (test mode) | Gauge / number on screen | Verdict | X-Ray boxes (spot at 1440 px; at 320 px) | "Copy clean text" | Agent card |
+|---|---|---|---|---|---|
+| `clean` | 25 / 25 | PASS | 0 | shown | clean text sent |
+| `footer` | 44 / 44 | FLAG | 1 (`0.4, 38.1`; `-0.5, 37.0`) | shown | clean text sent |
+| `white` | 100 / 100 | QUARANTINE | 1 (`11.3, 47.4`; `10.3, 46.7`) | NOT shown | nothing sent |
+
+Upload `clean_1_resume.pdf` → Pass 25. Signed out `/history` → `/login?next=%2Fhistory`. X-Ray: on 1, off 0, Space → 1.
+Console errors / warnings: none. Real sign-in with a team account: still to be checked by a team member.
+
+## Round 2: check after each change
+
+| Change | 3 screens match | Box spots same | Upload | Sign-in redirect | X-Ray | Console |
+|---|---|---|---|---|---|---|
