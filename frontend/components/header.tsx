@@ -100,61 +100,17 @@ export function Header() {
 
   return (
     <header className={BAR} data-scanner={scanner}>
-      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-2.5 md:px-8 md:py-3">
+      {/* ROW 1: the logo on the left; reader status, private mode, theme and account on the right */}
+      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-2.5 md:px-8">
         <Link href="/" aria-label="Obsidian home" className="flex min-h-11 items-center">
           <Brand />
         </Link>
 
-        {/* SCAN / HISTORY / DEMO / LAB: centered. On tablets they get their own row;
-            on phones they live in the "Menu" panel. A lit bar marks the open page. */}
-        <nav className="order-3 hidden w-full justify-center md:flex xl:order-none xl:w-auto">
-          <div className="flex rounded-full border bg-card/70 p-1 shadow-e1">
-            {tabs.map((tab) => {
-              const active = path.startsWith(tab.href);
-              return (
-                <Link
-                  key={tab.href}
-                  href={tab.href}
-                  className={cn(
-                    // Tablets (touch screens): at least 44 px tall, easy to tap
-                    "group relative flex items-center justify-center gap-2 rounded-full px-5 py-2 font-display text-[14px] font-semibold uppercase tracking-[0.16em] transition-colors duration-base max-lg:min-h-11",
-                    active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
-                  )}
-                  aria-label={tab.badge ? `${tab.label}: ${waitingText(tab.badge)}` : undefined}
-                >
-                  {active && (
-                    <motion.span layoutId="nav-pill" aria-hidden="true"
-                      className="absolute inset-0 rounded-full bg-primary shadow-glow"
-                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }} />
-                  )}
-                  {/* A thin beam underline slides in on hover */}
-                  {!active && (
-                    <span aria-hidden="true" className="absolute inset-x-5 bottom-1 h-px origin-left scale-x-0 bg-beam transition-transform duration-base ease-out-soft group-hover:scale-x-100" />
-                  )}
-                  <span className="relative">{tab.label}</span>
+        <div className="flex items-center gap-1.5 sm:gap-2">
                   {/* Not the total number of scans: only Quarantine files still waiting
                       for Approve / Reject (the same number as "Waiting for you" on History) */}
-                  {!!tab.badge && (
-                    <span
-                      className={cn(
-                        "relative flex h-5 items-center gap-1 whitespace-nowrap rounded-full px-2 font-sans text-[11px] font-semibold normal-case tracking-normal",
-                        active ? "bg-primary-foreground text-primary" : "bg-quarantine text-white shadow-[0_0_12px_hsl(var(--quarantine)/0.45)] dark:text-neutral-950",
-                      )}
-                      title={waitingText(tab.badge)}
-                    >
-                      <Hourglass className="h-3 w-3" aria-hidden />
-                      {tab.badge > 99 ? "99+" : tab.badge} waiting
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
-
-        <div className="flex items-center gap-1.5 sm:gap-2">
           <Tip text={readers.tip} side="bottom">
-            <span className="hidden items-center gap-2 rounded-full border bg-card/70 px-3 py-1.5 font-mono text-[11px] text-foreground 2xl:flex" tabIndex={0}>
+            <span className="hidden items-center gap-2 rounded-full border bg-card/70 px-3 py-1.5 font-mono text-[11px] text-foreground lg:flex" tabIndex={0}>
               <span className={cn("h-2 w-2 rounded-full", readers.dot)} />
               {readers.text}
             </span>
@@ -168,7 +124,7 @@ export function Header() {
               )}
               aria-pressed={privateMode}
             >
-              <span className={cn("h-2 w-2 rounded-full 2xl:hidden", readers.dot)} />
+              <span className={cn("h-2 w-2 rounded-full lg:hidden", readers.dot)} />
               {privateMode ? <Lock className="h-3.5 w-3.5" /> : <LockOpen className="h-3.5 w-3.5" />}
               <span className="hidden sm:inline">Private mode: {privateMode ? "on" : "off"}</span>
               <span className="sm:hidden">{privateMode ? "Private" : "Online"}</span>
@@ -200,6 +156,54 @@ export function Header() {
           />
         </div>
       </div>
+
+      {/* THE PARTITION: a thin sharp line across the bar, with a soft deep glow */}
+      <div aria-hidden="true" className="relative hidden h-px bg-border md:block">
+        <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-beam/40 to-transparent" />
+      </div>
+
+      {/* ROW 2 (tablets and computers): SCAN / HISTORY / DEMO / LAB. On phones they are in the "Menu" panel.
+          A lit bar on the partition line sits above the open page and slides when you change page. */}
+      <nav className="mx-auto hidden max-w-[1440px] px-4 md:flex md:px-8">
+        {tabs.map((tab) => {
+          const active = path.startsWith(tab.href);
+          return (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={cn(
+                // Tablets (touch screens): at least 44 px tall, easy to tap
+                "group relative flex min-h-11 items-center justify-center gap-2 px-5 py-2.5 font-display text-[14px] font-semibold uppercase tracking-[0.16em] transition-colors duration-fast",
+                active ? "text-foreground" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground active:bg-accent",
+              )}
+              aria-label={tab.badge ? `${tab.label}: ${waitingText(tab.badge)}` : undefined}
+            >
+              {/* The lit bar for the open page, sitting on the partition line */}
+              {active && (
+                <motion.span layoutId="nav-bar" aria-hidden="true"
+                  className="absolute inset-x-0 -top-px h-[2px] bg-primary shadow-[0_0_12px_hsl(var(--beam)/0.7)]"
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }} />
+              )}
+              {/* Hover: a fainter bar grows on the partition line */}
+              {!active && (
+                <span aria-hidden="true" className="absolute inset-x-0 -top-px h-[2px] origin-left scale-x-0 bg-beam/50 transition-transform duration-base ease-out-soft group-hover:scale-x-100" />
+              )}
+              <span className="relative">{tab.label}</span>
+              {/* Not the total number of scans: only Quarantine files still waiting
+                  for Approve / Reject (the same number as "Waiting for you" on History) */}
+              {!!tab.badge && (
+                <span
+                  className="relative flex h-5 items-center gap-1 whitespace-nowrap rounded-full bg-quarantine px-2 font-sans text-[11px] font-semibold normal-case tracking-normal text-white shadow-[0_0_12px_hsl(var(--quarantine)/0.45)] dark:text-neutral-950"
+                  title={waitingText(tab.badge)}
+                >
+                  <Hourglass className="h-3 w-3" aria-hidden />
+                  {tab.badge > 99 ? "99+" : tab.badge} waiting
+                </span>
+              )}
+            </Link>
+          );
+        })}
+      </nav>
       <span aria-hidden="true" className={BEAM_LINE} />
     </header>
   );

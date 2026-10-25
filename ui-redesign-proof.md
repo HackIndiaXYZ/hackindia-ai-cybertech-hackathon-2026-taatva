@@ -133,3 +133,4 @@ Console errors / warnings: none. Real sign-in with a team account: still to be c
 |---|---|---|---|---|---|---|
 | 1. Deep dark palette, no cyan (all text pairs WCAG AA, both modes) | ✅ | ✅ | ✅ | ✅ | ✅ | none |
 | 2. Sharp style: radius 0, corner brackets, one icon weight, no springs | ✅ | ✅ | ✅ | ✅ | ✅ | none |
+| 7. Two-row navbar with partition + lit bar (phone menu too) | ✅ | ✅ | ✅ | ✅ | ✅ | none |

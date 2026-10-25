@@ -41,7 +41,11 @@ export function MobileMenu({ tabs, path, email, onSignOut, waiting, status }: {
         <SheetTitle className="font-display text-[13px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Menu</SheetTitle>
         <SheetDescription className="sr-only">Pages of Obsidian by team TAATVA</SheetDescription>
 
-        <nav className="mt-2 grid gap-1.5">
+        {/* The partition line above the page buttons (same idea as the top bar) */}
+        <div aria-hidden="true" className="relative h-px bg-border">
+          <span className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-beam/50 to-transparent" />
+        </div>
+        <nav className="grid gap-1.5">
           {tabs.map((tab) => {
             const active = path.startsWith(tab.href);
             return (
@@ -51,13 +55,13 @@ export function MobileMenu({ tabs, path, email, onSignOut, waiting, status }: {
                   aria-label={tab.ariaLabel}
                   className={cn(
                     "lift flex min-h-12 items-center justify-between rounded-xl border px-4 font-display text-[18px] font-semibold uppercase tracking-[0.14em]",
-                    active ? "border-primary/50 bg-primary text-primary-foreground shadow-glow" : "bg-card text-foreground hover:border-primary/40 hover:bg-accent",
+                    active ? "border-primary bg-card text-foreground shadow-[inset_3px_0_0_hsl(var(--primary))]" : "bg-card text-muted-foreground hover:border-primary/40 hover:bg-accent hover:text-foreground",
                   )}
                 >
                   {tab.label}
                   {!!tab.badge && (
                     <span className={cn("flex h-6 items-center gap-1 rounded-full px-2 font-sans text-[12px] font-semibold normal-case tracking-normal",
-                      active ? "bg-primary-foreground text-primary" : "bg-quarantine text-white dark:text-neutral-950")}>
+                      "bg-quarantine text-white dark:text-neutral-950")}>
                       <Hourglass className="h-3 w-3" aria-hidden />
                       {tab.badge > 99 ? "99+" : tab.badge} waiting
                     </span>
