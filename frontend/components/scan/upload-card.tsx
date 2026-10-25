@@ -6,6 +6,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ScanBeam } from "@/components/visual/ScanBeam";
+import { Tip } from "@/components/ui/tooltip";
 
 // File types, by name AND by type, so phones open their simple document picker (not the camera)
 export const ACCEPTED = ".pdf,.html,.htm,.eml,application/pdf,text/html,message/rfc822";
@@ -108,22 +110,37 @@ export function DropZone({ onFile, busy, big = false, onFileLost }: DropZoneProp
         if (file && !busy) onFile(file);
       }}
       className={cn(
-        "flex cursor-pointer items-center gap-4 rounded-xl border-2 border-dashed p-4 transition",
-        over ? "border-primary bg-primary/5" : "border-border bg-muted/40 hover:border-primary/50",
-        big && "flex-col justify-center py-14 text-center",
-        busy && "cursor-wait opacity-80",
+        // A light-table drop zone: the dashed border glows on hover and when a file is dragged over
+        "group relative flex cursor-pointer items-center gap-4 overflow-hidden rounded-xl border-2 border-dashed p-4 transition-all duration-base ease-out-soft",
+        over
+          ? "scale-[1.01] border-beam bg-beam/10 shadow-glow"
+          : "border-border bg-muted/40 hover:border-primary/60 hover:bg-accent/60 hover:shadow-glow",
+        big && "min-h-[260px] flex-col justify-center py-14 text-center",
+        busy && "cursor-wait border-beam/60 bg-beam/5",
       )}
     >
-      <span className={cn("grid shrink-0 place-items-center rounded-full bg-primary/10 text-primary", big ? "h-16 w-16" : "h-12 w-12")}>
+      {/* Viewfinder corners, like the frame of a scanner */}
+      {big && ["left-3 top-3 border-l-2 border-t-2", "right-3 top-3 border-r-2 border-t-2", "bottom-3 left-3 border-b-2 border-l-2", "bottom-3 right-3 border-b-2 border-r-2"].map((corner) => (
+        <span key={corner} aria-hidden="true" className={cn("absolute h-5 w-5 rounded-[3px] border-beam/70 transition-all duration-base", corner, (over || busy) && "border-beam")} />
+      ))}
+      {/* While checking: the scanner beam slides over the box (pictures only) */}
+      {busy && <ScanBeam />}
+
+      <span className={cn(
+        "relative grid shrink-0 place-items-center rounded-full border border-primary/25 bg-primary/10 text-primary transition-transform duration-base ease-out-soft",
+        big ? "h-16 w-16" : "h-12 w-12",
+        !busy && "group-hover:-translate-y-1",
+        over && "-translate-y-1 scale-110",
+      )}>
         {busy ? <Loader2 className="h-6 w-6 animate-spin" /> : <Upload className="h-6 w-6" />}
       </span>
-      <div>
-        <div className={cn("font-semibold text-foreground", big ? "text-[20px]" : "text-[16px]")}>
-          {busy ? "Checking the file…" : "Drop a resume or email"}
+      <div className="relative">
+        <div className={cn("font-display font-semibold text-foreground", big ? "text-[22px]" : "text-[16px]")}>
+          {busy ? "Checking the file…" : over ? "Drop it here" : "Drop a resume or email"}
         </div>
         <div className="text-[13px] text-muted-foreground">
           {busy ? "Reading every page the way an AI and a person would." : (
-            <>PDF, HTML or .eml · up to 20 MB · <span className="text-primary underline">browse</span></>
+            <>PDF, HTML or .eml · up to 20 MB · <span className="font-medium text-primary underline decoration-primary/40 underline-offset-2 group-hover:decoration-primary">browse</span></>
           )}
         </div>
       </div>
@@ -153,8 +170,12 @@ export function UploadCard({ onFile, busy, onFileLost }: { onFile: (file: File) 
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         <span className="tag">PDF</span>
-        <span className="tag" title="Web pages and HTML emails, opened safely in a real browser with scripts off">HTML email</span>
-        <span className="tag" title="Saved emails (.eml), opened safely in a real browser with scripts off">.eml</span>
+        <Tip text="Web pages and HTML emails, opened safely in a real browser with scripts off">
+          <span className="tag cursor-help" tabIndex={0}>HTML email</span>
+        </Tip>
+        <Tip text="Saved emails (.eml), opened safely in a real browser with scripts off">
+          <span className="tag cursor-help" tabIndex={0}>.eml</span>
+        </Tip>
         <span className="tag">deleted after scan</span>
       </div>
     </section>

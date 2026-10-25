@@ -64,11 +64,12 @@ const config: Config = {
       },
       keyframes: {
         // The scanner beam sliding down (scanning state, X-Ray sweep)
+        // (the beam line sits in the middle of a full-size layer, so -50%..50% = top edge to bottom edge)
         "beam-sweep": {
-          "0%": { transform: "translateY(-100%)", opacity: "0" },
-          "10%": { opacity: "1" },
-          "90%": { opacity: "1" },
-          "100%": { transform: "translateY(100%)", opacity: "0" },
+          "0%": { transform: "translateY(-50%)", opacity: "0" },
+          "8%": { opacity: "1" },
+          "92%": { opacity: "1" },
+          "100%": { transform: "translateY(50%)", opacity: "0" },
         },
         // A light sweep across buttons on hover
         "light-sweep": {

@@ -7,6 +7,7 @@ import { Check, Loader2 } from "lucide-react";
 import type { ScanResult } from "@/lib/api";
 import { importantFindings, FileBadge, friendlyTime } from "@/components/shared";
 import { cn } from "@/lib/utils";
+import { ScanBeam } from "@/components/visual/ScanBeam";
 
 const STEPS = [
   { key: "open", label: "Open safely", sub: "type + size check",
@@ -34,9 +35,11 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
     ? (timed.length <= 1 ? 0 : STEPS.findIndex((s) => result.timings[s.key] === undefined)) : -1;
 
   return (
-    <section className="panel flex flex-col gap-5 p-5 lg:flex-row lg:items-center">
+    <section className={cn("panel relative flex flex-col gap-5 overflow-hidden p-5 lg:flex-row lg:items-center", scanning && "border-beam/40 shadow-glow")}>
+      {/* While checking: a scanner beam slides over the strip (pictures only) */}
+      {scanning && <ScanBeam />}
       {/* The file */}
-      <div className="flex min-w-[220px] items-center gap-3">
+      <div className="relative flex min-w-[220px] items-center gap-3">
         <FileBadge type={result?.file_type ?? "pdf"} className="h-12 w-11" />
         <div className="min-w-0">
           <div className="truncate font-mono text-[14px] text-foreground">{result?.file_name ?? fileName ?? "No file yet"}</div>
@@ -50,18 +53,19 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
       </div>
 
       {/* The 6 steps */}
-      <ol className="grid flex-1 grid-cols-3 gap-y-4 md:grid-cols-6">
+      <ol className="relative grid flex-1 grid-cols-3 gap-y-4 md:grid-cols-6">
         {STEPS.map((step, i) => {
           const time = result?.timings[step.key];
           const done = time !== undefined;
           const failed = i === failedAt;
           return (
-            <li key={step.key} className="relative flex flex-col items-center text-center" title={step.tool}>
-              {i > 0 && <span className={cn("absolute right-1/2 top-5 h-0.5 w-full", i === 3 && "max-md:hidden", done || scanning ? "bg-primary" : "bg-border")} />}
+            <li key={step.key} className="group relative flex flex-col items-center text-center" title={step.tool}>
+              {i > 0 && <span className={cn("absolute right-1/2 top-5 h-0.5 w-full", i === 3 && "max-md:hidden",
+                done ? "bg-primary" : scanning ? "animate-pulse bg-primary/60" : "bg-border")} />}
               <span
                 className={cn(
-                  "relative z-10 grid h-10 w-10 place-items-center rounded-full border-[3px] border-white shadow ring-2",
-                  failed ? "bg-quarantine ring-quarantine/40" : done ? "bg-primary ring-primary/30" : scanning ? "bg-card ring-primary/40" : "bg-muted ring-border",
+                  "relative z-10 grid h-10 w-10 place-items-center rounded-full border-[3px] border-card shadow ring-2 transition-transform duration-base ease-out-soft group-hover:scale-110",
+                  failed ? "bg-quarantine ring-quarantine/40" : done ? "bg-primary shadow-glow ring-primary/30" : scanning ? "bg-card ring-primary/40" : "bg-muted ring-border",
                 )}
               >
                 {failed ? <span className="font-bold text-white dark:text-neutral-950" aria-label="This step held the file">!</span>
@@ -78,7 +82,7 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
       </ol>
 
       {/* 3 quick numbers */}
-      <div className="flex gap-2">
+      <div className="relative flex gap-2">
         <Metric value={hiddenItems ?? "—"} label="hidden items" alert={!!hiddenItems} />
         <Metric value={result ? result.total_time.toFixed(1) : "—"} unit={result ? "s" : ""} label="total time" />
         <Metric
@@ -93,10 +97,10 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
 
 function Metric({ value, unit, label, alert }: { value: React.ReactNode; unit?: string; label: string; alert?: boolean }) {
   return (
-    <div className={cn("w-[82px] rounded-xl border p-2.5", alert ? "border-quarantine/30 bg-quarantine/10" : "bg-muted/40")}>
-      <div className={cn("font-display text-[28px] font-bold leading-none", alert ? "text-quarantine" : "text-foreground")}>
+    <div className={cn("min-w-[86px] flex-1 rounded-xl border p-2.5 lg:flex-none", alert ? "border-quarantine/30 bg-quarantine/10" : "bg-muted/40")}>
+      <div className={cn("whitespace-nowrap font-display text-[28px] font-bold leading-none tabular-nums", alert ? "text-quarantine" : "text-foreground")}>
         {value}
-        <span className="text-[14px]">{unit}</span>
+        <span className="ml-0.5 text-[14px] font-medium text-muted-foreground">{unit}</span>
       </div>
       <div className="mt-1 text-[11px] leading-tight text-muted-foreground">{label}</div>
     </div>
