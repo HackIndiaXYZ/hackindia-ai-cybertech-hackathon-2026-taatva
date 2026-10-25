@@ -28,7 +28,7 @@ const config: Config = {
         flag: "hsl(var(--flag))",
         "flag-ink": "hsl(var(--flag-ink))", // yellow for words (darker in light mode)
         quarantine: "hsl(var(--quarantine))",
-        // The scanner beam (cyan)
+        // The "beam" accent: steel white (dark) / graphite (light). Never cyan, never purple.
         beam: "hsl(var(--beam) / <alpha-value>)",
       },
       fontFamily: {

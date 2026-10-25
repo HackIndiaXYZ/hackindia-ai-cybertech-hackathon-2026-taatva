@@ -131,3 +131,4 @@ Console errors / warnings: none. Real sign-in with a team account: still to be c
 
 | Change | 3 screens match | Box spots same | Upload | Sign-in redirect | X-Ray | Console |
 |---|---|---|---|---|---|---|
+| 1. Deep dark palette, no cyan (all text pairs WCAG AA, both modes) | ✅ | ✅ | ✅ | ✅ | ✅ | none |

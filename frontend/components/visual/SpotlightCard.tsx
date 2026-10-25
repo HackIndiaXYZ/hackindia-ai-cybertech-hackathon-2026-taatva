@@ -1,6 +1,6 @@
 "use client";
 
-// TAATVA Obsidian - a card with a soft cyan light that follows the mouse
+// TAATVA Obsidian - a card with a soft steel light that follows the mouse
 // (like a torch on the light table). Only on computers with a mouse; on phones
 // it is a normal card. Pictures only: it never changes what the card does.
 

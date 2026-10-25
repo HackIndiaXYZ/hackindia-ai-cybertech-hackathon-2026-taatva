@@ -22,7 +22,7 @@ function waitingText(count: number) {
     : `${count} Quarantine files are waiting for you to Approve or Reject them`;
 }
 
-// The Obsidian logo: a dark cut gemstone, with a cyan scanner line across it
+// The Obsidian logo: a dark cut gemstone, with a steel scanner line across it
 export function Logo({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 40 40" className={cn("transition-transform duration-base ease-out-soft group-hover:-rotate-6 group-hover:scale-105", className)} aria-hidden="true">
@@ -106,7 +106,7 @@ export function Header() {
         </Link>
 
         {/* SCAN / HISTORY / DEMO / LAB: centered. On tablets they get their own row;
-            on phones they live in the "Menu" panel. A cyan pill slides to the open page. */}
+            on phones they live in the "Menu" panel. A lit bar marks the open page. */}
         <nav className="order-3 hidden w-full justify-center md:flex xl:order-none xl:w-auto">
           <div className="flex rounded-full border bg-card/70 p-1 shadow-e1">
             {tabs.map((tab) => {

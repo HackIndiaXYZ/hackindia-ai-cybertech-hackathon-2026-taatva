@@ -2,50 +2,52 @@
 @tailwind components;
 @tailwind utilities;
 
-/* TAATVA Obsidian - "Forensic Light Table" design.
+/* TAATVA Obsidian - design round 2: deep, dark and sharp.
    ALL colours, shadows, corner sizes and motion timings live here (one place).
-   Light mode = a glowing light box. Dark mode = the evidence lab at night.
-   Cyan = the scanner beam. Verdict colours: green = Pass, yellow = Flag,
-   red = Quarantine (only for verdicts, X-Ray boxes and errors). Never purple. */
+   Light mode = warm stone paper with dark ink. Dark mode = near-black obsidian.
+   The accent ("beam") is STEEL: steel white in dark mode, graphite ink in light mode.
+   NO cyan / teal / sky blue / pastels. NEVER purple.
+   Verdict colours (deep): emerald = Pass, gold = Flag, crimson = Quarantine
+   (only for verdicts, X-Ray boxes and errors). */
 @layer base {
   :root {
-    /* Light box */
-    --background: 204 27% 96%;      /* page: #F3F6F8, a light box */
-    --foreground: 206 49% 10%;      /* ink: #0D1B26 */
-    --card: 0 0% 100%;              /* cards: white paper */
-    --card-foreground: 206 49% 10%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 206 49% 10%;
-    --primary: 193 82% 31%;         /* beam cyan, dark enough to read: #0E7490 */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 206 25% 93%;
-    --secondary-foreground: 206 49% 10%;
-    --muted: 206 25% 93%;           /* grey boxes: #E9EEF2 */
-    --muted-foreground: 209 16% 37%;   /* grey text: #4F5F6E (easy to read, WCAG AA) */
-    --accent: 190 60% 94%;          /* pale cyan hover */
-    --accent-foreground: 206 49% 10%;
-    --destructive: 358 57% 46%;
-    --border: 210 23% 89%;          /* #DCE3EA */
-    --input: 210 20% 83%;
-    --ring: 193 82% 31%;            /* focus ring = beam cyan */
+    /* Light mode: warm stone */
+    --background: 37 20% 90%;       /* page: #ECE8E1 warm stone */
+    --foreground: 40 17% 7%;        /* ink: #15130F */
+    --card: 40 23% 96%;             /* cards: #F7F5F1 (solid, calm under text) */
+    --card-foreground: 40 17% 7%;
+    --popover: 40 23% 97%;
+    --popover-foreground: 40 17% 7%;
+    --primary: 214 12% 12%;         /* graphite: #1B1E22 (buttons, active tab) */
+    --primary-foreground: 40 23% 96%;
+    --secondary: 38 16% 86%;
+    --secondary-foreground: 40 17% 7%;
+    --muted: 38 16% 86%;            /* grey boxes: #E3DED5 */
+    --muted-foreground: 37 8% 31%;  /* grey text: #57524A (WCAG AA) */
+    --accent: 38 14% 82%;           /* hover fill */
+    --accent-foreground: 40 17% 7%;
+    --destructive: 352 76% 36%;
+    --border: 37 14% 77%;           /* hairlines: #D0C9BD */
+    --input: 37 12% 62%;
+    --ring: 214 12% 12%;            /* focus outline = graphite */
     --radius: 0.875rem;
 
-    /* The scanner beam (background, glows, the X-Ray sweep). Never a verdict colour. */
-    --beam: 188 86% 45%;
-    --beam-soft: 188 86% 45% / 0.14;
-    --glyph: 206 30% 40%;           /* the faint letters in the background */
+    /* The "beam" accent (background, glows, the X-Ray sweep): graphite ink.
+       Never a verdict colour. */
+    --beam: 214 12% 14%;
+    --glyph: 30 10% 18%;            /* the letters in the background */
 
-    /* Verdict colours */
-    --pass: 145 59% 30%;
-    --flag: 40 82% 40%;
-    --flag-ink: 40 82% 31%;   /* darker yellow for WORDS, so they are easy to read (QA-15) */
-    --quarantine: 358 57% 46%;
+    /* Verdict colours (deep) */
+    --pass: 152 70% 24%;            /* deep emerald #12663F */
+    --flag: 38 82% 33%;             /* deep gold #99640F (fills) */
+    --flag-ink: 39 100% 27%;        /* gold for WORDS #8A5A00 (easy to read, QA-15) */
+    --quarantine: 352 76% 36%;      /* deep crimson #A3172A */
 
-    /* Shadows: small, medium, large, and a soft glow */
-    --shadow-1: 0 1px 2px rgb(13 27 38 / 0.05), 0 2px 8px rgb(13 27 38 / 0.04);
-    --shadow-2: 0 2px 4px rgb(13 27 38 / 0.05), 0 10px 24px rgb(13 27 38 / 0.08);
-    --shadow-3: 0 4px 8px rgb(13 27 38 / 0.06), 0 24px 48px rgb(13 27 38 / 0.12);
-    --shadow-glow: 0 0 0 1px hsl(var(--beam) / 0.25), 0 0 24px hsl(var(--beam) / 0.18);
+    /* Shadows: small, medium, large, and a deep glow */
+    --shadow-1: 0 1px 0 rgb(21 19 15 / 0.04), 0 2px 6px rgb(21 19 15 / 0.06);
+    --shadow-2: 0 2px 4px rgb(21 19 15 / 0.08), 0 12px 24px rgb(21 19 15 / 0.12);
+    --shadow-3: 0 4px 8px rgb(21 19 15 / 0.1), 0 24px 48px rgb(21 19 15 / 0.18);
+    --shadow-glow: 0 0 0 1px hsl(var(--beam) / 0.55), 0 8px 22px -6px hsl(var(--beam) / 0.35);
 
     /* Motion: quick and smooth, never sluggish */
     --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
@@ -54,40 +56,40 @@
     --dur-slow: 400ms;
   }
 
-  /* Dark mode: the lab. Near-black table, dark cards, cyan beam.
-     Verdict colours are brighter so they stay easy to read. */
+  /* Dark mode: near-black obsidian, steel-white accent.
+     Verdict colours are deep but bright enough to read on black. */
   .dark {
-    --background: 213 31% 6%;       /* #0A0E13 */
-    --foreground: 208 33% 93%;      /* #E6EDF3 */
-    --card: 214 28% 10%;            /* #121820 */
-    --card-foreground: 208 33% 93%;
-    --popover: 214 28% 11%;
-    --popover-foreground: 208 33% 93%;
-    --primary: 182 74% 63%;         /* beam cyan: #5CE1E6 */
-    --primary-foreground: 193 75% 9%;
-    --secondary: 213 26% 14%;
-    --secondary-foreground: 208 33% 93%;
-    --muted: 213 26% 14%;           /* #1A222C */
-    --muted-foreground: 212 15% 61%;   /* #8B9AAB */
-    --accent: 190 40% 16%;
-    --accent-foreground: 208 33% 93%;
-    --destructive: 0 72% 62%;
-    --border: 213 29% 19%;          /* #233040 */
-    --input: 213 27% 24%;
-    --ring: 182 74% 63%;
+    --background: 220 14% 3%;       /* #07080A */
+    --foreground: 210 9% 93%;       /* #ECEEF0 */
+    --card: 216 15% 6%;             /* #0E1013 (solid) */
+    --card-foreground: 210 9% 93%;
+    --popover: 216 13% 8%;
+    --popover-foreground: 210 9% 93%;
+    --primary: 213 15% 87%;         /* steel white: #D9DEE4 */
+    --primary-foreground: 220 14% 4%;
+    --secondary: 216 12% 11%;
+    --secondary-foreground: 210 9% 93%;
+    --muted: 216 12% 11%;           /* #171A1E */
+    --muted-foreground: 214 7% 58%; /* #8C939C */
+    --accent: 216 10% 15%;
+    --accent-foreground: 210 9% 93%;
+    --destructive: 356 64% 58%;
+    --border: 215 10% 18%;          /* hairlines: #282C31 */
+    --input: 215 9% 26%;
+    --ring: 213 15% 87%;
 
-    --beam: 182 74% 63%;
-    --glyph: 200 30% 70%;
+    --beam: 213 15% 87%;            /* steel white */
+    --glyph: 213 10% 72%;
 
-    --pass: 145 55% 48%;
-    --flag: 42 88% 55%;
-    --flag-ink: 42 88% 55%;
-    --quarantine: 0 75% 64%;
+    --pass: 151 55% 41%;            /* deep emerald #2FA36B */
+    --flag: 39 67% 49%;             /* deep gold #D29A2A */
+    --flag-ink: 39 67% 52%;
+    --quarantine: 356 64% 58%;      /* deep crimson #D84F58 (AA on black) */
 
-    --shadow-1: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 2px 8px rgb(0 0 0 / 0.35);
-    --shadow-2: 0 1px 0 hsl(0 0% 100% / 0.05) inset, 0 12px 28px rgb(0 0 0 / 0.45);
-    --shadow-3: 0 1px 0 hsl(0 0% 100% / 0.06) inset, 0 28px 56px rgb(0 0 0 / 0.55);
-    --shadow-glow: 0 0 0 1px hsl(var(--beam) / 0.35), 0 0 28px hsl(var(--beam) / 0.22);
+    --shadow-1: 0 1px 0 hsl(0 0% 100% / 0.03) inset, 0 2px 8px rgb(0 0 0 / 0.5);
+    --shadow-2: 0 1px 0 hsl(0 0% 100% / 0.05) inset, 0 12px 28px rgb(0 0 0 / 0.6);
+    --shadow-3: 0 1px 0 hsl(0 0% 100% / 0.06) inset, 0 28px 56px rgb(0 0 0 / 0.7);
+    --shadow-glow: 0 0 0 1px hsl(var(--beam) / 0.4), 0 0 26px hsl(var(--beam) / 0.14);
   }
 }
 
@@ -151,7 +153,7 @@
     transition: box-shadow var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out),
       transform var(--dur) var(--ease-out);
   }
-  /* Small cyan capital-letter titles, like "VERDICT" and "FINDINGS",
+  /* Small steel capital-letter titles, like "VERDICT" and "FINDINGS",
      with a little beam mark in front */
   .section-title {
     @apply inline-flex items-center gap-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-primary;
