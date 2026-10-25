@@ -5,6 +5,7 @@ import { Header } from "@/components/header";
 import { SettingsProvider } from "@/components/settings";
 import { THEME_SCRIPT } from "@/components/theme";
 import { UpdateBar } from "@/components/update-check";
+import { AnimatedBackground } from "@/components/visual/AnimatedBackground";
 
 // Three fonts ("Forensic Light Table"): Space Grotesk for titles, Inter for reading,
 // and JetBrains Mono for technical text (scores, file names, hidden text).
@@ -27,6 +28,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body className={`${display.variable} ${sans.variable} ${mono.variable}`}>
+        {/* The calm scanner-beam background behind every page (pictures only, no clicks) */}
+        <AnimatedBackground />
         <SettingsProvider>
           <Header />
           <UpdateBar />

@@ -42,6 +42,7 @@ Console errors / warnings: none. Sideways scrolling: none.
 | Step | 3 screens match | Box spots same | Upload | Sign-in redirect | Console |
 |---|---|---|---|---|---|
 | 2. Tokens, colours, fonts | ✅ | ✅ | ✅ | ✅ | none |
+| 3. Background animation (61 fps, clicks pass through) | ✅ | ✅ | ✅ | ✅ | none |
 
 ## AFTER PROOF
 
