@@ -189,7 +189,7 @@ function AgentReceives({ lab }: { lab: LabResult }) {
       <h2 className="section-title">The agent would receive:</h2>
       {held ? (
         <div className="mt-3 flex items-center gap-3 rounded-xl border-2 border-quarantine/60 bg-quarantine/10 p-4">
-          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-quarantine text-neutral-950"><Lock className="h-5 w-5" /></span>
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-quarantine text-white dark:text-neutral-950"><Lock className="h-5 w-5" /></span>
           <div>
             <div className="neon font-display text-[22px] font-bold uppercase tracking-[0.12em] text-quarantine">{NOTHING}</div>
             <p className="text-[14px] text-foreground">The AI agent never reads this file unless a person approves it.</p>

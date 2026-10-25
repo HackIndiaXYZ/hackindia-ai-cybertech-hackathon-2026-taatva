@@ -62,10 +62,11 @@ export default function LabPage() {
   }
 
   return (
-    // "dark" + "lab": this page is always dark metal with neon verdict colours
+    // "lab": the lab's measuring-grid look. It follows the light / dark switch like
+    // every other page (it used to be forced to dark; design round 2 fixed that).
     // (edge to edge on phones: the page gutter is 16px, so -mx-4 / px-4)
-    <div className="dark lab relative -mx-4 overflow-hidden rounded-none border-y border-white/5 px-4 py-5 shadow-e3 md:mx-0 md:rounded-3xl md:border md:p-6 lg:p-8">
-      {/* A thin neon beam line along the top of the lab */}
+    <div className="lab relative -mx-4 overflow-hidden rounded-none border-y px-4 py-5 shadow-e3 md:mx-0 md:rounded-3xl md:border md:p-6 lg:p-8">
+      {/* A thin glowing line along the top of the lab */}
       <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-beam to-transparent" />
       <div className="relative space-y-5">
         <div>

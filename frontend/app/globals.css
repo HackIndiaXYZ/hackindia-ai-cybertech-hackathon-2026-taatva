@@ -93,25 +93,23 @@
   }
 }
 
-/* Attack Lab: always the dark lab (the page wrapper also has class "dark"),
-   with NEON verdict colours. Green = Pass, yellow = Flag, red = Quarantine. Never purple. */
+/* Attack Lab: follows light / dark mode like every other page (design round 2).
+   It uses the same deep verdict colours as the rest of the website.
+   Its look: a precise measuring grid behind the lab, drawn with the theme's own colours. */
 .lab {
-  --pass: 142 100% 52%;
-  --flag: 52 100% 55%;
-  --flag-ink: 52 100% 60%;
-  --quarantine: 352 100% 63%;
   background:
-    radial-gradient(120% 70% at 50% -10%, hsl(var(--beam) / 0.10), transparent 60%),
-    repeating-linear-gradient(90deg, hsl(0 0% 100% / 0.012) 0 1px, transparent 1px 3px),
-    linear-gradient(160deg, hsl(214 28% 10%), hsl(213 31% 6%) 55%, hsl(214 26% 8%));
+    linear-gradient(hsl(var(--border) / 0.55) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, hsl(var(--border) / 0.55) 1px, transparent 1px) 0 0 / 32px 32px,
+    hsl(var(--muted) / 0.55);
   color: hsl(var(--foreground));
 }
-/* A soft glow around neon words and badges */
-.lab .neon {
-  text-shadow: 0 0 10px currentColor, 0 0 22px hsl(0 0% 0% / 0.4);
+/* A deep glow around important lab words (dark mode only: in light mode a glow
+   behind dark text would only blur it) */
+.dark .lab .neon {
+  text-shadow: 0 0 14px color-mix(in srgb, currentColor 45%, transparent);
 }
 .lab .neon-box {
-  box-shadow: 0 0 0 1px currentColor inset, 0 0 18px -4px currentColor;
+  box-shadow: 0 0 0 1px currentColor inset, 0 0 18px -6px currentColor;
 }
 
 /* Every card gets 4 sharp corner brackets, like the frame of a scanner.
