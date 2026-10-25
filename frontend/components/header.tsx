@@ -164,7 +164,7 @@ export function Header() {
 
       {/* ROW 2 (tablets and computers): SCAN / HISTORY / DEMO / LAB. On phones they are in the "Menu" panel.
           A lit bar on the partition line sits above the open page and slides when you change page. */}
-      <nav className="mx-auto hidden max-w-[1440px] px-4 md:flex md:px-8">
+      <nav className="mx-auto hidden max-w-[1440px] justify-center px-4 md:flex md:px-8">
         {tabs.map((tab) => {
           const active = path.startsWith(tab.href);
           return (
