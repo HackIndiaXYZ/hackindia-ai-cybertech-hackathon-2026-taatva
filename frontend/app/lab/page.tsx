@@ -68,7 +68,7 @@ export default function LabPage() {
     <div className="lab relative -mx-4 overflow-hidden rounded-none border-y px-4 py-5 shadow-e3 md:mx-0 md:rounded-3xl md:border md:p-6 lg:p-8">
       {/* A thin glowing line along the top of the lab */}
       <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-beam to-transparent" />
-      <div className="relative space-y-5">
+      <div className="relative space-y-stack">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-primary">Live · made-up resume · real scan</p>
           <h1 className="mt-2 font-display text-display-md font-bold uppercase tracking-[0.08em] text-foreground">
@@ -81,7 +81,7 @@ export default function LabPage() {
           </p>
         </div>
 
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-stack lg:grid-cols-2">
           <LabCounter numbers={numbers} />
           <LabQr />
         </div>

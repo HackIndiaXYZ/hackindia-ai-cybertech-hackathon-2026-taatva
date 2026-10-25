@@ -138,3 +138,4 @@ Console errors / warnings: none. Real sign-in with a team account: still to be c
 | 5. Background: clearly visible at the edges in both modes, calm behind content (61 fps at 1920 px, clicks pass through) | ✅ | ✅ | ✅ | ✅ | ✅ | none |
 | 6. Strong hover / focus / press / disabled feedback everywhere (both modes) | ✅ | ✅ | ✅ | ✅ | ✅ | none |
 | 3. Landing page: X-Ray Lens hero, problem, how it works, Delta 4, verdicts, facts (with sources), TAATVA footer | ✅ | ✅ | ✅ | ✅ | ✅ | none |
+| 4. Even spacing: spacing tokens, 1600 px page on 1800+ screens, balanced scan grid (tablet side by side, wide screens equal heights) | ✅ | ✅ | ✅ | ✅ | ✅ | none |

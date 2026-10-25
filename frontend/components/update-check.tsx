@@ -49,7 +49,7 @@ export function UpdateBar() {
   if (!old) return null;
   return (
     <div className="border-b border-primary/30 bg-primary/10 backdrop-blur animate-in fade-in slide-in-from-top-2 duration-300" role="status">
-      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-[15px] md:text-[14px] text-foreground md:px-8">
+      <div className="mx-auto flex max-w-content flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-[15px] md:text-[14px] text-foreground md:px-8">
         <span><b>A newer version of Obsidian is ready.</b> Refresh to use it (this page is out of date).</span>
         <button onClick={() => window.location.reload()}
           className="lift group flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 max-lg:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-primary-foreground shadow-glow">

@@ -36,7 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <SettingsProvider>
             <Header />
             <UpdateBar />
-            <main className="mx-auto w-full max-w-[1440px] flex-1 px-4 pb-16 pt-4 md:px-8 md:pt-6">{children}</main>
+            <main className="mx-auto w-full max-w-content flex-1 px-gutter pb-16 pt-4 md:pt-6">{children}</main>
             <Footer />
           </SettingsProvider>
         </MotionProvider>

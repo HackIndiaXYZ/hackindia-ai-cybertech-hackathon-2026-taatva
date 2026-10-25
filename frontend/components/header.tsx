@@ -66,7 +66,7 @@ export function Header() {
   if (path.startsWith("/login") || path.startsWith("/auth")) {
     return (
       <header className={BAR} data-scanner={scanner}>
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-3 md:px-8">
+        <div className="mx-auto flex max-w-content items-center justify-between px-4 py-3 md:px-8">
           <Brand />
           <ThemeToggle />
         </div>
@@ -101,7 +101,7 @@ export function Header() {
   return (
     <header className={BAR} data-scanner={scanner}>
       {/* ROW 1: the logo on the left; reader status, private mode, theme and account on the right */}
-      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-2.5 md:px-8">
+      <div className="mx-auto flex max-w-content flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-2.5 md:px-8">
         <Link href="/" aria-label="Obsidian home" className="flex min-h-11 items-center">
           <Brand />
         </Link>
@@ -164,7 +164,7 @@ export function Header() {
 
       {/* ROW 2 (tablets and computers): SCAN / HISTORY / DEMO / LAB. On phones they are in the "Menu" panel.
           A lit bar on the partition line sits above the open page and slides when you change page. */}
-      <nav className="mx-auto hidden max-w-[1440px] justify-center px-4 md:flex md:px-8">
+      <nav className="mx-auto hidden max-w-content justify-center px-4 md:flex md:px-8">
         {tabs.map((tab) => {
           const active = path.startsWith(tab.href);
           return (

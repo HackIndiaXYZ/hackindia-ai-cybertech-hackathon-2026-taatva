@@ -7,7 +7,8 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { AlertTriangle, Loader2, ScanSearch, Smartphone } from "lucide-react";
+import { AlertTriangle, Eye, Gauge, Loader2, MapPin, ScanSearch, Smartphone } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { getScan, getStatus, scanFile, SignInNeeded, type ScanResult } from "@/lib/api";
 import { pageIsOutdated } from "@/components/update-check";
 import { useSettings } from "@/components/settings";
@@ -212,21 +213,21 @@ function ScanScreen() {
       )}
 
       {/* 3 columns on wide screens; on medium screens the right column moves underneath */}
-      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px]">
-        {/* Left column */}
-        <div className="space-y-6">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-stack lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px]">
+        {/* Left column. Tablets: verdict and upload side by side, same height. */}
+        <div className="grid content-start gap-stack md:grid-cols-2 md:[&>*]:h-full lg:grid-cols-1 lg:[&>*]:h-auto">
           <VerdictCard result={result} scanning={scanning} />
           <UploadCard onFile={scan} busy={scanning} onFileLost={fileLost} />
         </div>
 
-        {/* Middle column */}
-        <div>
+        {/* Middle column (before a scan, the drop box grows to fill the column: no empty gap) */}
+        <div className="flex flex-col">
           {result ? (
             <DocumentViewer result={result} shown={shown} selected={selected} onSelect={setSelected} />
           ) : (
-            <section className="panel p-5">
+            <section className="panel flex flex-1 flex-col p-5">
               <h2 className="section-title">Document</h2>
-              <div className="mt-5">
+              <div className="mt-5 flex flex-1 flex-col [&>div]:flex-1">
                 <DropZone onFile={scan} busy={scanning} big onFileLost={fileLost} />
               </div>
               <p className="mt-4 text-center text-[15px] md:text-[13px] text-muted-foreground">
@@ -238,14 +239,15 @@ function ScanScreen() {
         </div>
 
         {/* Right column */}
-        <div className="grid content-start gap-6 lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1">
+        {/* (Before a scan on wide screens, the Findings card fills the column height: no empty gap) */}
+        <div className={cn("grid content-start gap-stack lg:col-span-2 lg:grid-cols-2 xl:col-span-1 xl:grid-cols-1", !result && "xl:content-stretch")}>
           {result ? (
             <>
               <FindingsList shown={shown} harmless={harmless} selected={selected} onSelect={setSelected} />
               <AgentCard result={result} />
             </>
           ) : (
-            <section className="panel p-5">
+            <section className="panel p-5 lg:col-span-2 xl:col-span-1">
               <h2 className="section-title">Findings</h2>
               {/* Friendly empty state: a dashed outline where findings will appear */}
               <div className="mt-4 flex items-center gap-3 rounded-xl border border-dashed bg-muted/30 p-4">
@@ -254,6 +256,22 @@ function ScanScreen() {
                 </span>
                 <p className="text-[15px] md:text-[13px] text-muted-foreground">Hidden text will be listed here after a scan.</p>
               </div>
+              {/* What each finding will show (plain words, no data) */}
+              <ul className="mt-5 grid gap-3 text-[14px] text-muted-foreground md:grid-cols-3 md:text-[13px] xl:grid-cols-1">
+                {[
+                  [Eye, "The hidden text, made readable"],
+                  [MapPin, "Where it sat in the file"],
+                  [Gauge, "How dangerous it is: hidden + bossy"],
+                ].map(([Icon, text]) => {
+                  const I = Icon as typeof Eye;
+                  return (
+                    <li key={text as string} className="flex items-center gap-3 border-l-2 border-border pl-3">
+                      <I className="h-4 w-4 shrink-0 text-foreground" aria-hidden />
+                      {text as string}
+                    </li>
+                  );
+                })}
+              </ul>
             </section>
           )}
         </div>

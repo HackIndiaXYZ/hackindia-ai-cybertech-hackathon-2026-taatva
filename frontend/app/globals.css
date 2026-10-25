@@ -54,6 +54,11 @@
     --dur-fast: 150ms;
     --dur: 250ms;
     --dur-slow: 400ms;
+
+    /* Spacing scale: page width, side gutter, gap between blocks */
+    --content-max: 1440px;
+    --gutter: 16px;
+    --stack: 24px;
   }
 
   /* Dark mode: near-black obsidian, steel-white accent.
@@ -242,4 +247,13 @@ svg.lucide {
   html {
     scroll-behavior: auto !important;
   }
+}
+
+/* Spacing scale on bigger screens: wider gutter on tablets, wider page on very wide screens
+   (so 1920px+ screens use the space instead of leaving big empty sides) */
+@media (min-width: 768px) {
+  :root { --gutter: 32px; }
+}
+@media (min-width: 1800px) {
+  :root { --content-max: 1600px; }
 }

@@ -36,7 +36,7 @@ export function Footer() {
     <footer className="relative mt-8 border-t bg-card">
       {/* A thin line along the top edge with a soft deep glow */}
       <span aria-hidden="true" className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-foreground/50 to-transparent" />
-      <div className="mx-auto grid max-w-[1440px] gap-10 px-4 py-12 md:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)_auto] md:px-8">
+      <div className="mx-auto grid max-w-content gap-10 px-4 py-12 md:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)_auto] md:px-8">
         {/* Team TAATVA */}
         <div>
           <p className="font-display text-[44px] font-bold uppercase leading-none tracking-[0.14em] text-foreground">TAATVA</p>
@@ -92,7 +92,7 @@ export function Footer() {
 
       {/* Bottom line: project and year */}
       <div className="border-t">
-        <div className="mx-auto flex max-w-[1440px] flex-col gap-1 px-4 py-4 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:flex-row sm:justify-between md:px-8">
+        <div className="mx-auto flex max-w-content flex-col gap-1 px-4 py-4 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:flex-row sm:justify-between md:px-8">
           <span>Obsidian — built by team <span className="text-foreground">TAATVA</span> · 2026</span>
           <span>Old tools ask: does this sound bad? Obsidian asks: could a human even see this?</span>
         </div>

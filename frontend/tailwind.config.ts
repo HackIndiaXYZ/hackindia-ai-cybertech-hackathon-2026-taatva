@@ -51,7 +51,15 @@ const config: Config = {
         full: "var(--radius)",
         hairline: "2px",
       },
-      // ----- "Forensic Light Table" design tokens (the values live in globals.css) -----
+      // ----- Design tokens (the values live in globals.css) -----
+      // Spacing scale (design round 2): one page width, one side gutter, one gap between blocks
+      maxWidth: {
+        content: "var(--content-max)", // 1440px, 1600px on very wide screens
+      },
+      spacing: {
+        gutter: "var(--gutter)", // page side padding: 16px phones, 32px tablets and up
+        stack: "var(--stack)",   // gap between blocks on a page: 24px
+      },
       boxShadow: {
         e1: "var(--shadow-1)", // resting card
         e2: "var(--shadow-2)", // hovered card / button
