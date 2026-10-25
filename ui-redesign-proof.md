@@ -139,3 +139,41 @@ Console errors / warnings: none. Real sign-in with a team account: still to be c
 | 6. Strong hover / focus / press / disabled feedback everywhere (both modes) | ✅ | ✅ | ✅ | ✅ | ✅ | none |
 | 3. Landing page: X-Ray Lens hero, problem, how it works, Delta 4, verdicts, facts (with sources), TAATVA footer | ✅ | ✅ | ✅ | ✅ | ✅ | none |
 | 4. Even spacing: spacing tokens, 1600 px page on 1800+ screens, balanced scan grid (tablet side by side, wide screens equal heights) | ✅ | ✅ | ✅ | ✅ | ✅ | none |
+| 9. CLAUDE.md "Look and feel" rewritten; lint + build pass | ✅ | ✅ | ✅ | ✅ | ✅ | none |
+
+## ROUND 2 AFTER PROOF (25 Oct 2026, branch `design-round-2`)
+
+| Check | ROUND 2 BEFORE | ROUND 2 AFTER | Same? |
+|---|---|---|---|
+| Real scanner: clean_1 / base64 / white_text | Pass 25 / Flag 50 / Quarantine 100 | Pass 25 / Flag 50 / Quarantine 100 | ✅ |
+| `clean` screen | 25, PASS, 0 boxes, copy shown | 25 (number on screen 25), PASS, 0 boxes, copy shown | ✅ |
+| `footer` screen | 44, FLAG, box `0.4, 38.1` (320 px: `-0.5, 37.0`) | 44, FLAG, box `0.4, 38.1` (320 px: `-0.5, 37.0`) | ✅ |
+| `white` screen | 100, QUARANTINE, box `11.3, 47.4` (320 px: `10.3, 46.7`), NO copy button, nothing sent | identical | ✅ |
+| Upload `clean_1_resume.pdf` | Pass 25 | Pass 25 | ✅ |
+| Signed out → `/history` | `/login?next=%2Fhistory` | `/login?next=%2Fhistory` | ✅ |
+| X-Ray switch: on / off / Space | 1 / 0 / 1 | 1 / 0 / 1 | ✅ |
+| Console errors (dev) | none | none | ✅ |
+
+### Quality checks (round 2)
+
+- `npm run lint`: no warnings or errors. `npm run build`: passes, no warnings.
+- Production build, `/` and `/login`, light + dark: no hydration errors. The only console message is the
+  backend's CORS refusal for the test port 3002 (laptop setup: the backend only accepts port 3000).
+- No purple / violet / lavender / magenta / indigo / fuchsia, and no cyan / teal / aqua / sky blue, anywhere in the frontend.
+- Text contrast, both modes: every text pair passes WCAG AA (dark crimson raised to #D84F58 to pass on black).
+- Responsive sweep, 7 pages × 8 widths (320–1920 px): no sideways scrolling, tap targets ≥ 44 px below 1024 px,
+  X-Ray boxes stay on the page picture.
+- Every page checked in light AND dark mode, including the Attack Lab (was always dark, now follows the switch).
+- Background: 61 fps at 1920 px in the real browser, never catches clicks, calm behind content.
+
+### Rule checks (`git diff ui-redesign --stat`)
+
+- `/backend`: nothing changed. Files deleted: none.
+- Logic files (`lib/`, `app/api`, `app/auth`, `middleware.ts`, `next.config.mjs`, `settings.tsx`, `tsconfig.json`, `package.json`): nothing changed.
+- Files with logic: only markup and class names changed (the only changed line with a link is the same `href={tab.href}`, re-indented).
+- No existing file gained "use client". New motion/visual parts are new files: `XRayLens.tsx`, `LandingParts.tsx`.
+- `CLAUDE.md`: the "Look and feel" section rewritten, plus the ONE Attack Lab line the team approved
+  ("Follows the light / dark switch…"). Nothing else. (CLAUDE.md is kept out of git by the team.)
+- Team footer: names and roles from the team; GitHub / LinkedIn left empty (no links were given),
+  to be filled in `frontend/components/visual/Footer.tsx` ("TEAM: FILL IN THE LINKS HERE").
+- Real sign-in with a team account: still to be checked by a team member (Claude does not type real passwords).
