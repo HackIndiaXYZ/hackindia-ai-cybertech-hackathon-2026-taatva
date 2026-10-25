@@ -24,6 +24,7 @@ from pipeline.ai_view import ZOOM, read_ai_view, safe_zoom
 from pipeline.compare import compare
 from pipeline.decide import FLAG_FROM, WRAPPER, decide, verdict_for
 from pipeline.hidden_parts import read_hidden_places
+from pipeline.hindi_reread import reread_garbled_hindi
 from pipeline.html_view import attachments_in_email, read_html
 from pipeline.human_view import read_human_view, read_pictures
 from pipeline.plain_words import summary
@@ -139,6 +140,8 @@ def run_steps(pdf_bytes, private_mode, pages):
     ai_pieces = timed("ai_view", lambda: read_ai_view(pdf_bytes))
     human = timed("human_view", lambda: read_human_view(pdf_bytes, private_mode))
     compared = timed("compare", lambda: compare(ai_pieces, human, read_hidden_places(pdf_bytes)))
+    # Hidden Hindi that came out garbled is read again from a picture (pipeline/hindi_reread.py)
+    timed("hindi_reread", lambda: reread_garbled_hindi(compared, pdf_bytes, ai_pieces))
     return finish(compared, ai_pieces, human, pages, timings, lambda: page_pictures(pdf_bytes))
 
 

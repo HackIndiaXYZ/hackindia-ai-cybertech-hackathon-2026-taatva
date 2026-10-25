@@ -131,6 +131,8 @@ def where_label(item, page_sizes):
 
 def explain(item):
     how = words_for(item)[2]
+    if item.get("read_from_picture"):
+        how += " The file's own Hindi letters came out garbled, so we read them from a picture of the page."
     words = item.get("reads_as") or item["text"]
     if item["bossy_score"] >= ORDER_FROM:
         return f'{how} The AI reads an order: "{short(words, 120)}"'

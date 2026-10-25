@@ -177,9 +177,10 @@ def check_together(texts):
             if mode == "squeezed" and not use_squeeze:
                 continue
             for match in pattern.finditer(joined):
-                # Pieces that hold real letters of this order (a full stop alone does not count)
+                # Pieces that hold real letters of this order, in any alphabet, Hindi too
+                # (a full stop alone does not count)
                 touched = [i for i, (a, b) in enumerate(spans)
-                           if len(re.findall(r"[a-z0-9]", joined[max(a, match.start()):min(b, match.end())])) >= 2]
+                           if len(re.findall(r"[^\W_]", joined[max(a, match.start()):min(b, match.end())])) >= 2]
                 if len(touched) < 2:
                     continue  # not split, already caught in the single piece
                 for i in touched:

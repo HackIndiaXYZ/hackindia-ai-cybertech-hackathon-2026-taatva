@@ -22,6 +22,11 @@ GEMINI_BACKUP_MODEL = os.getenv("GEMINI_BACKUP_MODEL", "gemini-3.1-flash-lite")
 # the main model 0 of 4 (so with it, Button A would not show the danger). Main model = its backup.
 DEMO_RECRUITER_MODEL = os.getenv("DEMO_RECRUITER_MODEL", GEMINI_BACKUP_MODEL)
 TESSERACT_CMD = os.getenv("TESSERACT_CMD", "tesseract")
+# Where Tesseract's language packs are, for reading hidden Hindi again (pipeline/hindi_reread.py).
+# The laptop keeps eng + hin in backend/tessdata (Program Files needs admin rights to add Hindi).
+# Empty = Tesseract's own folder (Render installs Hindi there, see the Dockerfile).
+_LOCAL_TESSDATA = Path(__file__).parent / "tessdata"
+TESSDATA_DIR = os.getenv("TESSDATA_DIR", str(_LOCAL_TESSDATA) if (_LOCAL_TESSDATA / "hin.traineddata").exists() else "")
 
 # Which installed browser Playwright uses to open emails and web pages
 # ("msedge" = Microsoft Edge, already on Windows; empty = Playwright's own Chromium, used on Render)
