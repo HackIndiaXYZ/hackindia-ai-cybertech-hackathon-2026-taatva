@@ -43,7 +43,7 @@ function Brand({ small = false }: { small?: boolean }) {
     <span className="group flex items-center gap-2.5 sm:gap-3">
       <Logo className={small ? "h-8 w-8" : "h-8 w-8 sm:h-10 sm:w-10"} />
       <span>
-        <span className="block font-display text-[20px] font-bold leading-none tracking-[0.18em] text-foreground sm:text-[24px] sm:tracking-[0.2em]">
+        <span className="block whitespace-nowrap font-display text-[20px] font-bold leading-none tracking-[0.18em] text-foreground [overflow-wrap:normal] sm:text-[24px] sm:tracking-[0.2em]">
           OBSIDIAN
         </span>
         <span className="mt-1 hidden font-mono text-[10px] tracking-[0.16em] text-muted-foreground sm:block">
@@ -101,7 +101,7 @@ export function Header() {
   return (
     <header className={BAR} data-scanner={scanner}>
       {/* ROW 1: the logo on the left; reader status, private mode, theme and account on the right */}
-      <div className="mx-auto flex max-w-[1440px] items-center justify-between gap-3 px-4 py-2.5 md:px-8">
+      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-3 gap-y-1 px-4 py-2.5 md:px-8">
         <Link href="/" aria-label="Obsidian home" className="flex min-h-11 items-center">
           <Brand />
         </Link>
