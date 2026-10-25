@@ -3,13 +3,16 @@
 // TAATVA Obsidian - the top bar on every page:
 // logo on the left, SCAN / HISTORY / DEMO / LAB tabs in the middle,
 // reader status, private mode, light/dark switch and sign out on the right.
-// On a phone: logo and buttons on the first row, the tabs on a second row.
+// On a phone: logo and buttons on one row, the tabs in a "Menu" panel.
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { Hourglass, Lock, LockOpen, LogOut } from "lucide-react";
 import { useSettings } from "./settings";
 import { ThemeToggle } from "./theme";
+import { MobileMenu } from "./visual/MobileMenu";
+import { Tip } from "./ui/tooltip";
 import { cn } from "@/lib/utils";
 
 // What the History badge counts, in full words (for the tooltip and screen readers)
@@ -19,36 +22,41 @@ function waitingText(count: number) {
     : `${count} Quarantine files are waiting for you to Approve or Reject them`;
 }
 
-// The Obsidian logo: a dark cut gemstone (with a silver edge in dark mode)
+// The Obsidian logo: a dark cut gemstone, with a cyan scanner line across it
 export function Logo({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 40 40" className={className} aria-hidden="true">
-      <polygon points="20,3 37,15 31,36 9,36 3,15" fill="#1b2433" className="stroke-transparent dark:stroke-slate-400" strokeWidth="1.2" />
-      <polygon points="20,3 26,17 20,36 14,17" fill="#3b4a63" />
-      <polygon points="3,15 14,17 9,36" fill="#2a364b" />
-      <polygon points="37,15 26,17 31,36" fill="#0f1623" />
-      <polyline points="3,15 14,17 26,17 37,15" fill="none" stroke="#8fa0b8" strokeWidth="0.8" />
-      <polyline points="20,3 14,17 9,36" fill="none" stroke="#8fa0b8" strokeWidth="0.6" />
-      <polyline points="20,3 26,17 31,36" fill="none" stroke="#8fa0b8" strokeWidth="0.6" />
+    <svg viewBox="0 0 40 40" className={cn("transition-transform duration-base ease-out-soft group-hover:-rotate-6 group-hover:scale-105", className)} aria-hidden="true">
+      <polygon points="20,3 37,15 31,36 9,36 3,15" fill="#111821" className="stroke-transparent dark:stroke-slate-500" strokeWidth="1.2" />
+      <polygon points="20,3 26,17 20,36 14,17" fill="#2b3a4d" />
+      <polygon points="3,15 14,17 9,36" fill="#1d2836" />
+      <polygon points="37,15 26,17 31,36" fill="#0a1017" />
+      <polyline points="20,3 14,17 9,36" fill="none" stroke="#7d8fa5" strokeWidth="0.6" />
+      <polyline points="20,3 26,17 31,36" fill="none" stroke="#7d8fa5" strokeWidth="0.6" />
+      {/* The scanner beam crossing the stone */}
+      <polyline points="3,15 14,17 26,17 37,15" fill="none" stroke="hsl(var(--beam))" strokeWidth="1.3" />
     </svg>
   );
 }
 
 function Brand({ small = false }: { small?: boolean }) {
   return (
-    <span className="flex items-center gap-2.5 sm:gap-3">
+    <span className="group flex items-center gap-2.5 sm:gap-3">
       <Logo className={small ? "h-8 w-8" : "h-8 w-8 sm:h-10 sm:w-10"} />
       <span>
-        <span className="block font-display text-[22px] font-bold leading-none tracking-[0.2em] text-foreground sm:text-[28px] sm:tracking-[0.22em]">
+        <span className="block font-display text-[20px] font-bold leading-none tracking-[0.18em] text-foreground sm:text-[24px] sm:tracking-[0.2em]">
           OBSIDIAN
         </span>
-        <span className="mt-1 hidden font-mono text-[10px] tracking-[0.18em] text-muted-foreground sm:block">
+        <span className="mt-1 hidden font-mono text-[10px] tracking-[0.16em] text-muted-foreground sm:block">
           BY TEAM TAATVA · HIDDEN-ORDER SCANNER
         </span>
       </span>
     </span>
   );
 }
+
+// The glass bar at the top, with a thin beam line along its bottom edge
+const BAR = "sticky top-0 z-30 border-b border-border/70 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/65";
+const BEAM_LINE = "pointer-events-none absolute inset-x-0 -bottom-px h-px bg-gradient-to-r from-transparent via-beam/50 to-transparent";
 
 export function Header() {
   const path = usePathname();
@@ -57,11 +65,12 @@ export function Header() {
   // The sign-in page only shows the logo and the light/dark switch
   if (path.startsWith("/login") || path.startsWith("/auth")) {
     return (
-      <header className="border-b bg-card/90" data-scanner={scanner}>
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-3 py-3 sm:px-4 md:px-8">
+      <header className={BAR} data-scanner={scanner}>
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-4 py-3 md:px-8">
           <Brand />
           <ThemeToggle />
         </div>
+        <span aria-hidden="true" className={BEAM_LINE} />
       </header>
     );
   }
@@ -90,15 +99,16 @@ export function Header() {
             tip: "Every page is read by two page readers: Google's Gemini (online) and Tesseract (on this computer)." };
 
   return (
-    <header className="sticky top-0 z-30 border-b bg-card md:bg-card/90 md:backdrop-blur" data-scanner={scanner}>
-      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-3 py-2.5 sm:px-4 md:px-8 md:py-3">
-        <Link href="/scan" aria-label="Obsidian home" className="flex min-h-11 items-center">
+    <header className={BAR} data-scanner={scanner}>
+      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 py-2.5 md:px-8 md:py-3">
+        <Link href="/" aria-label="Obsidian home" className="flex min-h-11 items-center">
           <Brand />
         </Link>
 
-        {/* SCAN / HISTORY / DEMO: centered. On a phone they get their own row. */}
-        <nav className="order-3 flex w-full justify-center lg:order-none lg:w-auto">
-          <div className="flex w-full rounded-xl border bg-muted p-1 sm:w-auto">
+        {/* SCAN / HISTORY / DEMO / LAB: centered. On tablets they get their own row;
+            on phones they live in the "Menu" panel. A cyan pill slides to the open page. */}
+        <nav className="order-3 hidden w-full justify-center md:flex lg:order-none lg:w-auto">
+          <div className="flex rounded-full border bg-card/70 p-1 shadow-e1">
             {tabs.map((tab) => {
               const active = path.startsWith(tab.href);
               return (
@@ -106,20 +116,28 @@ export function Header() {
                   key={tab.href}
                   href={tab.href}
                   className={cn(
-                    // On a phone the "waiting" note sits under the word, so the three tabs still fit
-                    "flex flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-3 py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition sm:flex-none sm:flex-row sm:gap-2 sm:px-5 sm:text-[17px] sm:tracking-[0.16em]",
-                    active ? "bg-primary text-primary-foreground shadow" : "text-foreground hover:bg-card",
+                    "group relative flex items-center justify-center gap-2 rounded-full px-5 py-2 font-display text-[14px] font-semibold uppercase tracking-[0.16em] transition-colors duration-base",
+                    active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                   aria-label={tab.badge ? `${tab.label}: ${waitingText(tab.badge)}` : undefined}
                 >
-                  {tab.label}
+                  {active && (
+                    <motion.span layoutId="nav-pill" aria-hidden="true"
+                      className="absolute inset-0 rounded-full bg-primary shadow-glow"
+                      transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                  )}
+                  {/* A thin beam underline slides in on hover */}
+                  {!active && (
+                    <span aria-hidden="true" className="absolute inset-x-5 bottom-1 h-px origin-left scale-x-0 bg-beam transition-transform duration-base ease-out-soft group-hover:scale-x-100" />
+                  )}
+                  <span className="relative">{tab.label}</span>
                   {/* Not the total number of scans: only Quarantine files still waiting
                       for Approve / Reject (the same number as "Waiting for you" on History) */}
                   {!!tab.badge && (
                     <span
                       className={cn(
-                        "flex h-5 items-center gap-1 whitespace-nowrap rounded-full px-2 font-sans text-[11px] font-semibold normal-case tracking-normal",
-                        active ? "bg-primary-foreground text-primary" : "bg-quarantine text-white dark:text-neutral-950",
+                        "relative flex h-5 items-center gap-1 whitespace-nowrap rounded-full px-2 font-sans text-[11px] font-semibold normal-case tracking-normal",
+                        active ? "bg-primary-foreground text-primary" : "bg-quarantine text-white shadow-[0_0_12px_hsl(var(--quarantine)/0.45)] dark:text-neutral-950",
                       )}
                       title={waitingText(tab.badge)}
                     >
@@ -134,41 +152,54 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-1.5 sm:gap-2">
-          <span className="hidden items-center gap-2 rounded-full border bg-card px-3 py-1.5 font-mono text-[11px] text-foreground 2xl:flex"
-            title={readers.tip}>
-            <span className={cn("h-2 w-2 rounded-full", readers.dot)} />
-            {readers.text}
-          </span>
-          <button
-            onClick={() => setPrivateMode(!privateMode)}
-            className={cn(
-              "flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[11px] transition max-md:min-h-11 sm:px-3",
-              privateMode ? "border-pass/40 bg-pass/10 text-pass" : "bg-card text-foreground hover:bg-muted",
-            )}
-            title={`${readers.tip} Click to turn private mode ${privateMode ? "off" : "on"}.`}
-            aria-pressed={privateMode}
-          >
-            <span className={cn("h-2 w-2 rounded-full 2xl:hidden", readers.dot)} />
-            {privateMode ? <Lock className="h-3.5 w-3.5" /> : <LockOpen className="h-3.5 w-3.5" />}
-            <span className="hidden sm:inline">Private mode: {privateMode ? "on" : "off"}</span>
-            <span className="sm:hidden">{privateMode ? "Private" : "Online"}</span>
-          </button>
+          <Tip text={readers.tip} side="bottom">
+            <span className="hidden items-center gap-2 rounded-full border bg-card/70 px-3 py-1.5 font-mono text-[11px] text-foreground 2xl:flex" tabIndex={0}>
+              <span className={cn("h-2 w-2 rounded-full", readers.dot)} />
+              {readers.text}
+            </span>
+          </Tip>
+          <Tip text={`${readers.tip} Click to turn private mode ${privateMode ? "off" : "on"}.`} side="bottom">
+            <button
+              onClick={() => setPrivateMode(!privateMode)}
+              className={cn(
+                "lift flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[11px] max-md:min-h-11 sm:px-3",
+                privateMode ? "border-pass/40 bg-pass/10 text-pass" : "bg-card/70 text-foreground hover:border-primary/40",
+              )}
+              aria-pressed={privateMode}
+            >
+              <span className={cn("h-2 w-2 rounded-full 2xl:hidden", readers.dot)} />
+              {privateMode ? <Lock className="h-3.5 w-3.5" /> : <LockOpen className="h-3.5 w-3.5" />}
+              <span className="hidden sm:inline">Private mode: {privateMode ? "on" : "off"}</span>
+              <span className="sm:hidden">{privateMode ? "Private" : "Online"}</span>
+            </button>
+          </Tip>
           <ThemeToggle />
           {email && (
-            <div className="flex items-center gap-1.5 border-l pl-2 sm:gap-2 sm:pl-3">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 font-display text-[14px] font-semibold uppercase text-primary"
-                title={`Signed in as ${email}`}>
-                {email[0]}
-              </span>
+            <div className="hidden items-center gap-2 border-l pl-3 md:flex">
+              <Tip text={`Signed in as ${email}`} side="bottom">
+                <span className="grid h-8 w-8 place-items-center rounded-full bg-primary/15 font-display text-[14px] font-semibold uppercase text-primary ring-1 ring-primary/30" tabIndex={0}>
+                  {email[0]}
+                </span>
+              </Tip>
               <span className="hidden max-w-[160px] truncate text-[12px] text-muted-foreground 2xl:block">{email}</span>
               <button onClick={signOut} title="Sign out" aria-label="Sign out"
-                className="flex items-center justify-center gap-1 rounded-full border bg-card px-2 py-1.5 text-[11px] text-foreground hover:bg-muted max-md:min-h-11 max-md:min-w-11 sm:px-2.5">
+                className="lift flex items-center justify-center gap-1 rounded-full border bg-card/70 px-2.5 py-1.5 text-[11px] text-foreground hover:border-primary/40">
                 <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Sign out</span>
               </button>
             </div>
           )}
+          {/* Phones: the page links and Sign out are in this menu */}
+          <MobileMenu
+            tabs={tabs.map((tab) => ({ ...tab, ariaLabel: tab.badge ? `${tab.label}: ${waitingText(tab.badge)}` : undefined }))}
+            path={path}
+            email={email}
+            onSignOut={signOut}
+            waiting={waitingCount}
+            status={readers}
+          />
         </div>
       </div>
+      <span aria-hidden="true" className={BEAM_LINE} />
     </header>
   );
 }

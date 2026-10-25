@@ -40,9 +40,12 @@ export function ThemeToggle() {
       onClick={flip}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       title={dark ? "Switch to light mode" : "Switch to dark mode"}
-      className="grid h-11 w-11 shrink-0 place-items-center rounded-full border bg-card text-foreground transition hover:bg-muted md:h-8 md:w-8"
+      className="lift group grid h-11 w-11 shrink-0 place-items-center rounded-full border bg-card/70 text-foreground hover:border-primary/40 md:h-9 md:w-9"
     >
-      {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      {/* The icon turns a little on hover */}
+      {dark
+        ? <Sun className="h-4 w-4 transition-transform duration-slow ease-out-soft group-hover:rotate-45" />
+        : <Moon className="h-4 w-4 transition-transform duration-slow ease-out-soft group-hover:-rotate-12" />}
     </button>
   );
 }

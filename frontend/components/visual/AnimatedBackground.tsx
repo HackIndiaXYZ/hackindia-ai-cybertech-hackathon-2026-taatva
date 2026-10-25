@@ -84,7 +84,7 @@ export function AnimatedBackground() {
         const word = HIDDEN[i % HIDDEN.length];
         const row = Math.floor(((i + 0.5) / wordRows) * rows);
         const start = Math.floor(random() * Math.max(cols - word.length - 2, 1)) + 1;
-        [...word].forEach((letter, k) => {
+        word.split("").forEach((letter, k) => {
           const spot = row * cols + start + k;
           hidden.set(spot, letter);
           grid[spot] = ""; // a blank spot: nothing shows until the beam passes
@@ -148,7 +148,7 @@ export function AnimatedBackground() {
         ctx!.lineWidth = 1;
         ctx!.beginPath();
         // Rounded corners where the browser can draw them (older phones: square)
-        if (ctx!.roundRect) ctx!.roundRect(0, 0, sheet.w, sheet.h, 6);
+        if ("roundRect" in ctx!) ctx!.roundRect(0, 0, sheet.w, sheet.h, 6);
         else ctx!.rect(0, 0, sheet.w, sheet.h);
         ctx!.fill();
         ctx!.stroke();
