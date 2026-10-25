@@ -136,3 +136,4 @@ Console errors / warnings: none. Real sign-in with a team account: still to be c
 | 7. Two-row navbar with partition + lit bar (phone menu too) | ✅ | ✅ | ✅ | ✅ | ✅ | none |
 | 8. Attack Lab follows light/dark; all 6 pages checked in both modes | ✅ | ✅ | ✅ | ✅ | ✅ | none |
 | 5. Background: clearly visible at the edges in both modes, calm behind content (61 fps at 1920 px, clicks pass through) | ✅ | ✅ | ✅ | ✅ | ✅ | none |
+| 6. Strong hover / focus / press / disabled feedback everywhere (both modes) | ✅ | ✅ | ✅ | ✅ | ✅ | none |

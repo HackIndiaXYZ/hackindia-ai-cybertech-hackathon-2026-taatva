@@ -148,7 +148,7 @@ function HistoryScreen() {
           {(["all", "quarantine", "flag", "pass"] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
               className={cn("relative flex items-center gap-2 rounded-full px-3 py-2 max-lg:min-h-11 font-display text-[13px] sm:px-4 sm:text-[14px] font-semibold uppercase tracking-[0.14em] transition-colors duration-base",
-                filter === f ? "text-foreground" : "text-foreground/70 hover:text-foreground")}>
+                filter === f ? "text-foreground" : "text-foreground/70 hover:bg-accent/70 hover:text-foreground")}>
               {/* The white pill slides to the chosen filter */}
               {filter === f && (
                 <motion.span layoutId="history-filter" aria-hidden="true" className="absolute inset-0 rounded-full bg-card shadow-e1"
@@ -213,7 +213,7 @@ function HistoryScreen() {
               const toggle = () => toggleRow(row.id);
               return (
                 <Fragment key={row.id}>
-                  <tr className={cn("border-b align-middle transition-colors duration-base hover:bg-muted/40", row.decision === "waiting" && "bg-quarantine/[0.04]", isOpen && "border-b-0 bg-muted/30")}>
+                  <tr className={cn("border-b align-middle transition-[background-color,box-shadow] duration-fast hover:bg-muted/50 hover:shadow-[inset_3px_0_0_hsl(var(--primary))]", row.decision === "waiting" && "bg-quarantine/[0.04]", isOpen && "border-b-0 bg-muted/30")}>
                     <td className="py-4 pl-5 pr-2">
                       <button onClick={toggle} aria-label={isOpen ? "Close row" : "Open row"} aria-expanded={isOpen}
                         className="lift grid h-9 w-9 place-items-center rounded-full border bg-card text-primary hover:border-primary/40 max-lg:h-11 max-lg:w-11">

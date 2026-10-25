@@ -66,7 +66,7 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
             {([["page", "Page"], ["views", "AI view vs Human view"]] as const).map(([key, label]) => (
               <button key={key} onClick={() => setTab(key)}
                 className={cn("relative whitespace-nowrap rounded-full px-3 py-1.5 font-medium transition-colors duration-base [overflow-wrap:normal] max-lg:min-h-11 sm:px-4",
-                  tab === key ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                  tab === key ? "text-foreground" : "text-muted-foreground hover:bg-accent/70 hover:text-foreground")}>
                 {/* The white pill slides to the open tab */}
                 {tab === key && (
                   <motion.span layoutId="doc-tab" aria-hidden="true" className="absolute inset-0 rounded-full bg-card shadow-e1"
@@ -81,7 +81,7 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
         {/* The big X-Ray Reveal switch: the hero control. It glows red when on. */}
         <label className={cn("group relative flex w-full cursor-pointer flex-wrap items-center gap-x-4 gap-y-2 overflow-hidden rounded-2xl border-2 px-4 py-3 transition-all duration-base ease-out-soft sm:w-auto sm:min-w-[410px] sm:flex-nowrap",
           xray
-            ? "border-quarantine/50 bg-quarantine/[0.07] shadow-[0_0_0_1px_hsl(var(--quarantine)/0.15),0_10px_36px_-10px_hsl(var(--quarantine)/0.55)]"
+            ? "border-quarantine/50 bg-quarantine/[0.07] shadow-[0_0_0_1px_hsl(var(--quarantine)/0.15),0_10px_36px_-10px_hsl(var(--quarantine)/0.55)] hover:border-quarantine hover:shadow-[0_0_0_1px_hsl(var(--quarantine)/0.45),0_14px_44px_-10px_hsl(var(--quarantine)/0.8)]"
             : "border-border bg-muted/40 hover:border-primary/40 hover:shadow-glow")}>
           {/* A faint scan-line texture inside the switch card */}
           <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(0deg,hsl(var(--foreground)/0.03)_0_1px,transparent_1px_4px)]" />

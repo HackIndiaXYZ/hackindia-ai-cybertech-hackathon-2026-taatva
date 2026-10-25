@@ -25,7 +25,7 @@ function waitingText(count: number) {
 // The Obsidian logo: a dark cut gemstone, with a steel scanner line across it
 export function Logo({ className }: { className?: string }) {
   return (
-    <svg viewBox="0 0 40 40" className={cn("transition-transform duration-base ease-out-soft group-hover:-rotate-6 group-hover:scale-105", className)} aria-hidden="true">
+    <svg viewBox="0 0 40 40" className={cn("transition-transform duration-base ease-out-soft group-hover:scale-105 group-hover:brightness-125", className)} aria-hidden="true">
       <polygon points="20,3 37,15 31,36 9,36 3,15" fill="#111821" className="stroke-transparent dark:stroke-slate-500" strokeWidth="1.2" />
       <polygon points="20,3 26,17 20,36 14,17" fill="#2b3a4d" />
       <polygon points="3,15 14,17 9,36" fill="#1d2836" />

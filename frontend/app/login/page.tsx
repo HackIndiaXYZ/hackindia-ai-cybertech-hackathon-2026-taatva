@@ -166,7 +166,7 @@ function LoginForm() {
           {([["signin", "Sign in"], ["signup", "Sign up"]] as const).map(([key, label]) => (
             <button key={key} role="tab" aria-selected={mode === key} onClick={() => switchTo(key)}
               className={cn("relative rounded-full py-2 max-lg:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition-colors duration-base",
-                mode === key ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                mode === key ? "text-foreground" : "text-muted-foreground hover:bg-accent/70 hover:text-foreground")}>
               {/* The white pill slides between Sign in and Sign up */}
               {mode === key && (
                 <motion.span layoutId="auth-tab" aria-hidden="true" className="absolute inset-0 rounded-full bg-card shadow-e1"

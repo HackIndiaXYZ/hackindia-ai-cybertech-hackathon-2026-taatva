@@ -89,7 +89,7 @@
     --shadow-1: 0 1px 0 hsl(0 0% 100% / 0.03) inset, 0 2px 8px rgb(0 0 0 / 0.5);
     --shadow-2: 0 1px 0 hsl(0 0% 100% / 0.05) inset, 0 12px 28px rgb(0 0 0 / 0.6);
     --shadow-3: 0 1px 0 hsl(0 0% 100% / 0.06) inset, 0 28px 56px rgb(0 0 0 / 0.7);
-    --shadow-glow: 0 0 0 1px hsl(var(--beam) / 0.4), 0 0 26px hsl(var(--beam) / 0.14);
+    --shadow-glow: 0 0 0 1px hsl(var(--beam) / 0.6), 0 0 28px hsl(var(--beam) / 0.22);
   }
 }
 
@@ -138,12 +138,7 @@ svg.lucide {
   html {
     -webkit-tap-highlight-color: transparent;
   }
-  /* Keyboard users (Tab key) always see where they are (QA-16).
-     Only shows for the keyboard, not for mouse clicks or taps. */
-  :focus-visible {
-    outline: 2px solid hsl(var(--ring));
-    outline-offset: 2px;
-  }
+  /* (Keyboard focus outline, QA-16: see the "Keyboard focus" rule further down) */
   body {
     @apply bg-background text-foreground font-sans antialiased;
     font-feature-settings: "cv11", "ss01"; /* Inter: clearer letters */
@@ -180,26 +175,68 @@ svg.lucide {
   .tag {
     @apply inline-flex items-center rounded-md border bg-muted/60 px-2 py-0.5 font-mono text-[11px] text-muted-foreground;
   }
-  /* Buttons and cards that lift a little on hover and press in on click */
+  /* Buttons and cards: on hover they lift 2px, get a sharp glowing edge in the deep
+     accent tone, and their icon grows a little. On click they press in quickly. */
   .lift {
     transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur) var(--ease-out),
-      border-color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out);
+      border-color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out),
+      color var(--dur-fast) var(--ease-out);
+  }
+  .lift svg.lucide {
+    transition: transform var(--dur) var(--ease-out);
   }
   @media (hover: hover) {
-    .lift:hover:not(:disabled) {
-      transform: translateY(-1px);
-      box-shadow: var(--shadow-2);
+    .lift:hover:not(:disabled):not([aria-disabled="true"]) {
+      transform: translateY(-2px);
+      border-color: hsl(var(--primary) / 0.7);
+      box-shadow: var(--shadow-2), var(--shadow-glow);
+    }
+    .lift:hover:not(:disabled) svg.lucide {
+      transform: scale(1.1);
     }
   }
   .lift:active:not(:disabled) {
-    transform: translateY(0) scale(0.98);
+    transform: translateY(0) scale(0.97);
+    box-shadow: var(--shadow-1);
+    transition-duration: 80ms;
+  }
+
+  /* Cards: on hover the border and the corner brackets light up */
+  .panel:hover {
+    --bracket: hsl(var(--foreground) / 0.95);
+    border-color: hsl(var(--foreground) / 0.28);
+  }
+}
+
+@layer base {
+  /* Everything you can click shows the pointing-hand cursor */
+  button:not(:disabled), a[href], [role="button"], [role="tab"], [role="switch"], [role="radio"],
+  summary, label:has(> [role="switch"]), select {
+    cursor: pointer;
+  }
+  /* Disabled: clearly dimmed, no glow, no lift, "not allowed" cursor */
+  button:disabled, [aria-disabled="true"], input:disabled, textarea:disabled {
+    cursor: not-allowed;
+    box-shadow: none !important;
+    filter: saturate(0.4);
+  }
+  /* Keyboard focus: a sharp, thick outline with a little space around it */
+  :focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 3px;
+  }
+  /* Touch screens (no hover): tapping gives the same quick press feedback */
+  @media (hover: none) {
+    button:active:not(:disabled), a[href]:active, [role="button"]:active, [role="tab"]:active {
+      opacity: 0.8;
+    }
   }
 }
 
 /* "Reduce motion" turned on: no lifting or sliding (loading spinners still turn,
    so people can see the app is working) */
 @media (prefers-reduced-motion: reduce) {
-  .lift:hover, .lift:active {
+  .lift:hover, .lift:active, .lift:hover svg.lucide {
     transform: none !important;
   }
   html {
