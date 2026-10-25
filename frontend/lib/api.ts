@@ -136,18 +136,39 @@ export type LabResult = {
   plain_line: string;
   finding_lines: string[];
   agent_receives: string; // the clean copy, or "NOTHING - file held for a human"
+  counter: LabCounter | null;
 };
 
-export async function tryLab(sentence: string, trick: LabTrick, privateMode: boolean) {
+// "N tried, X caught, Y escaped" for everyone together (numbers only, never sentences)
+export type LabCounter = {
+  tried: number;
+  caught: number;
+  escaped: number;
+  saved_in: "supabase" | "local file";
+  since: string | null; // first try in the local file
+};
+
+async function labToken() {
   const { data } = await supabase().auth.getSession();
   // Developer test mode only: no sign-in on this computer. The real backend still
   // refuses this, so it only works with a local test backend. Results are always real scans.
   const token = qaMode() ? "qa-local-test" : data.session?.access_token;
   if (!token) throw new SignInNeeded("Please sign in again.");
+  return token;
+}
+
+export async function tryLab(sentence: string, trick: LabTrick, privateMode: boolean) {
   return ask<LabResult>("/lab/try", {
     method: "POST",
     body: JSON.stringify({ sentence, trick, private_mode: privateMode }),
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${await labToken()}`, "Content-Type": "application/json" },
+  });
+}
+
+export async function getLabCounter() {
+  return ask<LabCounter>("/lab/counter", {
+    headers: { Authorization: `Bearer ${await labToken()}` },
+    signal: AbortSignal.timeout(15_000),
   });
 }
 

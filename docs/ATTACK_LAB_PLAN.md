@@ -91,9 +91,13 @@ Prompt Guard said 0.98. On the clean resume both said 0.0.
 4. **`run_attack(sentence, trick, private_mode)`** - makes the resume, runs the Old Way,
    runs the normal `scan_pdf()` unchanged, checks Caught, counts it.
    Any crash here (maker, Old Way, or check) = Quarantine answer, never a pass.
-5. **Counter** - "N tried, X caught, Y escaped". Kept as plain numbers in backend
-   memory (all visitors share it; it starts again at 0 when the server restarts,
-   and the screen says "since <time>"). Only numbers are kept, never the sentence.
+5. **Counter** (built, `backend/lab_store.py`) - "N tried, X caught, Y escaped". Each try
+   saves one row: trick, score, verdict, caught, time (never the sentence). Rows go to the
+   Supabase table `lab_attempts` once it exists (paste `supabase/lab_attempts.sql` into the
+   Supabase SQL Editor once). Until then: the local file `backend/data/lab_attempts.jsonl`
+   (kept off GitHub; on the free live server it starts again at 0 after a restart).
+   A crash counts as a try that was not caught. The /lab page also shows a QR code to
+   the live Lab page (a phone cannot open the laptop's localhost address).
 
 ### 3b. Backend: `backend/main.py` (small change)
 - `POST /lab/try` (built in step 2) - takes **JSON only**: `{"sentence": "...", "trick": "white" | "tiny" | "offpage", "private_mode": false}`.

@@ -5,14 +5,16 @@
 // scans it live. Left: the Old Way (words only). Right: Obsidian (could a person see it?).
 // Every result is a real scan of a resume built a moment before. Nothing is faked.
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Loader2 } from "lucide-react";
-import { SignInNeeded, tryLab, type LabResult, type LabTrick } from "@/lib/api";
+import { getLabCounter, SignInNeeded, tryLab, type LabCounter as Numbers, type LabResult, type LabTrick } from "@/lib/api";
 import { useSettings } from "@/components/settings";
 import { pageIsOutdated } from "@/components/update-check";
 import { LabForm } from "@/components/lab/lab-form";
 import { LabResultView } from "@/components/lab/lab-result";
+import { LabCounter } from "@/components/lab/lab-counter";
+import { LabQr } from "@/components/lab/lab-qr";
 
 export default function LabPage() {
   const router = useRouter();
@@ -22,7 +24,13 @@ export default function LabPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<LabResult | null>(null);
+  const [numbers, setNumbers] = useState<Numbers | null>(null);
   const resultBox = useRef<HTMLDivElement>(null);
+
+  // The scoreboard when the page opens (if it cannot load, the page still works)
+  useEffect(() => {
+    getLabCounter().then(setNumbers).catch(() => {});
+  }, []);
   // Only one try at a time, even after a double-click
   const running = useRef(false);
 
@@ -38,7 +46,9 @@ export default function LabPage() {
         setError("Obsidian was updated since this page was opened. Press “Refresh now” at the top, then try again.");
         return;
       }
-      setResult(await tryLab(sentence, trick, privateMode));
+      const answer = await tryLab(sentence, trick, privateMode);
+      setResult(answer);
+      if (answer.counter) setNumbers(answer.counter);
       // On a phone the result is further down: bring it into view
       setTimeout(() => resultBox.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
     } catch (e) {
@@ -63,6 +73,11 @@ export default function LabPage() {
             The Old Way only asks “does this sound bad?”. Obsidian first asks “could a person even see this?”.
             That is our <b className="text-foreground">Delta 4</b>.
           </p>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-2">
+          <LabCounter numbers={numbers} />
+          <LabQr />
         </div>
 
         <LabForm trick={trick} sentence={sentence} busy={busy}

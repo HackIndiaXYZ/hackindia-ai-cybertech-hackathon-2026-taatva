@@ -5,7 +5,9 @@
 #                    Only for signed-in TAATVA users. The result is saved in Supabase.
 #   POST /demo/rank -> the "AI recruiter" demo (original files vs Obsidian clean copies)
 #   POST /lab/try -> Attack Lab: hide a sentence in a made-up resume, then scan it live.
-#                    No file upload, never saved, never sent to any AI agent.
+#                    No file upload, never sent to any AI agent. Only trick, score,
+#                    verdict, caught and time are counted (never the sentence).
+#   GET  /lab/counter -> "N tried, X caught, Y escaped"
 # The History page reads past scans straight from Supabase. Row level security
 # there makes sure each person only sees their own scans.
 
@@ -22,7 +24,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
 import config
-from attack_lab import BadAttack, run_attack
+from attack_lab import TRICKS, BadAttack, run_attack
+from lab_store import counter as lab_counter, save_attempt
 from demo_recruiter import BadDemoFile, RecruiterUnavailable, run_demo
 from pipeline.prompt_guard import load as load_prompt_guard, status as prompt_guard_status
 from pipeline.scan import MAX_BYTES, scan_pdf
@@ -204,11 +207,36 @@ def lab_try(body: LabTry, authorization: str | None = Header(None)):
     fair_use(user, "lab")
     fair_use(EVERYONE, "lab_everyone")
     try:
-        return run_attack(body.sentence, body.trick, body.private_mode)
+        answer = run_attack(body.sentence, body.trick, body.private_mode)
     except BadAttack as problem:
-        raise HTTPException(400, str(problem))
+        raise HTTPException(400, str(problem))   # wrong input is not a try, so it is not counted
     except Exception as error:
-        # Even making the resume failed: still Quarantine, never a silent pass
+        # Even making the resume failed: still Quarantine, never a silent pass.
+        # It still counts as a try that was NOT caught (escapes are never hidden).
         log.error(f"Attack Lab failed: {type(error).__name__}")
+        save_attempt(body.trick if body.trick in TRICKS else "unknown", 100, "quarantine", False)
         raise HTTPException(500, "Something went wrong, so nothing was sent to the AI agent "
                                  "(Quarantine). Please try again.")
+    # Count this try: trick, score, verdict, caught and the time. Never the sentence.
+    o = answer["obsidian"]
+    save_attempt(answer["answer_key"]["trick"], o["score"], o["verdict"], answer["caught"])
+    answer["counter"] = lab_counter_numbers()
+    return answer
+
+
+def lab_counter_numbers():
+    try:
+        return lab_counter()
+    except Exception as error:
+        log.error(f"Attack Lab counter failed: {type(error).__name__}")
+        return None
+
+
+@app.get("/lab/counter")
+def lab_counter_now(authorization: str | None = Header(None)):
+    # "N tried, X caught, Y escaped" for everyone together. Numbers only.
+    check_sign_in((authorization or "").removeprefix("Bearer ").strip())
+    numbers = lab_counter_numbers()
+    if numbers is None:
+        raise HTTPException(503, "The counter is not available just now.")
+    return numbers
