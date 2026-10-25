@@ -45,6 +45,9 @@ export function AnimatedBackground() {
     let frame = 0;
     let last = performance.now();
     let beamY = -200;
+    let started = false;
+    // Small screens or few processor cores = save power (30 frames a second)
+    const lowPower = window.innerWidth < 768 || (navigator.hardwareConcurrency || 8) <= 4;
 
     // Read the theme colours from the design tokens in globals.css
     function readColours() {
@@ -122,6 +125,12 @@ export function AnimatedBackground() {
     }
 
     function draw(now: number) {
+      // Phones and slower computers: draw 30 times a second instead of 60 (still smooth,
+      // half the work, so the page stays quick to respond)
+      if (lowPower && now - last < 30) {
+        frame = requestAnimationFrame(draw);
+        return;
+      }
       const seconds = Math.min((now - last) / 1000, 0.1); // never jump after a pause
       last = now;
       const slow = calm.matches ? 3 : 1;
@@ -194,6 +203,7 @@ export function AnimatedBackground() {
     }
 
     function start() {
+      if (!started) return; // not before the page itself has finished loading
       cancelAnimationFrame(frame);
       last = performance.now();
       frame = requestAnimationFrame(draw);
@@ -213,14 +223,26 @@ export function AnimatedBackground() {
       resizeTimer = window.setTimeout(layout, 120);
     }
 
-    layout();
-    start();
+    // Start the animation only AFTER the page has loaded and settled, so the real
+    // content (and the scan page) always appears first and fast
+    let startTimer = 0;
+    function begin() {
+      startTimer = window.setTimeout(() => {
+        started = true;
+        layout();
+        if (!document.hidden) start();
+      }, 1200);
+    }
+    if (document.readyState === "complete") begin();
+    else window.addEventListener("load", begin, { once: true });
     window.addEventListener("resize", resized);
     document.addEventListener("visibilitychange", visibility);
 
     // Clean up everything when the component goes away
     return () => {
       cancelAnimationFrame(frame);
+      window.clearTimeout(startTimer);
+      window.removeEventListener("load", begin);
       window.clearTimeout(resizeTimer);
       window.removeEventListener("resize", resized);
       document.removeEventListener("visibilitychange", visibility);

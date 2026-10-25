@@ -56,6 +56,7 @@ const config: Config = {
       },
       transitionTimingFunction: {
         "out-soft": "var(--ease-out)",
+        spring: "cubic-bezier(0.34, 1.56, 0.64, 1)", // a small bounce at the end (switch knob)
       },
       transitionDuration: {
         fast: "150ms",

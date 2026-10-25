@@ -51,6 +51,59 @@ Console errors / warnings: none. Sideways scrolling: none.
 | 9. Sign-in, History, Demo, Lab, pop-up, Refresh bar (style only) | ✅ | ✅ | ✅ | ✅ | none |
 | 10. Responsive: 7 pages x 8 widths (320-1920), no sideways scroll, 44 px taps below 1024, boxes on the page | ✅ | ✅ | ✅ | ✅ | none |
 
-## AFTER PROOF
+| 11. Polish: lint, build, contrast, speed, team behaviour tests | ✅ | ✅ | ✅ | ✅ | none |
 
-(filled in at the end)
+## AFTER PROOF (25 Oct 2026, new "Forensic Light Table" design, branch `ui-redesign`)
+
+### Side by side: BEFORE vs AFTER (same 3 screens, website test mode)
+
+| Screen | BEFORE | AFTER | Same? |
+|---|---|---|---|
+| Pass `clean` | score 25, PASS, 0 boxes, "Copy clean text" shown, clean text sent | score 25 (number on screen ends on 25), PASS, 0 boxes, "Copy clean text" shown, clean text sent | ✅ |
+| Flag `footer` | score 44, FLAG, 1 box at `0.4, 38.1`, copy shown, 1 found | score 44, FLAG, 1 box at `0.4, 38.1`, copy shown, 1 found | ✅ |
+| Quarantine `white` | score 100, QUARANTINE, 1 box at `11.3, 47.4`, NO copy button, "LOCKED · NOTHING SENT" | score 100, QUARANTINE, 1 box at `11.3, 47.4`, NO copy button, "LOCKED · NOTHING SENT" | ✅ |
+| Upload `clean_1_resume.pdf` | Pass 25 | Pass 25 | ✅ |
+| Signed out → `/history` | `/login?next=%2Fhistory` | `/login?next=%2Fhistory` | ✅ |
+| Console errors / warnings | none | none | ✅ |
+
+Same checks at 320 px wide: all match too (box spots move by about 1% only because each box is
+drawn 3 px outside the hidden text on purpose; 3 px is a bigger share of a small page. Box maths unchanged).
+X-Ray switch: on = 1 box, off = 0, Space key turns it back on = 1. ✅
+Real scanner (backend) not touched: Pass 25 / Flag 50 / Quarantine 100 as in part A.
+
+### The team's own behaviour tests (`qa/behaviour.py`, test build on port 3001)
+
+| | Old design (`main`) | New design |
+|---|---|---|
+| Checks passed | 12 of 15 | 12 of 15 |
+| The same 3 fail on both | box "exact" test expects 0 px but boxes are drawn 6 px wider on purpose (since QA-18); "internet off" and "console errors": the backend's CORS list does not include `localhost:3001`, so `/status` is blocked on this laptop | identical |
+
+### Quality checks
+
+- `npm run lint`: no warnings or errors. `npm run build`: passes, no warnings.
+- No purple / violet / lavender / magenta / indigo / fuchsia anywhere in the frontend.
+- Text contrast (WCAG AA), both themes: all text pairs pass. White on yellow (light mode FLAG badge) is 3.35:1,
+  allowed because that badge is large bold text (and that colour is unchanged from before).
+- Responsive sweep, 7 pages × 8 widths (320, 375, 414, 768, 1024, 1280, 1440, 1920): no sideways scrolling,
+  every tap target ≥ 44 px below 1024 px, X-Ray boxes stay on the page picture.
+- Keyboard: Tab reaches every control with a visible cyan focus ring; Space toggles X-Ray; Esc closes the phone menu.
+- Background animation: 61 fps on the laptop, never catches clicks, starts 1.2 s after the page loads,
+  30 fps on phones, pauses when the tab is hidden, much slower with "reduce motion".
+- Speed (production build, measured in Chrome; Lighthouse itself is not installed):
+  - Desktop: home LCP 1.13 s, sign-in 0.84 s, layout shift ≈ 0, busy time 0–20 ms.
+  - Slow simulated phone (4× slower CPU), sign-in page: old design LCP 4.7 s / busy 2.4 s,
+    new design LCP 5.7 s / busy 2.9 s. The new look costs about 0.5 s on a slow phone (motion code).
+  - Page code: sign-in 174 → 214 KB, scan 180 → 241 KB (framer-motion + Radix tooltip/menu).
+
+### Rule checks (`git diff main --stat`)
+
+- `/backend`: nothing changed.
+- Logic files (`lib/`, `app/api`, `app/auth`, `next.config.mjs`, `settings.tsx`): nothing changed.
+- `middleware.ts`: ONE added line so `/` opens without sign-in (team decision, 25 Oct). Every other page still locked.
+- `app/page.tsx` (was "jump to /scan"): now the landing page (team decision, 25 Oct).
+- Files with logic (scan, history, login, demo, lab pages; header, upload, viewer, findings, lab form, pop-up,
+  refresh bar, theme): only markup and class names changed; on lines with handlers only the class names changed.
+- No existing file gained "use client". Motion lives in NEW files (`components/motion/*`, `components/visual/*`).
+- No element IDs, `name` or `data-*` attributes, image sources or aria-labels removed or renamed.
+- `CLAUDE.md`: only the "Look and feel" section changed (CLAUDE.md is kept out of git on purpose by the team).
+- New packages: framer-motion, @radix-ui/react-dialog, @radix-ui/react-tooltip (lucide-react was already there).

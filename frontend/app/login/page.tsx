@@ -16,7 +16,6 @@ import { PasswordInput } from "@/components/password-input";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { FadeIn } from "@/components/motion/FadeIn";
 
 type Mode = "signin" | "signup";
 
@@ -132,7 +131,7 @@ function LoginForm() {
   return (
     <div className="grid min-h-[70vh] items-center gap-10 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:gap-16 lg:py-10">
       {/* Left (wide screens): who we are, in a few words */}
-      <FadeIn className="hidden lg:block">
+      <div className="hidden animate-in fade-in slide-in-from-bottom-3 duration-500 lg:block">
         <p className="inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
           <span className="h-1.5 w-1.5 rounded-full bg-beam shadow-[0_0_8px_hsl(var(--beam))]" />
           Team TAATVA · hidden-order scanner
@@ -151,9 +150,9 @@ function LoginForm() {
             </li>
           ))}
         </ul>
-      </FadeIn>
+      </div>
 
-      <FadeIn delay={0.08} className="mx-auto w-full max-w-md">
+      <div className="mx-auto w-full max-w-md animate-in fade-in slide-in-from-bottom-3 duration-500">
       <div className="panel relative w-full overflow-hidden p-5 shadow-e3 sm:p-8">
         {/* A thin beam line along the top of the card */}
         <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-beam to-transparent" />
@@ -285,7 +284,7 @@ function LoginForm() {
             : <>Already have an account? <button onClick={() => switchTo("signin")} className="font-medium text-primary underline max-lg:inline-flex max-lg:min-h-11 max-lg:min-w-11 max-lg:items-center max-lg:justify-center">Sign in</button>.</>}
         </p>
       </div>
-      </FadeIn>
+      </div>
     </div>
   );
 }

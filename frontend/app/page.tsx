@@ -33,7 +33,8 @@ export default function Home() {
     <div className="space-y-20 pb-6 pt-4 md:space-y-28 md:pt-10">
       {/* ----- Hero ----- */}
       <section className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
-        <FadeIn>
+        {/* Plain CSS fade-in (no JavaScript needed), so the big title shows at once */}
+        <div className="animate-in fade-in slide-in-from-bottom-3 duration-500">
           <p className="inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
             <span className="h-1.5 w-1.5 rounded-full bg-beam shadow-[0_0_8px_hsl(var(--beam))]" />
             Team TAATVA · hidden-order scanner
@@ -56,7 +57,7 @@ export default function Home() {
               <FlaskConical className="h-4 w-4 transition-transform duration-base group-hover:-rotate-12" /> Try the Attack Lab
             </Link>
           </div>
-        </FadeIn>
+        </div>
         <FadeIn delay={0.12}>
           <HeroScanner />
         </FadeIn>
