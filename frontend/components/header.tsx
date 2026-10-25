@@ -1,7 +1,7 @@
 "use client";
 
 // TAATVA Obsidian - the top bar on every page:
-// logo on the left, SCAN / HISTORY / DEMO tabs in the middle,
+// logo on the left, SCAN / HISTORY / DEMO / LAB tabs in the middle,
 // reader status, private mode, light/dark switch and sign out on the right.
 // On a phone: logo and buttons on the first row, the tabs on a second row.
 
@@ -70,6 +70,7 @@ export function Header() {
     { href: "/scan", label: "Scan" },
     { href: "/history", label: "History", badge: waitingCount },
     { href: "/demo", label: "Demo" },
+    { href: "/lab", label: "Lab" },
   ];
 
   // Who reads the pages right now, in plain words

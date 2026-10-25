@@ -19,6 +19,8 @@ export type Finding = {
   bossy_points: number;
   bossy_score: number;
   danger: number;
+  phrase_score?: number;              // our phrase list (0-1)
+  prompt_guard_score?: number | null; // Prompt Guard's second opinion (0-1), null = not used
   // Plain words made by the backend for this dashboard
   title: string;
   explain: string;
@@ -113,6 +115,39 @@ export async function runDemo(files: File[], mode: "original" | "obsidian", job:
     method: "POST",
     body: form,
     headers: { Authorization: `Bearer ${data.session.access_token}` },
+  });
+}
+
+// ----- Attack Lab: hide a sentence in a made-up resume, then scan it live -----
+
+export type LabTrick = "white" | "tiny" | "offpage";
+
+export type LabResult = {
+  // The full existing Obsidian scan of the made-up resume
+  obsidian: Pick<ScanResult, "score" | "verdict" | "reasons" | "findings" | "pages" | "page_images" | "views" | "total_time" | "private_mode"> & {
+    notes: string[];
+    prompt_guard: string | null; // "ready" = Prompt Guard gave its second opinion
+  };
+  // "Old Way: words only" (our phrase list on the plain text). null = it could not run.
+  old_way: { score: number; verdict: Verdict; bossy: number; phrases: string[] } | null;
+  caught: boolean;
+  match: number; // how alike the found words are to the sentence (0-100)
+  answer_key: { trick: LabTrick; page: number; sentence: string; box: number[]; page_size: number[] };
+  plain_line: string;
+  finding_lines: string[];
+  agent_receives: string; // the clean copy, or "NOTHING - file held for a human"
+};
+
+export async function tryLab(sentence: string, trick: LabTrick, privateMode: boolean) {
+  const { data } = await supabase().auth.getSession();
+  // Developer test mode only: no sign-in on this computer. The real backend still
+  // refuses this, so it only works with a local test backend. Results are always real scans.
+  const token = qaMode() ? "qa-local-test" : data.session?.access_token;
+  if (!token) throw new SignInNeeded("Please sign in again.");
+  return ask<LabResult>("/lab/try", {
+    method: "POST",
+    body: JSON.stringify({ sentence, trick, private_mode: privateMode }),
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
   });
 }
 

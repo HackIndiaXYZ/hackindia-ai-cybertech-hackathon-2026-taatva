@@ -341,6 +341,7 @@ def run_attack(sentence, trick, private_mode=None):
             "findings": findings, "notes": result.get("notes", []),
             "prompt_guard": result.get("prompt_guard"),
             "pages": result.get("pages", []), "page_images": result.get("page_images", []),
+            "views": result.get("views"),   # "what the AI reads" vs "what a person sees"
             "total_time": result.get("total_time"), "private_mode": result.get("private_mode"),
         },
         "old_way": before,

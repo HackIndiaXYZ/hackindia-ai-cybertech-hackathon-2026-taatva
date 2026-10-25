@@ -19,9 +19,22 @@ type Props = {
   shown: Finding[];             // findings worth showing (danger 30+ or clearly hidden)
   selected: number | null;      // index in `shown` that is spotlighted
   onSelect: (index: number) => void;
+  // Attack Lab: also put a red marker at the page edge where off-page text sits
+  edgeMarkers?: boolean;
 };
 
-export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
+// Which edge of the page an off-page box is past, and how far along that edge (in %)
+function edgeOf(box: number[], width: number, height: number) {
+  const middleX = (box[0] + box[2]) / 2;
+  const middleY = (box[1] + box[3]) / 2;
+  const along = (value: number, size: number) => Math.min(Math.max((value / size) * 100, 4), 92);
+  if (middleX > width) return { side: "right" as const, at: along(middleY, height) };
+  if (middleX < 0) return { side: "left" as const, at: along(middleY, height) };
+  if (middleY > height) return { side: "bottom" as const, at: along(middleX, width) };
+  return { side: "top" as const, at: along(middleX, width) };
+}
+
+export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers = false }: Props) {
   const [tab, setTab] = useState<"page" | "views">("page");
   const [xray, setXray] = useState(true);
   const [page, setPage] = useState(1);
@@ -123,9 +136,12 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
                   <Fragment key={i}>
                     <button onClick={() => onSelect(i)} data-xray-box={i}
                       aria-label={`Hidden text: ${f.reads_as || f.text}`}
-                      className={cn("absolute rounded-[2px] outline outline-2 outline-quarantine bg-quarantine/[0.08] transition",
+                      // A solid red border, drawn just OUTSIDE the hidden text (so even 2 pt text
+                      // gets a clear box). The old outline did not show up in screenshots.
+                      className={cn("absolute rounded-[3px] border-2 border-quarantine bg-quarantine/10 shadow-[0_0_10px_hsl(var(--quarantine)/0.45)] transition",
                         active && "ring-4 ring-quarantine/30")}
-                      style={{ left: `${left}%`, top: `${top}%`, width: `${width}%`, height: `max(${height}%, 4px)` }} />
+                      style={{ left: `calc(${left}% - 3px)`, top: `calc(${top}% - 3px)`,
+                        width: `calc(${width}% + 6px)`, height: `calc(max(${height}%, 4px) + 6px)` }} />
                     <span aria-hidden="true"
                       className="absolute flex w-max items-center gap-1 overflow-hidden whitespace-nowrap rounded-sm bg-quarantine px-1.5 py-[1px] font-mono text-[10px] font-medium uppercase text-white dark:text-neutral-950"
                       style={{ ...side, bottom: `calc(${100 - top}% + 3px)` }}>
@@ -140,6 +156,26 @@ export function DocumentViewer({ result, shown, selected, onSelect }: Props) {
                       {f.reads_as || f.text}
                     </button>}
                   </Fragment>
+                );
+              })}
+
+              {/* Attack Lab: a red marker on the page edge, next to where the off-page text sits */}
+              {xray && edgeMarkers && size && notOnPage.filter(({ f }) => f.where.page === page && f.where.box).map(({ f, i }) => {
+                const { side, at } = edgeOf(f.where.box!, size.width, size.height);
+                const vertical = side === "left" || side === "right";
+                return (
+                  <button key={`edge-${i}`} onClick={() => onSelect(i)} data-edge-marker={side}
+                    aria-label={`Text hidden off the page: ${f.reads_as || f.text}`}
+                    className={cn("absolute z-10 flex items-center gap-1 whitespace-nowrap bg-quarantine px-2 py-1 font-mono text-[10px] font-semibold uppercase text-white shadow-[0_0_14px_hsl(var(--quarantine)/0.7)] dark:text-neutral-950 md:text-[11px]",
+                      side === "right" && "right-0 -translate-y-1/2 rounded-l-md",
+                      side === "left" && "left-0 -translate-y-1/2 rounded-r-md",
+                      side === "top" && "top-0 -translate-x-1/2 rounded-b-md",
+                      side === "bottom" && "bottom-0 -translate-x-1/2 rounded-t-md")}
+                    style={vertical ? { top: `${at}%` } : { left: `${at}%` }}>
+                    {side === "left" && "← "}{side === "top" && "↑ "}
+                    Text hidden off the page
+                    {side === "right" && " →"}{side === "bottom" && " ↓"}
+                  </button>
                 );
               })}
             </div>
