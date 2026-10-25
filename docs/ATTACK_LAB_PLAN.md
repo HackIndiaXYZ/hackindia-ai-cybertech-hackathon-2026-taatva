@@ -27,6 +27,13 @@ The real sign-in check also worked: a fake token got "401 - please sign in again
 
 ---
 
+### Prompt Guard on the laptop (checked 25 Oct 2026)
+`backend/.env` has `PROMPT_GUARD=true`. The model loaded from this laptop (status
+"ready"). In a real scan of attacked_1_white_text.pdf the phrase list said 1.0 and
+Prompt Guard said 0.98. On the clean resume both said 0.0.
+
+---
+
 ## 2. What already exists (and Attack Lab will reuse, not change)
 
 ### Backend (`/backend`)
@@ -121,7 +128,30 @@ The one plain-English line under each finding comes from `plain_words.py` (the
 `explain` field, fixed templates, no AI). Example: "Same colour as the page, so a
 person sees blank space. The AI reads an order: ...".
 
-### 3d. Tests: `backend/tests/test_attack_lab.py` (new)
+### 3d. Must work on the laptop's local server, with Prompt Guard ON
+The team will run Attack Lab on the laptop: `.\start.ps1` (backend on port 8000,
+website on port 3000), with `PROMPT_GUARD=true` in `backend/.env`.
+- **Right side ("Obsidian") uses Prompt Guard on the laptop.** It calls the normal
+  `scan_pdf()`, and that already asks Prompt Guard for a second opinion. We add no
+  extra switch and change no scoring rules.
+- **The Obsidian panel shows if Prompt Guard was used**, from the real scan answer
+  (`prompt_guard` = "ready" or the reason it is off). For example: "Second opinion:
+  Prompt Guard ON (runs on this laptop)". Under each finding we show both numbers,
+  like the laptop demo guide does: "Phrase list 1.00 · Prompt Guard 0.98".
+- **If Prompt Guard is not ready** (still loading or not installed), the panel says so
+  plainly: "Prompt Guard is off, phrase list only". It never pretends it was used.
+  The backend already starts loading Prompt Guard when it starts, so the first
+  attack does not have to wait long.
+- **Left side ("Old Way") stays phrase list only, on the laptop too.** Our rules say the
+  left side is our order checker on plain text, and it must never be called Prompt
+  Guard. Keeping Prompt Guard only on the right means the gap between the two sides
+  shows what Obsidian adds.
+- **The live server works too**, but there Prompt Guard is off (it needs about 1 GB),
+  and the panel says so.
+- The website's `.env.local` already points to `http://localhost:8000` on the laptop.
+  The backend allows `http://localhost:3000`. Nothing new is needed for the laptop.
+
+### 3e. Tests: `backend/tests/test_attack_lab.py` (new)
 - The maker's answer key matches where PyMuPDF really put the text (all 3 tricks).
 - Each trick is **Caught** by the real scan with a bossy sentence and a harmless one.
 - The Old Way can never score 70 or more.
@@ -129,6 +159,9 @@ person sees blank space. The AI reads an order: ...".
 - The sentence is never in the log, never sent to `save_scan`, never to the demo recruiter.
 - A crash inside the maker or the scan = Quarantine.
 - Rate limit works.
+- With Prompt Guard ready (laptop): the Obsidian side really has a Prompt Guard score
+  on its findings, and the Old Way side has none. Skipped (and says why) on a computer
+  without the model.
 - Scoring rules unchanged: all existing tests still pass.
 
 ---
@@ -147,4 +180,5 @@ person sees blank space. The AI reads an order: ...".
 3. `/attack-lab/try` and `/attack-lab/counter` + safety tests.
 4. Frontend page, form and split screen.
 5. Preview with X-Ray boxes and the off-page edge marker; counter; phone layout.
-6. Full test run, live check on the laptop, then push to both repos.
+6. Full test run. Then a live check on the laptop: `.\start.ps1`, Prompt Guard "ready",
+   all 3 tricks tried in the browser (computer and phone size). Then push to both repos.
