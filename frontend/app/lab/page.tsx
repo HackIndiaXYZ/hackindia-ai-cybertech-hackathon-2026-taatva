@@ -15,6 +15,7 @@ import { LabForm } from "@/components/lab/lab-form";
 import { LabResultView } from "@/components/lab/lab-result";
 import { LabCounter } from "@/components/lab/lab-counter";
 import { LabQr } from "@/components/lab/lab-qr";
+import { ScanBeam } from "@/components/visual/ScanBeam";
 
 export default function LabPage() {
   const router = useRouter();
@@ -62,10 +63,14 @@ export default function LabPage() {
 
   return (
     // "dark" + "lab": this page is always dark metal with neon verdict colours
-    <div className="dark lab -mx-3 rounded-none px-3 py-5 sm:-mx-4 sm:px-4 md:mx-0 md:rounded-3xl md:p-6 lg:p-8">
-      <div className="space-y-5">
+    // (edge to edge on phones: the page gutter is 16px, so -mx-4 / px-4)
+    <div className="dark lab relative -mx-4 overflow-hidden rounded-none border-y border-white/5 px-4 py-5 shadow-e3 md:mx-0 md:rounded-3xl md:border md:p-6 lg:p-8">
+      {/* A thin neon beam line along the top of the lab */}
+      <span aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-beam to-transparent" />
+      <div className="relative space-y-5">
         <div>
-          <h1 className="font-display text-[38px] font-bold uppercase leading-none tracking-[0.12em] text-foreground sm:text-[48px] md:text-[60px]">
+          <p className="font-mono text-[11px] uppercase tracking-[0.22em] text-primary">Live · made-up resume · real scan</p>
+          <h1 className="mt-2 font-display text-display-md font-bold uppercase tracking-[0.08em] text-foreground">
             Attack Lab
           </h1>
           <p className="mt-2 max-w-3xl text-[15px] text-muted-foreground">
@@ -84,21 +89,23 @@ export default function LabPage() {
           onTrick={setTrick} onSentence={setSentence} onBuild={build} />
 
         {busy && (
-          <div className="panel flex items-center gap-3 p-4 text-[15px] text-foreground" role="status">
+          // While building and scanning: the scanner beam slides over this box (pictures only)
+          <div className="panel relative flex items-center gap-3 overflow-hidden border-beam/40 p-4 text-[15px] text-foreground shadow-glow" role="status">
+            <ScanBeam />
             <Loader2 className="h-5 w-5 shrink-0 animate-spin text-primary" />
             Building the made-up resume, hiding your sentence, and running the full Obsidian scan…
             (usually 5 to 20 seconds)
           </div>
         )}
         {error && (
-          <div className="flex items-start gap-3 rounded-xl border border-quarantine/40 bg-quarantine/10 p-4 text-[15px] text-foreground" role="alert" data-lab-error>
+          <div className="flex items-start gap-3 rounded-2xl border border-quarantine/40 bg-quarantine/10 p-4 text-[15px] text-foreground animate-in fade-in slide-in-from-top-2" role="alert" data-lab-error>
             <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-quarantine" />
             <span><b className="text-quarantine">Could not run this try.</b> {error}</span>
           </div>
         )}
 
         <div ref={resultBox} className="scroll-mt-28">
-          {result && <LabResultView lab={result} />}
+          {result && <div className="animate-in fade-in slide-in-from-bottom-3 duration-500"><LabResultView lab={result} /></div>}
         </div>
       </div>
     </div>

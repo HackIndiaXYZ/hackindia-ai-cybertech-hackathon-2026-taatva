@@ -10,7 +10,7 @@ export function VerdictPill({ verdict, size = "md" }: { verdict: Verdict; size?:
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-2 rounded-full border font-display font-semibold uppercase tracking-[0.16em]",
+        "inline-flex items-center gap-2 whitespace-nowrap rounded-full border font-display font-semibold uppercase tracking-[0.14em] [overflow-wrap:normal]",
         style.text, style.soft, style.border,
         size === "sm" ? "px-2.5 py-0.5 text-[11px]" : "px-3.5 py-1 text-[14px]",
       )}

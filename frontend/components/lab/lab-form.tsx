@@ -41,8 +41,8 @@ export function LabForm({ trick, sentence, busy, onTrick, onSentence, onBuild }:
               return (
                 <button key={t.key} type="button" role="radio" aria-checked={on} onClick={() => onTrick(t.key)}
                   data-trick={t.key} disabled={busy}
-                  className={cn("min-h-11 rounded-xl border-2 p-3 text-left transition disabled:opacity-60",
-                    on ? "neon-box border-quarantine bg-quarantine/10 text-quarantine" : "border-border bg-muted/40 text-foreground hover:border-primary/60")}>
+                  className={cn("lift min-h-11 rounded-xl border-2 p-3 text-left disabled:cursor-not-allowed disabled:opacity-60",
+                    on ? "neon-box border-quarantine bg-quarantine/10 text-quarantine" : "border-border bg-muted/40 text-foreground hover:border-primary/60 hover:bg-muted/70")}>
                   <span className="block font-display text-[19px] font-semibold uppercase tracking-[0.12em]">{t.label}</span>
                   <span className={cn("block text-[14px] md:text-[13px]", on ? "text-foreground" : "text-muted-foreground")}>{t.help}</span>
                 </button>
@@ -63,7 +63,7 @@ export function LabForm({ trick, sentence, busy, onTrick, onSentence, onBuild }:
           <textarea id="lab-sentence" value={sentence} maxLength={MAX_LETTERS} rows={3} disabled={busy}
             onChange={(e) => onSentence(e.target.value.slice(0, MAX_LETTERS))}
             placeholder={`For example: ${EXAMPLE}`}
-            className="mt-3 w-full resize-none rounded-xl border bg-background/60 p-3 text-[16px] outline-none focus:ring-2 focus:ring-primary/40 md:text-[15px]" />
+            className="mt-3 w-full resize-none rounded-xl border bg-background/60 p-3 font-mono text-[15px] outline-none transition-[border-color,box-shadow] duration-base hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-beam/20 md:text-[14px]" />
           <div className="mt-1 flex flex-wrap justify-between gap-2 font-mono text-[12px] text-muted-foreground">
             <span>Made-up resume · your sentence is never saved</span>
             <span aria-live="polite" className={cn(sentence.length >= MAX_LETTERS && "text-flag-ink")}>
@@ -74,7 +74,9 @@ export function LabForm({ trick, sentence, busy, onTrick, onSentence, onBuild }:
 
         {/* 3. Build */}
         <button type="submit" disabled={!ready}
-          className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3.5 font-display text-[19px] font-semibold uppercase tracking-[0.18em] text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-40">
+          className="lift group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-4 py-3.5 font-display text-[18px] font-semibold uppercase tracking-[0.16em] text-primary-foreground shadow-glow disabled:cursor-not-allowed disabled:opacity-40">
+          {/* A light sweep across the button on hover */}
+          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-[120%] bg-gradient-to-r from-transparent via-white/40 to-transparent group-hover:animate-light-sweep" />
           {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : <Zap className="h-5 w-5" />}
           {busy ? "Building and scanning…" : (
             <>

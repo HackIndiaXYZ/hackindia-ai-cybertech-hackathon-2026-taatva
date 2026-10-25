@@ -8,7 +8,9 @@
 import { Fragment, Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowRight, Check, ChevronDown, ChevronRight, Search, Send, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, ChevronDown, ChevronRight, Search, Send, X } from "lucide-react";
+import { motion } from "framer-motion";
+import { Appear, CountUp } from "@/components/motion/Results";
 import { decideScan, getHistory, type ScanResult, type Verdict } from "@/lib/api";
 import { DANGER_TIP, VERDICT_STYLE } from "@/lib/verdict";
 import { useSettings } from "@/components/settings";
@@ -90,29 +92,33 @@ function HistoryScreen() {
       {/* Title and search */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-display text-[34px] font-bold uppercase leading-none tracking-[0.1em] text-foreground sm:text-[44px] md:text-[56px] md:tracking-[0.12em]">
+          <h1 className="font-display text-display-md font-bold uppercase tracking-[0.06em] text-foreground">
             Scan history
           </h1>
-          <p className="mt-2 text-[15px] text-muted-foreground">
+          <p className="mt-2 max-w-[70ch] text-[15px] text-muted-foreground">
             Every file gets a score, a reason and a saved record. Files are deleted after the scan; only results are kept.
           </p>
         </div>
         <div className="relative w-full md:w-80">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search files…"
-            className="h-12 rounded-xl bg-card pl-10 text-[15px]" />
+            className="h-12 rounded-full bg-card/80 pl-10 text-[15px] backdrop-blur" />
         </div>
       </div>
 
-      {error && <p className="rounded-xl border border-quarantine/30 bg-quarantine/5 p-4 text-quarantine">{error}</p>}
+      {error && (
+        <p className="flex items-start gap-3 rounded-2xl border border-quarantine/40 bg-card p-4 text-quarantine shadow-[0_10px_30px_-12px_hsl(var(--quarantine)/0.45)] animate-in fade-in slide-in-from-top-2" role="alert">
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />{error}
+        </p>
+      )}
 
-      {/* 4 number cards */}
+      {/* 4 number cards (they slide in one after another) */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard dot="bg-primary" glow="bg-primary/10" label="Files scanned" value={counts.all} note="resumes and emails" />
-        <StatCard dot="bg-pass" glow="bg-pass/10" label="Passed" value={counts.pass} note="clean text sent, saved" valueClass="text-pass" />
-        <StatCard dot="bg-flag" glow="bg-flag/10" label="Flagged" value={counts.flag} note="clean text sent, reviewer alerted" valueClass="text-flag-ink" />
-        <StatCard dot="bg-quarantine" glow="bg-quarantine/10" label="Waiting for you" value={counts.waiting}
-          note={`${counts.approved} approved · ${counts.rejected} rejected so far`} valueClass="text-quarantine" alert={counts.waiting > 0} />
+        <Appear delay={0}><StatCard dot="bg-primary" glow="bg-primary/10" label="Files scanned" value={counts.all} note="resumes and emails" /></Appear>
+        <Appear delay={0.06}><StatCard dot="bg-pass" glow="bg-pass/10" label="Passed" value={counts.pass} note="clean text sent, saved" valueClass="text-pass" /></Appear>
+        <Appear delay={0.12}><StatCard dot="bg-flag" glow="bg-flag/10" label="Flagged" value={counts.flag} note="clean text sent, reviewer alerted" valueClass="text-flag-ink" /></Appear>
+        <Appear delay={0.18}><StatCard dot="bg-quarantine" glow="bg-quarantine/10" label="Waiting for you" value={counts.waiting}
+          note={`${counts.approved} approved · ${counts.rejected} rejected so far`} valueClass="text-quarantine" alert={counts.waiting > 0} /></Appear>
       </div>
 
       {/* Where files landed */}
@@ -123,7 +129,7 @@ function HistoryScreen() {
         </div>
         <div className="mt-3 flex h-3.5 gap-0.5 overflow-hidden rounded-full bg-muted">
           {(["pass", "flag", "quarantine"] as const).map((v) =>
-            counts[v] > 0 && <div key={v} className={VERDICT_STYLE[v].solid} style={{ width: `${percent(counts[v])}%` }} />)}
+            counts[v] > 0 && <div key={v} className={cn(VERDICT_STYLE[v].solid, "animate-in fade-in slide-in-from-left-4 duration-700")} style={{ width: `${percent(counts[v])}%` }} />)}
         </div>
         <div className="mt-3 flex flex-wrap gap-5 text-[13px] text-muted-foreground">
           {(["pass", "flag", "quarantine"] as const).map((v) => (
@@ -138,14 +144,19 @@ function HistoryScreen() {
 
       {/* Filter chips */}
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap rounded-xl border bg-muted p-1">
+        <div className="flex flex-wrap rounded-2xl border bg-muted/70 p-1 sm:rounded-full">
           {(["all", "quarantine", "flag", "pass"] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              className={cn("flex items-center gap-2 rounded-lg px-3 py-2 max-md:min-h-11 font-display text-[13px] sm:px-4 sm:text-[15px] font-semibold uppercase tracking-[0.14em] transition",
-                filter === f ? "bg-card text-foreground shadow-sm" : "text-foreground/80 hover:bg-card/60")}>
-              <span className={cn("h-1.5 w-1.5 rounded-full", f === "all" ? "bg-muted-foreground" : VERDICT_STYLE[f].solid)} />
-              {f}
-              <span className="rounded-full border bg-card px-1.5 font-mono text-[10px] tracking-normal">{counts[f]}</span>
+              className={cn("relative flex items-center gap-2 rounded-full px-3 py-2 max-md:min-h-11 font-display text-[13px] sm:px-4 sm:text-[14px] font-semibold uppercase tracking-[0.14em] transition-colors duration-base",
+                filter === f ? "text-foreground" : "text-foreground/70 hover:text-foreground")}>
+              {/* The white pill slides to the chosen filter */}
+              {filter === f && (
+                <motion.span layoutId="history-filter" aria-hidden="true" className="absolute inset-0 rounded-full bg-card shadow-e1"
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+              )}
+              <span className={cn("relative h-1.5 w-1.5 rounded-full", f === "all" ? "bg-muted-foreground" : VERDICT_STYLE[f].solid)} />
+              <span className="relative">{f}</span>
+              <span className="relative rounded-full border bg-card px-1.5 font-mono text-[10px] tracking-normal">{counts[f]}</span>
             </button>
           ))}
         </div>
@@ -154,7 +165,13 @@ function HistoryScreen() {
 
       {/* On a phone: one card per scan */}
       <ul className="space-y-3 md:hidden">
-        {rows === null && !error && <li className="panel p-6 text-center text-muted-foreground">Loading…</li>}
+        {rows === null && !error && (
+          // Skeleton cards while the history loads ("Loading…" stays for screen readers)
+          <li className="panel space-y-3 p-4" aria-busy="true">
+            <span className="sr-only">Loading…</span>
+            {[0, 1, 2].map((i) => <Skeleton key={i} />)}
+          </li>
+        )}
         {rows !== null && visible.length === 0 && (
           <li className="panel p-6 text-center text-muted-foreground">
             {rows.length ? "No files match." : <>No files scanned yet. <Link href="/scan" className="text-primary underline">Scan one</Link>.</>}
@@ -181,7 +198,10 @@ function HistoryScreen() {
           </thead>
           <tbody>
             {rows === null && !error && (
-              <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Loading…</td></tr>
+              <tr><td colSpan={7} className="space-y-3 p-5" aria-busy="true">
+                <span className="sr-only">Loading…</span>
+                {[0, 1, 2, 3].map((i) => <Skeleton key={i} />)}
+              </td></tr>
             )}
             {rows !== null && visible.length === 0 && (
               <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">
@@ -193,10 +213,10 @@ function HistoryScreen() {
               const toggle = () => toggleRow(row.id);
               return (
                 <Fragment key={row.id}>
-                  <tr className={cn("border-b align-middle", row.decision === "waiting" && "bg-quarantine/[0.03]", isOpen && "border-b-0")}>
+                  <tr className={cn("border-b align-middle transition-colors duration-base hover:bg-muted/40", row.decision === "waiting" && "bg-quarantine/[0.04]", isOpen && "border-b-0 bg-muted/30")}>
                     <td className="py-4 pl-5 pr-2">
                       <button onClick={toggle} aria-label={isOpen ? "Close row" : "Open row"} aria-expanded={isOpen}
-                        className="grid h-9 w-9 place-items-center rounded-lg border bg-card text-primary hover:bg-muted">
+                        className="lift grid h-9 w-9 place-items-center rounded-full border bg-card text-primary hover:border-primary/40">
                         {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                       </button>
                     </td>
@@ -212,7 +232,7 @@ function HistoryScreen() {
                     <td className="whitespace-nowrap px-2 py-4 text-[14px] text-muted-foreground">{friendlyTime(row.scanned_at)}</td>
                     <td className="px-2 py-4">
                       <div className="flex items-center gap-3">
-                        <span className={cn("w-10 font-display text-[26px] font-bold", VERDICT_STYLE[row.verdict].text)}>{row.score}</span>
+                        <span className={cn("min-w-[2.75rem] whitespace-nowrap font-display text-[24px] font-bold tabular-nums [overflow-wrap:normal]", VERDICT_STYLE[row.verdict].text)}>{row.score}</span>
                         <div className="w-24"><DangerBar danger={row.score} /></div>
                       </div>
                     </td>
@@ -234,16 +254,33 @@ function HistoryScreen() {
   );
 }
 
+// A grey placeholder row that gently pulses while history loads
+function Skeleton() {
+  return (
+    <div className="flex animate-pulse items-center gap-3">
+      <span className="h-10 w-9 rounded-md bg-muted" />
+      <span className="flex-1 space-y-2">
+        <span className="block h-3 w-2/5 rounded bg-muted" />
+        <span className="block h-2.5 w-1/4 rounded bg-muted" />
+      </span>
+      <span className="h-6 w-20 rounded-full bg-muted" />
+    </div>
+  );
+}
+
 function StatCard({ dot, glow, label, value, note, valueClass, alert }: {
   dot: string; glow: string; label: string; value: number; note: string; valueClass?: string; alert?: boolean;
 }) {
   return (
-    <div className={cn("panel relative overflow-hidden p-5", alert && "border-quarantine/30")}>
-      <span className={cn("absolute -right-6 -top-10 h-28 w-28 rounded-full", glow)} />
+    <div className={cn("panel lift relative h-full overflow-hidden p-5 hover:border-primary/30", alert && "border-quarantine/30 shadow-[0_0_0_1px_hsl(var(--quarantine)/0.15),0_12px_36px_-14px_hsl(var(--quarantine)/0.5)]")}>
+      <span className={cn("absolute -right-6 -top-10 h-28 w-28 rounded-full blur-xl", glow)} />
       <div className="relative flex items-center gap-2 text-[14px] font-semibold text-foreground">
-        <span className={cn("h-2.5 w-2.5 rounded-full", dot)} />{label}
+        <span className={cn("h-2.5 w-2.5 rounded-full", dot, alert && "animate-pulse")} />{label}
       </div>
-      <div className={cn("relative mt-2 font-display text-[48px] font-bold leading-none text-primary", valueClass)}>{value}</div>
+      {/* The number counts up and ends on the real count */}
+      <div className={cn("relative mt-2 font-display text-[48px] font-bold leading-none tabular-nums text-primary", valueClass)}>
+        <CountUp value={value} duration={0.6} />
+      </div>
       <div className="relative mt-2 text-[12px] text-muted-foreground">{note}</div>
     </div>
   );
@@ -258,13 +295,13 @@ function DecisionCell({ row, onDecide }: { row: ScanResult; onDecide: (id: strin
 
   if (row.decision === "waiting") {
     return (
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2 whitespace-nowrap [overflow-wrap:normal]">
         <button disabled={busy} onClick={() => act("approved")}
-          className="flex items-center gap-1.5 rounded-lg bg-pass px-3.5 py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-white dark:text-neutral-950 shadow hover:bg-pass/90 disabled:opacity-50">
+          className="lift flex items-center gap-1.5 rounded-full bg-pass px-4 py-2 max-md:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_6px_18px_-6px_hsl(var(--pass)/0.6)] dark:text-neutral-950 disabled:cursor-wait disabled:opacity-50">
           <Check className="h-4 w-4" strokeWidth={3} />Approve
         </button>
         <button disabled={busy} onClick={() => act("rejected")}
-          className="flex items-center gap-1.5 rounded-lg border-2 border-quarantine/40 bg-card px-3.5 py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-quarantine hover:bg-quarantine/5 disabled:opacity-50">
+          className="lift flex items-center gap-1.5 rounded-full border-2 border-quarantine/40 bg-card px-4 py-2 max-md:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-quarantine hover:border-quarantine/70 hover:bg-quarantine/5 disabled:cursor-wait disabled:opacity-50">
           <X className="h-4 w-4" strokeWidth={3} />Reject
         </button>
       </div>
@@ -297,7 +334,7 @@ function ExpandedRow({ row }: { row: ScanResult }) {
   return (
     <tr className={cn("border-b", row.decision === "waiting" && "bg-quarantine/[0.03]")}>
       <td />
-      <td colSpan={6} className="px-2 pb-6 pr-5">
+      <td colSpan={6} className="px-2 pb-6 pr-5 animate-in fade-in slide-in-from-top-1 duration-300">
         <RowDetails row={row} />
       </td>
     </tr>
@@ -309,7 +346,7 @@ function ScanCard({ row, isOpen, toggle, onDecide }: {
   row: ScanResult; isOpen: boolean; toggle: () => void; onDecide: (id: string, d: "approved" | "rejected") => void;
 }) {
   return (
-    <li className={cn("panel p-4", row.decision === "waiting" && "border-quarantine/30 bg-quarantine/[0.03]")}>
+    <li className={cn("panel p-4 animate-in fade-in slide-in-from-bottom-2 duration-300", row.decision === "waiting" && "border-quarantine/30 bg-quarantine/[0.03]")}>
       <button onClick={toggle} aria-expanded={isOpen} className="flex min-h-11 w-full items-center gap-3 text-left">
         <FileBadge type={row.file_type ?? "pdf"} />
         <span className="min-w-0 flex-1">
@@ -325,7 +362,7 @@ function ScanCard({ row, isOpen, toggle, onDecide }: {
       </div>
       <p className="mt-2 text-[16px] md:text-[14px] text-foreground">{row.worst_finding}</p>
       <div className="mt-3"><DecisionCell row={row} onDecide={onDecide} /></div>
-      {isOpen && <div className="mt-4 border-t pt-4"><RowDetails row={row} /></div>}
+      {isOpen && <div className="mt-4 border-t pt-4 animate-in fade-in slide-in-from-top-1 duration-300"><RowDetails row={row} /></div>}
     </li>
   );
 }
@@ -359,8 +396,8 @@ function RowDetails({ row }: { row: ScanResult }) {
             )}
           </div>
           <Link href={`/scan?id=${row.id}`}
-            className="flex w-full items-center justify-center gap-2 self-center rounded-xl border-2 border-primary/60 bg-card px-5 py-3 font-display text-[16px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5 sm:w-auto">
-            Open full report <ArrowRight className="h-4 w-4" />
+            className="lift group flex w-full items-center justify-center gap-2 self-center rounded-full border-2 border-primary/60 bg-card px-5 py-3 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5 sm:w-auto">
+            Open full report <ArrowRight className="h-4 w-4 transition-transform duration-base group-hover:translate-x-1" />
           </Link>
         </div>
   );

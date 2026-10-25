@@ -26,13 +26,14 @@ export function EmailPopup({ problem, onClose, onUseSuggestion, onKeepTyped }: P
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const button = "w-full rounded-xl px-4 py-3 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em]";
+  const button = "lift w-full rounded-xl px-4 py-3 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em]";
 
   return (
-    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4" onClick={onClose}>
+    // A blurred, darker background; the pop-up zooms in softly
+    <div className="fixed inset-0 z-50 grid place-items-center bg-black/50 p-4 backdrop-blur-sm animate-in fade-in duration-200" onClick={onClose}>
       <div role="alertdialog" aria-modal="true" aria-labelledby="email-popup-title" aria-describedby="email-popup-text"
         onClick={(e) => e.stopPropagation()}
-        className={`panel w-full max-w-sm border-2 p-6 text-center ${typo ? "border-flag/60" : "border-quarantine/60"}`}>
+        className={`panel w-full max-w-sm border-2 p-6 text-center shadow-e3 animate-in fade-in zoom-in-95 duration-300 ${typo ? "border-flag/60" : "border-quarantine/60"}`}>
         {typo
           ? <MailWarning className="mx-auto h-10 w-10 text-flag" />
           : <TriangleAlert className="mx-auto h-10 w-10 text-quarantine" />}

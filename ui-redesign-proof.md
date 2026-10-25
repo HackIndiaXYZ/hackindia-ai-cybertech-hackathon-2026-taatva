@@ -48,6 +48,7 @@ Console errors / warnings: none. Sideways scrolling: none.
 | 6. Upload zone + scanning state (hover, drag-over, beam while checking) | ✅ | ✅ | ✅ | ✅ | none |
 | 7. Results: gauge draws in, score counts up (ends on 25 / 44 / 100 exactly), badge springs in, findings stagger | ✅ | ✅ | ✅ | ✅ | none |
 | 8. X-Ray Reveal (switch glows, one beam pass, boxes draw in; off/on + Space key still work) | ✅ | ✅ | ✅ | ✅ | none |
+| 9. Sign-in, History, Demo, Lab, pop-up, Refresh bar (style only) | ✅ | ✅ | ✅ | ✅ | none |
 
 ## AFTER PROOF
 

@@ -15,6 +15,8 @@ import { EmailPopup } from "@/components/email-popup";
 import { PasswordInput } from "@/components/password-input";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { FadeIn } from "@/components/motion/FadeIn";
 
 type Mode = "signin" | "signup";
 
@@ -128,20 +130,50 @@ function LoginForm() {
   }
 
   return (
-    <div className="grid min-h-[70vh] place-items-center py-4">
-      <div className="panel w-full max-w-md p-5 sm:p-8">
+    <div className="grid min-h-[70vh] items-center gap-10 py-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,28rem)] lg:gap-16 lg:py-10">
+      {/* Left (wide screens): who we are, in a few words */}
+      <FadeIn className="hidden lg:block">
+        <p className="inline-flex items-center gap-2 rounded-full border bg-card/70 px-3 py-1 font-mono text-[11px] uppercase tracking-[0.18em] text-muted-foreground backdrop-blur">
+          <span className="h-1.5 w-1.5 rounded-full bg-beam shadow-[0_0_8px_hsl(var(--beam))]" />
+          Team TAATVA · hidden-order scanner
+        </p>
+        <p className="mt-6 font-display text-display-lg font-bold uppercase tracking-[0.08em] text-foreground">Obsidian</p>
+        <p className="mt-3 font-display text-display-sm font-semibold text-primary">Find. Show. Remove.</p>
+        <p className="mt-6 max-w-[52ch] text-[17px] leading-relaxed text-muted-foreground">
+          Old tools ask: <span className="text-foreground">does this sound bad?</span>{" "}
+          Obsidian asks: <span className="font-semibold text-foreground">could a human even see this?</span>
+        </p>
+        <ul className="mt-8 space-y-3 text-[15px] text-foreground">
+          {["Reads every file the way an AI does, and the way a person does", "Shows hidden orders with red X-Ray boxes", "Gives your AI agent only the clean, visible text"].map((line) => (
+            <li key={line} className="flex items-center gap-3">
+              <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full border border-primary/30 bg-primary/10 text-primary"><Check className="h-3.5 w-3.5" /></span>
+              {line}
+            </li>
+          ))}
+        </ul>
+      </FadeIn>
+
+      <FadeIn delay={0.08} className="mx-auto w-full max-w-md">
+      <div className="panel relative w-full overflow-hidden p-5 shadow-e3 sm:p-8">
+        {/* A thin beam line along the top of the card */}
+        <span aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-beam to-transparent" />
         <h1 className="section-title">{mode === "signin" ? "Sign in" : "Create your account"}</h1>
         <p className="mt-1 text-[16px] md:text-[14px] text-muted-foreground">
           Check resumes and emails for hidden instructions before your AI tools read them. Your scans are private to you.
         </p>
 
         {/* Switch between Sign In and Sign Up */}
-        <div className="mt-5 grid grid-cols-2 rounded-xl border bg-muted p-1" role="tablist">
+        <div className="mt-5 grid grid-cols-2 rounded-full border bg-muted/70 p-1" role="tablist">
           {([["signin", "Sign in"], ["signup", "Sign up"]] as const).map(([key, label]) => (
             <button key={key} role="tab" aria-selected={mode === key} onClick={() => switchTo(key)}
-              className={cn("rounded-lg py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition",
-                mode === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-              {label}
+              className={cn("relative rounded-full py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition-colors duration-base",
+                mode === key ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+              {/* The white pill slides between Sign in and Sign up */}
+              {mode === key && (
+                <motion.span layoutId="auth-tab" aria-hidden="true" className="absolute inset-0 rounded-full bg-card shadow-e1"
+                  transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+              )}
+              <span className="relative">{label}</span>
             </button>
           ))}
         </div>
@@ -166,7 +198,7 @@ function LoginForm() {
               Nothing arrived after a few minutes? Check your spam folder, or sign up again to get a new link.
             </p>
             <button onClick={() => switchTo("signin")}
-              className="mt-4 rounded-xl border-2 border-primary/60 px-4 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5">
+              className="lift mt-4 rounded-xl border-2 border-primary/60 px-4 py-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5">
               Go to sign in
             </button>
           </div>
@@ -223,7 +255,9 @@ function LoginForm() {
             )}
 
             <button type="submit" disabled={busy}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 font-display text-[18px] font-semibold uppercase tracking-[0.16em] text-primary-foreground shadow hover:bg-primary/90 disabled:opacity-60">
+              className="lift group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-xl bg-primary px-4 py-3 font-display text-[17px] font-semibold uppercase tracking-[0.14em] text-primary-foreground shadow-glow disabled:cursor-wait disabled:opacity-60">
+              {/* A light sweep across the button on hover */}
+              <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-[120%] bg-gradient-to-r from-transparent via-white/40 to-transparent group-hover:animate-light-sweep" />
               {busy ? <Loader2 className="h-5 w-5 animate-spin" /> : mode === "signin" ? <LogIn className="h-5 w-5" /> : <UserPlus className="h-5 w-5" />}
               {mode === "signin" ? "Sign in" : "Create account"}
             </button>
@@ -251,6 +285,7 @@ function LoginForm() {
             : <>Already have an account? <button onClick={() => switchTo("signin")} className="font-medium text-primary underline max-md:inline-flex max-md:min-h-11 max-md:min-w-11 max-md:items-center max-md:justify-center">Sign in</button>.</>}
         </p>
       </div>
+      </FadeIn>
     </div>
   );
 }

@@ -12,6 +12,7 @@ import { runDemo, SignInNeeded, type DemoResult } from "@/lib/api";
 import { useSettings } from "@/components/settings";
 import { FileBadge, VerdictPill } from "@/components/shared";
 import { cn } from "@/lib/utils";
+import { ScanBeam } from "@/components/visual/ScanBeam";
 
 const DEMO_FILES = ["demo_1_maya_chen.pdf", "demo_2_daniel_okafor.pdf", "demo_3_riley_brooks.pdf"];
 const DEFAULT_JOB =
@@ -66,7 +67,7 @@ export default function DemoPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="font-display text-[34px] font-bold uppercase leading-none tracking-[0.1em] text-foreground sm:text-[44px] md:text-[56px] md:tracking-[0.12em]">
+        <h1 className="font-display text-display-md font-bold uppercase tracking-[0.06em] text-foreground">
           AI recruiter demo
         </h1>
         <p className="mt-2 max-w-3xl text-[15px] text-muted-foreground">
@@ -80,18 +81,18 @@ export default function DemoPage() {
         <div>
           <h2 className="section-title">The job</h2>
           <textarea value={job} onChange={(e) => setJob(e.target.value)} rows={5}
-            className="mt-3 w-full rounded-xl border bg-card p-3 text-[14px] outline-none focus:ring-2 focus:ring-primary/30" />
+            className="mt-3 w-full rounded-xl border bg-card p-3 text-[14px] outline-none transition-[border-color,box-shadow] duration-base hover:border-primary/40 focus:border-primary focus:ring-4 focus:ring-beam/20" />
         </div>
         <div>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="section-title">The resumes</h2>
             <div className="flex gap-2">
               <button onClick={loadDemoFiles}
-                className="rounded-lg border-2 border-primary/50 px-3 py-1.5 text-[13px] font-semibold text-primary hover:bg-primary/5">
+                className="lift rounded-full border-2 border-primary/50 px-3.5 py-1.5 text-[13px] font-semibold text-primary hover:bg-primary/5 max-md:min-h-11">
                 Use the 3 demo resumes
               </button>
               <button onClick={() => input.current?.click()} disabled={files.length >= 3}
-                className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-[13px] hover:bg-muted disabled:opacity-40">
+                className="lift flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-40 max-md:min-h-11">
                 <Upload className="h-4 w-4" /> Add my own
               </button>
               <input ref={input} type="file" multiple accept=".pdf,.html,.htm,.eml,application/pdf,text/html,message/rfc822" className="hidden"
@@ -102,14 +103,14 @@ export default function DemoPage() {
             {[0, 1, 2].map((i) => {
               const file = files[i];
               return (
-                <li key={i} className={cn("flex items-center gap-3 rounded-xl border p-3", file ? "bg-card" : "border-dashed bg-muted/40")}>
+                <li key={i} className={cn("flex items-center gap-3 rounded-xl border p-3 transition-colors duration-base", file ? "bg-card shadow-e1 animate-in fade-in slide-in-from-left-2" : "border-dashed bg-muted/40")}>
                   <span className="font-display text-[20px] font-bold text-muted-foreground">{i + 1}</span>
                   {file ? (
                     <>
                       <FileBadge type={file.name.split(".").pop() ?? "pdf"} />
                       <span className="flex-1 truncate font-mono text-[13px]">{file.name}</span>
                       <button onClick={() => { setFiles(files.filter((_, j) => j !== i)); setSides({ original: EMPTY, obsidian: EMPTY }); }}
-                        className="rounded p-1 text-muted-foreground hover:bg-muted" aria-label={`Remove ${file.name}`}>
+                        className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground max-md:h-11 max-md:w-11" aria-label={`Remove ${file.name}`}>
                         <X className="h-4 w-4" />
                       </button>
                     </>
@@ -126,12 +127,14 @@ export default function DemoPage() {
       {/* The two buttons */}
       <div className="grid gap-4 md:grid-cols-2">
         <button onClick={() => send("original")} disabled={!ready || busy}
-          className="flex items-center justify-center gap-3 rounded-2xl border-2 border-quarantine/50 bg-card px-6 py-5 font-display text-[22px] font-bold uppercase tracking-[0.12em] text-quarantine shadow-sm transition hover:bg-quarantine/5 disabled:opacity-40">
+          className="lift group flex items-center justify-center gap-3 rounded-2xl border-2 border-quarantine/50 bg-card px-6 py-5 font-display text-[clamp(17px,2.2vw,22px)] font-bold uppercase tracking-[0.1em] text-quarantine shadow-e1 hover:bg-quarantine/5 hover:shadow-[0_10px_30px_-10px_hsl(var(--quarantine)/0.5)] disabled:cursor-not-allowed disabled:opacity-40">
           {sides.original.loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <ShieldOff className="h-6 w-6" />}
           A · Send original files
         </button>
         <button onClick={() => send("obsidian")} disabled={!ready || busy}
-          className="flex items-center justify-center gap-3 rounded-2xl bg-primary px-6 py-5 font-display text-[22px] font-bold uppercase tracking-[0.12em] text-primary-foreground shadow transition hover:bg-primary/90 disabled:opacity-40">
+          className="lift group relative flex items-center justify-center gap-3 overflow-hidden rounded-2xl bg-primary px-6 py-5 font-display text-[clamp(17px,2.2vw,22px)] font-bold uppercase tracking-[0.1em] text-primary-foreground shadow-glow disabled:cursor-not-allowed disabled:opacity-40">
+          {/* A light sweep across the button on hover */}
+          <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 w-1/3 -translate-x-[120%] bg-gradient-to-r from-transparent via-white/40 to-transparent group-hover:animate-light-sweep" />
           {sides.obsidian.loading ? <Loader2 className="h-6 w-6 animate-spin" /> : <ShieldCheck className="h-6 w-6" />}
           B · Send through Obsidian
         </button>
@@ -139,7 +142,7 @@ export default function DemoPage() {
       {!ready && <p className="-mt-2 text-center text-[15px] md:text-[13px] text-muted-foreground">Add resumes first: click “Use the 3 demo resumes”.</p>}
 
       {caught && (
-        <div className="flex items-start gap-3 rounded-2xl border-2 border-quarantine/40 bg-quarantine/5 p-4">
+        <div className="flex items-start gap-3 rounded-2xl border-2 border-quarantine/40 bg-quarantine/5 p-4 shadow-[0_10px_30px_-12px_hsl(var(--quarantine)/0.5)] animate-in fade-in zoom-in-95 duration-300">
           <AlertTriangle className="mt-0.5 h-6 w-6 shrink-0 text-quarantine" />
           <p className="text-[15px] text-foreground">
             <b>The hidden order worked.</b> Without Obsidian, the AI ranked <b>{caught.candidate}</b> first.
@@ -175,7 +178,9 @@ function ResultCard({ title, tone, side }: { title: string; tone: "danger" | "sa
 
       <div className="p-5">
         {side.loading && (
-          <div className="flex items-center gap-3 py-10 text-[14px] text-muted-foreground">
+          // While waiting: the scanner beam slides over this box (pictures only)
+          <div className="relative flex items-center gap-3 overflow-hidden rounded-xl border border-dashed border-beam/40 bg-beam/5 px-4 py-10 text-[14px] text-muted-foreground">
+            <ScanBeam />
             <Loader2 className="h-5 w-5 animate-spin" />
             {danger ? "The AI is reading the original files…" : "Obsidian is checking each file, then the AI reads the clean copies…"}
           </div>
@@ -212,8 +217,9 @@ function ResultCard({ title, tone, side }: { title: string; tone: "danger" | "sa
 
             <div className="text-[12px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">The AI&apos;s ranking</div>
             <ol className="mt-2 space-y-2">
-              {result.ranking.map((r) => (
-                <li key={r.rank} className={cn("flex gap-4 rounded-xl border bg-card p-3", r.rank === 1 && "border-2 border-primary/40")}>
+              {result.ranking.map((r, i) => (
+                <li key={r.rank} style={{ animationDelay: `${i * 70}ms` }}
+                  className={cn("flex gap-4 rounded-xl border bg-card p-3 animate-in fade-in slide-in-from-bottom-2 fill-mode-both duration-300", r.rank === 1 && "border-2 border-primary/40 shadow-glow")}>
                   <span className={cn("font-display text-[34px] font-bold leading-none", r.rank === 1 ? "text-primary" : "text-muted-foreground")}>
                     #{r.rank}
                   </span>
