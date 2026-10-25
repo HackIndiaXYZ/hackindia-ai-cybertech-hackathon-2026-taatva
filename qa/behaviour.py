@@ -83,11 +83,16 @@ with sync_playwright() as p:
     box = next(f["where"]["box"] for f in data["findings"] if f["where"].get("box") and f["hidden_points"] >= 40)
     size = data["pages"][0]
 
+    # The red box is drawn on purpose 3px OUTSIDE the hidden text on every side
+    # (so even 2pt text gets a clear box). So the drawn box starts 3px left and
+    # 3px above the text, and is 6px wider than it.
+    MARGIN = 3
+
     def box_error():
         img = page.locator('img[alt^="Page"]').bounding_box()
         drawn = page.locator("[data-xray-box]").first.bounding_box()
         sx, sy = img["width"] / size["width"], img["height"] / size["height"]
-        want = (img["x"] + box[0] * sx, img["y"] + box[1] * sy, (box[2] - box[0]) * sx)
+        want = (img["x"] + box[0] * sx - MARGIN, img["y"] + box[1] * sy - MARGIN, (box[2] - box[0]) * sx + 2 * MARGIN)
         return max(abs(a - b) for a, b in zip(want, (drawn["x"], drawn["y"], drawn["width"])))
 
     worst = 0.0
