@@ -25,7 +25,8 @@ const HIDDEN = ["find. show. remove.", "could a human see this?", "this is data,
 type Sheet = { x: number; y: number; w: number; h: number; speed: number; tilt: number };
 
 export function AnimatedBackground() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null); // the moving layer (beam, sheets, lit letters)
+  const baseRef = useRef<HTMLCanvasElement>(null);   // the still layer (all the letters), drawn once
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -33,13 +34,15 @@ export function AnimatedBackground() {
     if (!canvas || !ctx) return;
 
     const calm = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const base = document.createElement("canvas"); // the faint letters, drawn once
+    const base = baseRef.current; // the still letters: drawn once, not every frame (faster)
+    if (!base) return;
     const baseCtx = base.getContext("2d")!;
 
     let width = 0, height = 0, ratio = 1, cell = 22;
     let cols = 0, rows = 0;
     let grid: string[] = [];          // the letter in each spot ("" = a hidden-word spot)
     let hidden = new Map<number, string>(); // spot number -> hidden letter
+    let colWeight: number[] = [];   // how strong each column is (edges strong, middle calm)
     let sheets: Sheet[] = [];
     let colours = { glyph: "", beam: "", dark: false };
     let frame = 0;
@@ -68,12 +71,12 @@ export function AnimatedBackground() {
       cell = small ? 28 : 22; // fewer letters on phones
       cols = Math.ceil(width / cell) + 1;
       rows = Math.ceil(height / cell) + 1;
-      for (const c of [canvas!, base]) {
+      for (const c of [canvas!, base!]) {
         c.width = Math.round(width * ratio);
         c.height = Math.round(height * ratio);
       }
-      canvas!.style.width = `${width}px`;
-      canvas!.style.height = `${height}px`;
+      for (const c of [canvas!, base!]) c.style.width = `${width}px`;
+      for (const c of [canvas!, base!]) c.style.height = `${height}px`;
 
       // A fixed "random" pattern (same every time, so it never jumps on resize)
       let seed = 7;
@@ -94,10 +97,17 @@ export function AnimatedBackground() {
         });
       }
 
-      // A few faint paper sheets drifting slowly, like documents on a light table
+      // How strong each column is: strong at the left and right edges, calm in the
+      // middle where the content sits (so text always stays easy to read)
+      colWeight = Array.from({ length: cols }, (_, c) => {
+        const fromCentre = Math.abs(c * cell + cell / 2 - width / 2) / (width / 2); // 0 middle, 1 edge
+        return 0.22 + 0.78 * Math.pow(Math.min(fromCentre, 1), 1.6);
+      });
+
+      // A few paper sheets drifting slowly near the LEFT and RIGHT edges (not behind content)
       const count = small ? 2 : 4;
       sheets = Array.from({ length: count }, (_, i) => ({
-        x: (i + 0.3) * (width / count) + random() * 60,
+        x: i % 2 === 0 ? random() * width * 0.12 - 40 : width * 0.88 - 140 + random() * width * 0.1,
         y: random() * height,
         w: small ? 120 : 170 + random() * 60,
         h: small ? 160 : 230 + random() * 60,
@@ -115,9 +125,11 @@ export function AnimatedBackground() {
       baseCtx.font = `${cell * 0.5}px ui-monospace, "JetBrains Mono", monospace`;
       baseCtx.textAlign = "center";
       baseCtx.textBaseline = "middle";
-      baseCtx.fillStyle = `hsl(${colours.glyph} / ${colours.dark ? 0.07 : 0.06})`;
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
+      // Clearly visible at the edges, calm in the middle (colWeight)
+      const strength = colours.dark ? 0.17 : 0.15;
+      for (let c = 0; c < cols; c++) {
+        baseCtx.fillStyle = `hsl(${colours.glyph} / ${strength * colWeight[c]})`;
+        for (let r = 0; r < rows; r++) {
           const letter = grid[r * cols + c];
           if (letter) baseCtx.fillText(letter, c * cell + cell / 2, r * cell + cell / 2);
         }
@@ -142,23 +154,20 @@ export function AnimatedBackground() {
 
       ctx!.setTransform(1, 0, 0, 1, 0, 0);
       ctx!.clearRect(0, 0, canvas!.width, canvas!.height);
-      ctx!.drawImage(base, 0, 0);
       ctx!.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-      // The paper sheets (very faint outlines with a few text lines)
+      // The paper sheets near the edges: sharp outlines with a few text lines
       for (const sheet of sheets) {
         sheet.y -= (sheet.speed / slow) * seconds;
         if (sheet.y + sheet.h < -40) sheet.y = height + 40;
         ctx!.save();
         ctx!.translate(sheet.x, sheet.y);
         ctx!.rotate(sheet.tilt);
-        ctx!.strokeStyle = `hsl(${colours.glyph} / ${colours.dark ? 0.1 : 0.09})`;
-        ctx!.fillStyle = `hsl(${colours.glyph} / ${colours.dark ? 0.025 : 0.03})`;
+        ctx!.strokeStyle = `hsl(${colours.glyph} / ${colours.dark ? 0.22 : 0.18})`;
+        ctx!.fillStyle = `hsl(${colours.glyph} / ${colours.dark ? 0.045 : 0.05})`;
         ctx!.lineWidth = 1;
         ctx!.beginPath();
-        // Rounded corners where the browser can draw them (older phones: square)
-        if ("roundRect" in ctx!) ctx!.roundRect(0, 0, sheet.w, sheet.h, 6);
-        else ctx!.rect(0, 0, sheet.w, sheet.h);
+        ctx!.rect(0, 0, sheet.w, sheet.h); // square corners (sharp design)
         ctx!.fill();
         ctx!.stroke();
         for (let line = 0; line < 7; line++) {
@@ -167,14 +176,20 @@ export function AnimatedBackground() {
         ctx!.restore();
       }
 
-      // The beam: a soft glowing band with a bright thin line in the middle
+      // The beam: a glowing band with a sharp line in the middle.
+      // Brightest at the screen edges, softer in the middle (behind the content).
       const glow = ctx!.createLinearGradient(0, beamY - band, 0, beamY + band);
       glow.addColorStop(0, `hsl(${colours.beam} / 0)`);
-      glow.addColorStop(0.5, `hsl(${colours.beam} / ${colours.dark ? 0.07 : 0.06})`);
+      glow.addColorStop(0.5, `hsl(${colours.beam} / ${colours.dark ? 0.09 : 0.07})`);
       glow.addColorStop(1, `hsl(${colours.beam} / 0)`);
       ctx!.fillStyle = glow;
       ctx!.fillRect(0, beamY - band, width, band * 2);
-      ctx!.fillStyle = `hsl(${colours.beam} / ${colours.dark ? 0.35 : 0.3})`;
+      const lineAlpha = colours.dark ? 0.6 : 0.5;
+      const line = ctx!.createLinearGradient(0, 0, width, 0);
+      line.addColorStop(0, `hsl(${colours.beam} / ${lineAlpha})`);
+      line.addColorStop(0.5, `hsl(${colours.beam} / ${lineAlpha * 0.25})`);
+      line.addColorStop(1, `hsl(${colours.beam} / ${lineAlpha})`);
+      ctx!.fillStyle = line;
       ctx!.fillRect(0, beamY - 0.5, width, 1);
 
       // Letters under the beam light up; the hidden words appear.
@@ -194,7 +209,8 @@ export function AnimatedBackground() {
           const secret = hidden.get(spot);
           const letter = secret ?? grid[spot];
           if (!letter || letter === " ") continue;
-          const alpha = secret ? eased * (colours.dark ? 0.75 : 0.65) : eased * (colours.dark ? 0.22 : 0.18);
+          // Hidden words shine clearly; other letters light up gently; all calmer in the middle
+          const alpha = (secret ? eased * (colours.dark ? 0.85 : 0.75) : eased * (colours.dark ? 0.32 : 0.26)) * colWeight[c];
           ctx!.fillStyle = `hsl(${colours.beam} / ${alpha})`;
           ctx!.fillText(letter, c * cell + cell / 2, y);
         }
@@ -252,9 +268,10 @@ export function AnimatedBackground() {
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10 select-none overflow-hidden">
+      <canvas ref={baseRef} className="absolute inset-0" />
       <canvas ref={canvasRef} className="absolute inset-0" />
-      {/* A soft veil over the animation, so text on top is always easy to read */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,hsl(var(--background)/0.55),hsl(var(--background)/0.15)_70%)]" />
+      {/* A soft veil in the MIDDLE only (behind the content), so text there is always calm and easy to read; the edges stay fully visible */}
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_55%_75%_at_center,hsl(var(--background)/0.55),transparent)]" />
     </div>
   );
 }
