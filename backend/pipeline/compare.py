@@ -2,12 +2,12 @@
 #
 # Way 1 (computer-only text): for every piece of text the computer reads,
 #   ask "could a human even see this?" (our Delta 4 question). We check the
-#   hidden rules in CLAUDE.md, then ask our two witnesses (Gemini, Tesseract)
+#   hidden rules in our project rules, then ask our two witnesses (Gemini, Tesseract)
 #   if they saw it near the same spot, using RapidFuzz to allow small reading mistakes.
 # Way 2 (picture-only text): text a person CAN see that the computer did not
 #   read as text (for example words inside a picture). Also passed on to be checked.
 #
-# Every finding gets "How Hidden" points (CLAUDE.md scoring):
+# Every finding gets "How Hidden" points (our project scoring rules):
 #   visible 0, metadata/comments 25, tiny or off-page 40,
 #   same colour as background or invisible letters 50.
 #

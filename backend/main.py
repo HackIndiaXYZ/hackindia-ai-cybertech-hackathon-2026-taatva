@@ -107,7 +107,7 @@ def check_sign_in(token):
 def read_and_close(upload):
     # Read the uploaded file into memory, then close it straight away. For big uploads
     # the web server keeps a temporary copy on disk; closing deletes that copy.
-    # So the file itself is never kept: only the results are (CLAUDE.md privacy rule).
+    # So the file itself is never kept: only the results are (our project privacy rule).
     try:
         return upload.file.read(MAX_BYTES + 1)
     finally:

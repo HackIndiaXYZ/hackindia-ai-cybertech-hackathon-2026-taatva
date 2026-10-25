@@ -23,9 +23,9 @@ def test_verdict_edges(score, verdict):
     assert verdict_for(score) == verdict
 
 
-# ---------- How Hidden points (CLAUDE.md) ----------
+# ---------- How Hidden points (our project rules) ----------
 
-def test_how_hidden_points_match_claude_md():
+def test_how_hidden_points_match_project_rules():
     assert POINTS_VISIBLE == 0
     assert POINTS_HIDDEN_PLACE == 25
     assert POINTS_TINY_OR_OFF == 40
