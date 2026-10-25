@@ -70,7 +70,7 @@ Prompt Guard said 0.98. On the clean resume both said 0.0.
    (never saved to disk) and an **answer key**: `trick, page, sentence, box`.
    - `white`: the sentence in white (1,1,1) on the white page, normal size.
    - `tiny`: the sentence in 2 pt black text.
-   - `off_page`: the sentence placed past the right edge of the page.
+   - `offpage`: the sentence placed past the right edge of the page.
    - No metadata trick (rule).
    - A long sentence (up to 200 letters) is wrapped onto several lines. The answer
      key box is the box around all those lines, measured by PyMuPDF after writing
@@ -96,7 +96,7 @@ Prompt Guard said 0.98. On the clean resume both said 0.0.
    and the screen says "since <time>"). Only numbers are kept, never the sentence.
 
 ### 3b. Backend: `backend/main.py` (small change)
-- `POST /attack-lab/try` - takes **JSON only**: `{"sentence": "...", "trick": "white" | "tiny" | "off_page", "private_mode": false}`.
+- `POST /attack-lab/try` - takes **JSON only**: `{"sentence": "...", "trick": "white" | "tiny" | "offpage", "private_mode": false}`.
   - No file upload field at all.
   - Sign-in required (`check_sign_in`).
   - Sentence: 1 to 200 letters, otherwise a clear error. Invisible/control letters are removed first.
