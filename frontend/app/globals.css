@@ -2,66 +2,96 @@
 @tailwind components;
 @tailwind utilities;
 
-/* TAATVA Obsidian - colours for the whole website (light design).
-   Verdict colours: green = Pass, yellow = Flag, red = Quarantine. Never purple. */
+/* TAATVA Obsidian - "Forensic Light Table" design.
+   ALL colours, shadows, corner sizes and motion timings live here (one place).
+   Light mode = a glowing light box. Dark mode = the evidence lab at night.
+   Cyan = the scanner beam. Verdict colours: green = Pass, yellow = Flag,
+   red = Quarantine (only for verdicts, X-Ray boxes and errors). Never purple. */
 @layer base {
   :root {
-    --background: 216 25% 96%;      /* page: light grey-blue */
-    --foreground: 217 30% 15%;      /* main text: deep navy */
-    --card: 0 0% 100%;
-    --card-foreground: 217 30% 15%;
+    /* Light box */
+    --background: 204 27% 96%;      /* page: #F3F6F8, a light box */
+    --foreground: 206 49% 10%;      /* ink: #0D1B26 */
+    --card: 0 0% 100%;              /* cards: white paper */
+    --card-foreground: 206 49% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 217 30% 15%;
-    --primary: 211 52% 37%;         /* steel blue (active tab, steps) */
+    --popover-foreground: 206 49% 10%;
+    --primary: 193 82% 31%;         /* beam cyan, dark enough to read: #0E7490 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 216 25% 93%;
-    --secondary-foreground: 217 30% 15%;
-    --muted: 216 25% 94%;
-    --muted-foreground: 215 12% 43%;   /* a touch darker: readable on grey boxes too (QA-15) */
-    --accent: 216 25% 93%;
-    --accent-foreground: 217 30% 15%;
+    --secondary: 206 25% 93%;
+    --secondary-foreground: 206 49% 10%;
+    --muted: 206 25% 93%;           /* grey boxes: #E9EEF2 */
+    --muted-foreground: 209 16% 37%;   /* grey text: #4F5F6E (easy to read, WCAG AA) */
+    --accent: 190 60% 94%;          /* pale cyan hover */
+    --accent-foreground: 206 49% 10%;
     --destructive: 358 57% 46%;
-    --border: 216 22% 89%;
-    --input: 216 22% 86%;
-    --ring: 211 52% 37%;
-    --radius: 0.75rem;
+    --border: 210 23% 89%;          /* #DCE3EA */
+    --input: 210 20% 83%;
+    --ring: 193 82% 31%;            /* focus ring = beam cyan */
+    --radius: 0.875rem;
 
+    /* The scanner beam (background, glows, the X-Ray sweep). Never a verdict colour. */
+    --beam: 188 86% 45%;
+    --beam-soft: 188 86% 45% / 0.14;
+    --glyph: 206 30% 40%;           /* the faint letters in the background */
+
+    /* Verdict colours */
     --pass: 145 59% 30%;
     --flag: 40 82% 40%;
     --flag-ink: 40 82% 31%;   /* darker yellow for WORDS, so they are easy to read (QA-15) */
     --quarantine: 358 57% 46%;
+
+    /* Shadows: small, medium, large, and a soft glow */
+    --shadow-1: 0 1px 2px rgb(13 27 38 / 0.05), 0 2px 8px rgb(13 27 38 / 0.04);
+    --shadow-2: 0 2px 4px rgb(13 27 38 / 0.05), 0 10px 24px rgb(13 27 38 / 0.08);
+    --shadow-3: 0 4px 8px rgb(13 27 38 / 0.06), 0 24px 48px rgb(13 27 38 / 0.12);
+    --shadow-glow: 0 0 0 1px hsl(var(--beam) / 0.25), 0 0 24px hsl(var(--beam) / 0.18);
+
+    /* Motion: quick and smooth, never sluggish */
+    --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+    --dur-fast: 150ms;
+    --dur: 250ms;
+    --dur-slow: 400ms;
   }
 
-  /* Dark mode: sharp dark metal. Deep slate page, charcoal metal cards,
-     silver accents. Verdict colours are brighter so they stay easy to read. */
+  /* Dark mode: the lab. Near-black table, dark cards, cyan beam.
+     Verdict colours are brighter so they stay easy to read. */
   .dark {
-    --background: 216 22% 7%;       /* deep slate */
-    --foreground: 210 20% 92%;      /* bright silver-white text */
-    --card: 215 18% 11%;            /* dark metal charcoal */
-    --card-foreground: 210 20% 92%;
-    --popover: 215 18% 11%;
-    --popover-foreground: 210 20% 92%;
-    --primary: 212 18% 76%;         /* silver accent */
-    --primary-foreground: 216 25% 9%;
-    --secondary: 215 15% 17%;
-    --secondary-foreground: 210 20% 92%;
-    --muted: 215 15% 17%;
-    --muted-foreground: 214 12% 66%;
-    --accent: 215 15% 17%;
-    --accent-foreground: 210 20% 92%;
+    --background: 213 31% 6%;       /* #0A0E13 */
+    --foreground: 208 33% 93%;      /* #E6EDF3 */
+    --card: 214 28% 10%;            /* #121820 */
+    --card-foreground: 208 33% 93%;
+    --popover: 214 28% 11%;
+    --popover-foreground: 208 33% 93%;
+    --primary: 182 74% 63%;         /* beam cyan: #5CE1E6 */
+    --primary-foreground: 193 75% 9%;
+    --secondary: 213 26% 14%;
+    --secondary-foreground: 208 33% 93%;
+    --muted: 213 26% 14%;           /* #1A222C */
+    --muted-foreground: 212 15% 61%;   /* #8B9AAB */
+    --accent: 190 40% 16%;
+    --accent-foreground: 208 33% 93%;
     --destructive: 0 72% 62%;
-    --border: 214 14% 22%;
-    --input: 214 14% 28%;
-    --ring: 212 18% 76%;
+    --border: 213 29% 19%;          /* #233040 */
+    --input: 213 27% 24%;
+    --ring: 182 74% 63%;
+
+    --beam: 182 74% 63%;
+    --glyph: 200 30% 70%;
 
     --pass: 145 55% 48%;
     --flag: 42 88% 55%;
     --flag-ink: 42 88% 55%;
     --quarantine: 0 75% 64%;
+
+    --shadow-1: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 2px 8px rgb(0 0 0 / 0.35);
+    --shadow-2: 0 1px 0 hsl(0 0% 100% / 0.05) inset, 0 12px 28px rgb(0 0 0 / 0.45);
+    --shadow-3: 0 1px 0 hsl(0 0% 100% / 0.06) inset, 0 28px 56px rgb(0 0 0 / 0.55);
+    --shadow-glow: 0 0 0 1px hsl(var(--beam) / 0.35), 0 0 28px hsl(var(--beam) / 0.22);
   }
 }
 
-/* Attack Lab: always dark metal (the page wrapper also has class "dark"),
+/* Attack Lab: always the dark lab (the page wrapper also has class "dark"),
    with NEON verdict colours. Green = Pass, yellow = Flag, red = Quarantine. Never purple. */
 .lab {
   --pass: 142 100% 52%;
@@ -69,8 +99,9 @@
   --flag-ink: 52 100% 60%;
   --quarantine: 352 100% 63%;
   background:
+    radial-gradient(120% 70% at 50% -10%, hsl(var(--beam) / 0.10), transparent 60%),
     repeating-linear-gradient(90deg, hsl(0 0% 100% / 0.012) 0 1px, transparent 1px 3px),
-    linear-gradient(160deg, hsl(215 16% 13%), hsl(216 22% 7%) 55%, hsl(214 18% 10%));
+    linear-gradient(160deg, hsl(214 28% 10%), hsl(213 31% 6%) 55%, hsl(214 26% 8%));
   color: hsl(var(--foreground));
 }
 /* A soft glow around neon words and badges */
@@ -81,15 +112,17 @@
   box-shadow: 0 0 0 1px currentColor inset, 0 0 18px -4px currentColor;
 }
 
-/* Metal feel in dark mode: a faint brushed sheen on cards */
+/* Dark mode cards: a faint light-box sheen along the top edge */
 .dark .panel {
-  background-image: linear-gradient(160deg, hsl(0 0% 100% / 0.035), transparent 40%);
-  box-shadow: 0 1px 0 hsl(0 0% 100% / 0.04) inset, 0 8px 24px rgb(0 0 0 / 0.35);
+  background-image: linear-gradient(180deg, hsl(var(--beam) / 0.035), transparent 30%);
 }
 
 @layer base {
   * {
     @apply border-border;
+  }
+  html {
+    -webkit-tap-highlight-color: transparent;
   }
   /* Keyboard users (Tab key) always see where they are (QA-16).
      Only shows for the keyboard, not for mouse clicks or taps. */
@@ -99,24 +132,63 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "cv11", "ss01"; /* Inter: clearer letters */
     /* Very long words with no spaces (attackers write such text, e.g.
        "onmouseover=alert(1)>hover</b>") may break onto the next line, but ONLY
        when they do not fit. Without this, they pushed the page sideways on phones (QA-22). */
     overflow-wrap: anywhere;
   }
+  ::selection {
+    background: hsl(var(--beam) / 0.28);
+  }
 }
 
 @layer components {
-  /* White card with a soft shadow, used everywhere */
+  /* A card on the light table, used everywhere */
   .panel {
-    @apply rounded-2xl border bg-card shadow-[0_1px_2px_rgba(16,24,40,0.04),0_4px_14px_rgba(16,24,40,0.04)];
+    @apply rounded-2xl border bg-card;
+    box-shadow: var(--shadow-1);
+    transition: box-shadow var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out),
+      transform var(--dur) var(--ease-out);
   }
-  /* Small blue capital-letter titles, like "VERDICT" and "FINDINGS" */
+  /* Small cyan capital-letter titles, like "VERDICT" and "FINDINGS",
+     with a little beam mark in front */
   .section-title {
-    @apply font-display text-lg font-semibold uppercase tracking-[0.18em] text-primary;
+    @apply inline-flex items-center gap-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-primary;
   }
-  /* Small grey pill tags, like "page 1 · near the middle" */
+  .section-title::before {
+    content: "";
+    @apply inline-block h-3.5 w-1 rounded-full;
+    background: hsl(var(--beam));
+    box-shadow: 0 0 8px hsl(var(--beam) / 0.6);
+  }
+  /* Small grey tags, like "page 1 · near the middle" */
   .tag {
     @apply inline-flex items-center rounded-md border bg-muted/60 px-2 py-0.5 font-mono text-[11px] text-muted-foreground;
+  }
+  /* Buttons and cards that lift a little on hover and press in on click */
+  .lift {
+    transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur) var(--ease-out),
+      border-color var(--dur) var(--ease-out), background-color var(--dur) var(--ease-out);
+  }
+  @media (hover: hover) {
+    .lift:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-2);
+    }
+  }
+  .lift:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+  }
+}
+
+/* "Reduce motion" turned on: no lifting or sliding (loading spinners still turn,
+   so people can see the app is working) */
+@media (prefers-reduced-motion: reduce) {
+  .lift:hover, .lift:active {
+    transform: none !important;
+  }
+  html {
+    scroll-behavior: auto !important;
   }
 }

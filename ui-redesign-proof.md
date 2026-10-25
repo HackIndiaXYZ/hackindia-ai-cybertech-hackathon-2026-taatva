@@ -31,6 +31,18 @@ Header: OBSIDIAN · SCAN · HISTORY "4 waiting" · DEMO · LAB · "Private mode:
 - Signing in with a real account: needs a team member to type their own password
   (Claude must not type real passwords). To be checked by the team.
 
+### D. Automatic check (Playwright, 1440 px wide, run on the OLD design)
+
+X-Ray box spots (left %, top % of the page picture): Flag `0.4, 38.1` · Quarantine `11.3, 47.4`.
+Uploading `clean_1_resume.pdf` in test mode → Pass 25. Signed out `/history` → `/login?next=%2Fhistory`.
+Console errors / warnings: none. Sideways scrolling: none.
+
+## Check after each step
+
+| Step | 3 screens match | Box spots same | Upload | Sign-in redirect | Console |
+|---|---|---|---|---|---|
+| 2. Tokens, colours, fonts | ✅ | ✅ | ✅ | ✅ | none |
+
 ## AFTER PROOF
 
 (filled in at the end)
