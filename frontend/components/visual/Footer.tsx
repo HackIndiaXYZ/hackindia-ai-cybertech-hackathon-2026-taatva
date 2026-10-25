@@ -2,21 +2,15 @@
 // and quick links to the four pages (the same addresses as the top bar).
 
 import Link from "next/link";
-import { ArrowUpRight, ExternalLink } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
-// ===================== TEAM: FILL IN THE LINKS HERE =====================
-// Names and roles are from the team (25 Oct 2026).
-// To add links: paste the full address between the quotes, for example
-//   github: "https://github.com/your-name",
-//   linkedin: "https://www.linkedin.com/in/your-name",
-// Empty ("") = no link is shown. Never put a made-up link here.
+// The team: names and roles from the team (25 Oct 2026). No personal links (team decision).
 const MEMBERS = [
-  { name: "Chaarvi Saxena", role: "Team Lead & AI Architect", github: "", linkedin: "" },
-  { name: "Yashi Savita", role: "Lead UI/UX Designer", github: "", linkedin: "" },
-  { name: "Divyanshu Tripathi", role: "Frontend & API Integration", github: "", linkedin: "" },
-  { name: "Ishan Singh Bhadoria", role: "Engine, Backend, & Database", github: "", linkedin: "" },
+  { name: "Chaarvi Saxena", role: "Team Lead & AI Architect" },
+  { name: "Yashi Savita", role: "Lead UI/UX Designer" },
+  { name: "Divyanshu Tripathi", role: "Frontend & API Integration" },
+  { name: "Ishan Singh Bhadoria", role: "Engine, Backend, & Database" },
 ];
-// ========================================================================
 
 const PAGES = [
   { href: "/scan", label: "Scan" },
@@ -54,20 +48,6 @@ export function Footer() {
               <li key={m.name} className="group bg-card p-4 transition-colors duration-base hover:bg-accent/40">
                 <p className="text-[15px] font-semibold text-foreground">{m.name}</p>
                 <p className="mt-0.5 text-[13px] text-muted-foreground">{m.role}</p>
-                {(m.github || m.linkedin) && (
-                  <p className="mt-2 flex gap-4">
-                    {m.github && (
-                      <a href={m.github} target="_blank" rel="noopener noreferrer" className={FOOT_LINK} aria-label={`${m.name} on GitHub`}>
-                        <ExternalLink className="h-4 w-4" /> GitHub<span aria-hidden="true" className={UNDERLINE} />
-                      </a>
-                    )}
-                    {m.linkedin && (
-                      <a href={m.linkedin} target="_blank" rel="noopener noreferrer" className={FOOT_LINK} aria-label={`${m.name} on LinkedIn`}>
-                        <ExternalLink className="h-4 w-4" /> LinkedIn<span aria-hidden="true" className={UNDERLINE} />
-                      </a>
-                    )}
-                  </p>
-                )}
               </li>
             ))}
           </ul>
