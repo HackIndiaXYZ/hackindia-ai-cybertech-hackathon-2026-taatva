@@ -241,6 +241,119 @@ def make_resume(sentence, trick):
     return pdf_bytes, answer_key
 
 
+# ---------- Part 2: the Old Way, the Caught check, and one full try ----------
+
+CAUGHT_FROM = 85      # RapidFuzz score (0-100) needed to say "Obsidian found the sentence"
+BOX_MARGIN = 3        # points of room around the answer-key box
+FILE_NAME = "attack_lab_resume.pdf"   # the only name the log ever sees (never the sentence)
+NOTHING = "NOTHING - file held for a human"
+
+TRICK_WORDS = {"white": "white text on a white page",
+               "tiny": "text only 2 points tall",
+               "offpage": "text placed outside the page"}
+
+
+def old_way(pdf_bytes):
+    # "Old Way: words only". Reads the plain text (all of it, also white, tiny and
+    # off-page words, like a normal AI tool does) and asks only "does it sound bad?".
+    # Our phrase list only. Score = bossy x 50, so the most it can ever give is 50
+    # (Flag). It never asks "could a person see this?", so it can never go red.
+    from pipeline.decide import verdict_for
+    from pipeline.order_checker import check_together
+
+    doc = pymupdf.open(stream=pdf_bytes, filetype="pdf")
+    lines = [line.strip() for page in doc
+             for line in page.get_text("text", flags=READ_FLAGS, clip=pymupdf.INFINITE_RECT()).splitlines()
+             if line.strip()]
+    doc.close()
+    results = check_together(lines)
+    bossy = max((r["score"] for r in results), default=0)
+    score = round(bossy * 50)
+    phrases = sorted({name for r in results for name in r["phrases"]})
+    return {"score": score, "verdict": verdict_for(score), "bossy": bossy, "phrases": phrases}
+
+
+def was_caught(answer_key, findings):
+    # Caught = Obsidian has a HIDDEN finding at the answer-key spot whose words
+    # match the sentence (RapidFuzz 85 or more). Plain code, no AI.
+    from rapidfuzz import fuzz
+    from pipeline.compare import simple
+
+    x0, y0, x1, y1 = answer_key["box"]
+    area = pymupdf.Rect(x0 - BOX_MARGIN, y0 - BOX_MARGIN, x1 + BOX_MARGIN, y1 + BOX_MARGIN)
+    here = []
+    for item in findings:
+        box = item["where"].get("box")
+        if (item["where"].get("page") != answer_key["page"] or not box
+                or item.get("hidden_points", 0) <= 0):   # text a person can see does not count
+            continue
+        middle = pymupdf.Point((box[0] + box[2]) / 2, (box[1] + box[3]) / 2)
+        if middle in area:
+            here.append(item)
+    here.sort(key=lambda item: (item["where"]["box"][1], item["where"]["box"][0]))
+    found = " ".join(item.get("reads_as") or item["text"] for item in here)
+    match = fuzz.ratio(simple(answer_key["sentence"]), simple(found)) if found else 0
+    # partial_ratio as well: Obsidian may report the sentence together with a neighbour
+    match = max(match, fuzz.partial_ratio(simple(answer_key["sentence"]), simple(found)) if found else 0)
+    return match >= CAUGHT_FROM, round(match)
+
+
+def plain_line(trick, caught, verdict):
+    # The one plain-English line for the whole try (fixed template, no AI)
+    hidden = TRICK_WORDS[trick]
+    if not caught:
+        return f"Escaped: Obsidian did not find your sentence hidden as {hidden}."
+    action = {"quarantine": "The file is held for a human, and the AI agent gets nothing.",
+              "flag": "The AI agent only gets the clean copy, and a human is alerted.",
+              "pass": "It did not sound like an order, so the AI agent gets the clean copy without it."}[verdict]
+    return f"Caught: Obsidian found your sentence hidden as {hidden}. {action}"
+
+
+def held(reason):
+    # Something went wrong: Quarantine, never a silent pass
+    return {"score": 100, "verdict": "quarantine", "reasons": [reason], "findings": [],
+            "clean_copy": None, "notes": [], "prompt_guard": None, "pages": [], "page_images": []}
+
+
+def run_attack(sentence, trick, private_mode=None):
+    # One full Attack Lab try. Raises BadAttack for wrong input (the website shows the
+    # message). Any other error or timeout = Quarantine.
+    # The sentence is never saved, never logged, never sent to the demo recruiter or any agent.
+    import logging
+    from pipeline.scan import scan_pdf
+
+    pdf_bytes, key = make_resume(sentence, trick)
+    before = None
+    try:
+        before = old_way(pdf_bytes)
+        result = scan_pdf(pdf_bytes, private_mode, FILE_NAME)   # our existing scan, unchanged
+        caught, match = was_caught(key, result["findings"])
+    except Exception as error:
+        logging.getLogger("obsidian").error(f"Attack Lab try failed: {type(error).__name__}")
+        result, caught, match = held("Something went wrong while checking, so the file was held "
+                                     "for a person to check (Quarantine)."), False, 0
+    del pdf_bytes
+
+    findings = result["findings"]
+    return {
+        "obsidian": {
+            "score": result["score"], "verdict": result["verdict"], "reasons": result["reasons"],
+            "findings": findings, "notes": result.get("notes", []),
+            "prompt_guard": result.get("prompt_guard"),
+            "pages": result.get("pages", []), "page_images": result.get("page_images", []),
+            "total_time": result.get("total_time"), "private_mode": result.get("private_mode"),
+        },
+        "old_way": before,
+        "caught": caught,
+        "match": match,
+        "answer_key": key,
+        "plain_line": plain_line(trick, caught, result["verdict"]),
+        # One fixed-template line under each finding (from plain_words.py, no AI)
+        "finding_lines": [item.get("explain", "") for item in findings],
+        "agent_receives": NOTHING if result["verdict"] == "quarantine" else result["clean_copy"],
+    }
+
+
 if __name__ == "__main__":
     import json
     import sys

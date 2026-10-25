@@ -96,16 +96,16 @@ Prompt Guard said 0.98. On the clean resume both said 0.0.
    and the screen says "since <time>"). Only numbers are kept, never the sentence.
 
 ### 3b. Backend: `backend/main.py` (small change)
-- `POST /attack-lab/try` - takes **JSON only**: `{"sentence": "...", "trick": "white" | "tiny" | "offpage", "private_mode": false}`.
+- `POST /lab/try` (built in step 2) - takes **JSON only**: `{"sentence": "...", "trick": "white" | "tiny" | "offpage", "private_mode": false}`.
   - No file upload field at all.
   - Sign-in required (`check_sign_in`).
   - Sentence: 1 to 200 letters, otherwise a clear error. Invisible/control letters are removed first.
-  - Rate limit: new `LIMITS["attack"]` per person (plan: 10 per 10 minutes) plus a
-    small limit for everyone together, so a busy room cannot use up the free Gemini quota.
+  - Rate limit: `LIMITS["lab"]` = 10 tries per person per 10 minutes, plus
+    `LIMITS["lab_everyone"]` = 60 for everyone together, so a busy room cannot use up the free Gemini quota.
   - Never calls `save_scan` (not saved to History), never calls the demo recruiter,
     never writes the sentence to the log (the log line uses a fixed file name, e.g.
     `attack_lab_resume.pdf`).
-- `GET /attack-lab/counter` - the N / X / Y numbers.
+- `GET /lab/counter` (later step) - the N / X / Y numbers.
 - The answer sends back: Old Way result, the full Obsidian result (same shape as
   `/scan`: score, verdict, findings, clean copy, page pictures), the answer key,
   Caught or Escaped, and the counter.
@@ -177,7 +177,7 @@ website on port 3000), with `PROMPT_GUARD=true` in `backend/.env`.
 ## 5. Order of work (one step at a time, a checkpoint after each)
 1. `attack_lab.py`: maker + answer key + tests.
 2. Old Way + Caught check + tests.
-3. `/attack-lab/try` and `/attack-lab/counter` + safety tests.
+3. `/lab/try` + safety tests (done in step 2), then `/lab/counter`.
 4. Frontend page, form and split screen.
 5. Preview with X-Ray boxes and the off-page edge marker; counter; phone layout.
 6. Full test run. Then a live check on the laptop: `.\start.ps1`, Prompt Guard "ready",

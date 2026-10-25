@@ -4,6 +4,8 @@
 #   POST /scan    -> checks a file: score, verdict, reasons, findings, clean copy.
 #                    Only for signed-in TAATVA users. The result is saved in Supabase.
 #   POST /demo/rank -> the "AI recruiter" demo (original files vs Obsidian clean copies)
+#   POST /lab/try -> Attack Lab: hide a sentence in a made-up resume, then scan it live.
+#                    No file upload, never saved, never sent to any AI agent.
 # The History page reads past scans straight from Supabase. Row level security
 # there makes sure each person only sees their own scans.
 
@@ -17,7 +19,10 @@ from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadF
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
+from pydantic import BaseModel, ConfigDict, Field
+
 import config
+from attack_lab import BadAttack, run_attack
 from demo_recruiter import BadDemoFile, RecruiterUnavailable, run_demo
 from pipeline.prompt_guard import load as load_prompt_guard, status as prompt_guard_status
 from pipeline.scan import MAX_BYTES, scan_pdf
@@ -59,7 +64,11 @@ async def refuse_huge_uploads(request: Request, call_next):
 
 
 # Bug QA-10: a fair-use limit per person, so one account cannot overload the scanner
-LIMITS = {"scan": (30, 600), "demo": (10, 600)}   # (how many, per how many seconds)
+LIMITS = {"scan": (30, 600), "demo": (10, 600),   # (how many, per how many seconds)
+          # Attack Lab: 10 tries per person, and 60 for everyone together,
+          # every 10 minutes (so a busy room cannot use up the free Gemini requests)
+          "lab": (10, 600), "lab_everyone": (60, 600)}
+EVERYONE = {"id": "everyone"}
 _recent = defaultdict(deque)
 _recent_lock = threading.Lock()
 
@@ -73,7 +82,8 @@ def fair_use(user, action):
             times.popleft()
         if len(times) >= most:
             wait = int(seconds - (now - times[0])) + 1
-            raise HTTPException(429, f"You have done a lot of scans in a short time. Please wait about "
+            who = "Lots of people have" if user is EVERYONE else "You have"
+            raise HTTPException(429, f"{who} done a lot of scans in a short time. Please wait about "
                                      f"{max(1, wait // 60)} minute(s) and try again.")
         times.append(now)
 
@@ -175,3 +185,30 @@ def demo_rank(
         log.exception(f"Demo failed: {error}")
         raise HTTPException(400, "One of the files could not be read. Please use a normal PDF, "
                                  "web page (.html) or email (.eml), up to 20 MB.")
+
+
+class LabTry(BaseModel):
+    # Attack Lab input: JSON only (there is no file upload at all)
+    model_config = ConfigDict(extra="forbid")
+    sentence: str = Field(max_length=1000)   # the 200-letter rule is checked after cleaning
+    trick: str = Field(max_length=20)
+    private_mode: bool | None = None
+
+
+@app.post("/lab/try")
+def lab_try(body: LabTry, authorization: str | None = Header(None)):
+    # Attack Lab. Only for signed-in TAATVA users. Never saved to history,
+    # the sentence is never logged, and nothing is sent to the demo recruiter.
+    token = (authorization or "").removeprefix("Bearer ").strip()
+    user = check_sign_in(token)
+    fair_use(user, "lab")
+    fair_use(EVERYONE, "lab_everyone")
+    try:
+        return run_attack(body.sentence, body.trick, body.private_mode)
+    except BadAttack as problem:
+        raise HTTPException(400, str(problem))
+    except Exception as error:
+        # Even making the resume failed: still Quarantine, never a silent pass
+        log.error(f"Attack Lab failed: {type(error).__name__}")
+        raise HTTPException(500, "Something went wrong, so nothing was sent to the AI agent "
+                                 "(Quarantine). Please try again.")
