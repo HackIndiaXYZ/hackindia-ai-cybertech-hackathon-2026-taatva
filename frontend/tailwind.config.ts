@@ -71,6 +71,18 @@ const config: Config = {
           "92%": { opacity: "1" },
           "100%": { transform: "translateY(50%)", opacity: "0" },
         },
+        // X-Ray switched on: ONE beam pass over the page (then it is gone)
+        "xray-sweep": {
+          "0%": { transform: "translateY(-50%)", opacity: "1" },
+          "85%": { opacity: "1" },
+          "100%": { transform: "translateY(50%)", opacity: "0" },
+        },
+        // X-Ray boxes appear with a quick glow flash, then settle
+        "xray-box": {
+          "0%": { opacity: "0", transform: "scale(1.25)", boxShadow: "0 0 0 0 hsl(var(--quarantine) / 0)" },
+          "60%": { opacity: "1", transform: "scale(1)", boxShadow: "0 0 22px 4px hsl(var(--quarantine) / 0.7)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
         // A light sweep across buttons on hover
         "light-sweep": {
           "0%": { transform: "translateX(-120%) skewX(-20deg)" },
@@ -80,6 +92,8 @@ const config: Config = {
       animation: {
         "beam-sweep": "beam-sweep 2.2s cubic-bezier(0.45, 0, 0.55, 1) infinite",
         "light-sweep": "light-sweep 0.8s cubic-bezier(0.22, 1, 0.36, 1)",
+        "xray-sweep": "xray-sweep 0.8s cubic-bezier(0.45, 0, 0.55, 1) forwards",
+        "xray-box": "xray-box 0.4s cubic-bezier(0.22, 1, 0.36, 1) both",
       },
     },
   },

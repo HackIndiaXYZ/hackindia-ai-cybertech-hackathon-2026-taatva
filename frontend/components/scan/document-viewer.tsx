@@ -8,8 +8,9 @@
 // is shown in red alert boxes under the page.
 
 import { Fragment, useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Eye, EyeOff, FileWarning } from "lucide-react";
+import { Bot, ChevronLeft, ChevronRight, Eye, EyeOff, FileWarning } from "lucide-react";
 import type { Finding, ScanResult } from "@/lib/api";
+import { motion } from "framer-motion";
 import { Switch } from "@/components/ui/switch";
 import { onPage } from "@/components/shared";
 import { cn } from "@/lib/utils";
@@ -61,25 +62,37 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="section-title">Document</h2>
-          <div className="mt-3 flex rounded-lg border bg-muted p-1 text-[14px]">
+          <div className="mt-3 flex rounded-full border bg-muted/70 p-1 text-[14px]">
             {([["page", "Page"], ["views", "AI view vs Human view"]] as const).map(([key, label]) => (
               <button key={key} onClick={() => setTab(key)}
-                className={cn("rounded-md px-3 py-1.5 font-medium transition max-md:min-h-11",
-                  tab === key ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground")}>
-                {label}
+                className={cn("relative rounded-full px-4 py-1.5 font-medium transition-colors duration-base max-md:min-h-11",
+                  tab === key ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
+                {/* The white pill slides to the open tab */}
+                {tab === key && (
+                  <motion.span layoutId="doc-tab" aria-hidden="true" className="absolute inset-0 rounded-full bg-card shadow-e1"
+                    transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                )}
+                <span className="relative">{label}</span>
               </button>
             ))}
           </div>
         </div>
 
-        {/* The big X-Ray Reveal switch */}
-        <label className={cn("flex cursor-pointer items-center gap-4 rounded-xl border-2 px-4 py-3 transition",
-          xray ? "border-quarantine/40 bg-quarantine/5" : "border-border bg-muted/40")}>
+        {/* The big X-Ray Reveal switch: the hero control. It glows red when on. */}
+        <label className={cn("group relative flex w-full cursor-pointer items-center gap-4 overflow-hidden rounded-2xl border-2 px-4 py-3 transition-all duration-base ease-out-soft sm:w-auto sm:min-w-[410px]",
+          xray
+            ? "border-quarantine/50 bg-quarantine/[0.07] shadow-[0_0_0_1px_hsl(var(--quarantine)/0.15),0_10px_36px_-10px_hsl(var(--quarantine)/0.55)]"
+            : "border-border bg-muted/40 hover:border-primary/40 hover:shadow-glow")}>
+          {/* A faint scan-line texture inside the switch card */}
+          <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-[repeating-linear-gradient(0deg,hsl(var(--foreground)/0.03)_0_1px,transparent_1px_4px)]" />
           <Switch checked={xray} onCheckedChange={setXray} aria-label="X-Ray Reveal"
-            className="h-8 w-14 data-[state=checked]:bg-quarantine [&>span]:h-6 [&>span]:w-6 [&>span]:data-[state=checked]:translate-x-6" />
-          {xray ? <Eye className="h-5 w-5 text-quarantine" /> : <EyeOff className="h-5 w-5 text-muted-foreground" />}
-          <span>
-            <span className="block font-display text-[26px] font-bold leading-none tracking-[0.16em] text-foreground">X-RAY REVEAL</span>
+            className="relative h-8 w-14 data-[state=checked]:bg-quarantine data-[state=checked]:shadow-[0_0_16px_hsl(var(--quarantine)/0.7)] [&>span]:h-6 [&>span]:w-6 [&>span]:data-[state=checked]:translate-x-6" />
+          {xray
+            ? <Eye className="relative h-6 w-6 shrink-0 text-quarantine drop-shadow-[0_0_6px_hsl(var(--quarantine)/0.8)] animate-in zoom-in-50 duration-300" />
+            : <EyeOff className="relative h-6 w-6 shrink-0 text-muted-foreground transition-transform duration-base group-hover:scale-110" />}
+          <span className="relative min-w-0">
+            <span className={cn("block whitespace-nowrap font-display text-[clamp(20px,5vw,26px)] font-bold leading-none tracking-[0.14em] transition-colors duration-base",
+              xray ? "text-foreground" : "text-muted-foreground")}>X-RAY REVEAL</span>
             <span className="text-[12px] text-muted-foreground">
               {xray ? "ON · red boxes show what a person cannot see" : "OFF · the page as a person sees it"}
             </span>
@@ -87,20 +100,29 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
         </label>
       </div>
 
-      <div className="mt-5 rounded-xl border bg-[radial-gradient(hsl(var(--border))_1px,transparent_1px)] bg-muted/60 p-4 [background-size:14px_14px] md:p-6">
+      {/* The light table: the page lies on a softly glowing, dotted surface */}
+      <div className="relative mt-5 overflow-hidden rounded-xl border bg-[radial-gradient(hsl(var(--border))_1px,transparent_1px)] bg-muted/60 p-4 [background-size:14px_14px] md:p-6">
+        <span aria-hidden="true" className="pointer-events-none absolute left-1/2 top-1/3 h-2/3 w-3/4 -translate-x-1/2 rounded-full bg-beam/10 blur-3xl" />
         {tab === "page" ? (
           <>
-            <div className="mb-3 flex items-center justify-center">
+            <div className="relative mb-3 flex min-h-[26px] items-center justify-center">
               {xray && (
-                <span className="rounded-full bg-quarantine px-3 py-1 font-mono text-[11px] font-medium text-white dark:text-neutral-950 shadow">
+                <span className="rounded-full bg-quarantine px-3 py-1 font-mono text-[11px] font-medium text-white shadow-[0_0_16px_hsl(var(--quarantine)/0.55)] animate-in fade-in zoom-in-95 duration-300 dark:text-neutral-950">
                   ● X-RAY ON · {hiddenOnPages + notOnPage.length} hidden
                 </span>
               )}
             </div>
 
             {/* The page */}
-            <div className="relative mx-auto max-w-[640px] bg-white text-neutral-900 shadow-xl"
+            <div className="relative mx-auto max-w-[640px] bg-white text-neutral-900 shadow-e3 ring-1 ring-black/5"
               style={{ aspectRatio: size ? `${size.width} / ${size.height}` : "612 / 792" }}>
+              {/* X-Ray switched on: one scanner beam passes over the page (pictures only) */}
+              {xray && (
+                <span key={`sweep-${page}`} aria-hidden="true" className="pointer-events-none absolute inset-0 z-20 animate-xray-sweep overflow-visible motion-reduce:hidden">
+                  <span className="absolute inset-x-0 top-1/2 h-20 -translate-y-1/2 bg-gradient-to-b from-transparent via-beam/25 to-transparent" />
+                  <span className="absolute inset-x-0 top-1/2 h-[2px] bg-beam shadow-[0_0_14px_hsl(var(--beam))]" />
+                </span>
+              )}
               {image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={image} alt={`Page ${page} of ${result.file_name}`} className="h-full w-full" />
@@ -138,12 +160,14 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
                       aria-label={`Hidden text: ${f.reads_as || f.text}`}
                       // A solid red border, drawn just OUTSIDE the hidden text (so even 2 pt text
                       // gets a clear box). The old outline did not show up in screenshots.
-                      className={cn("absolute rounded-[3px] border-2 border-quarantine bg-quarantine/10 shadow-[0_0_10px_hsl(var(--quarantine)/0.45)] transition",
+                      // Draws in with a quick red glow when X-Ray is switched on (one after another)
+                      className={cn("absolute animate-xray-box rounded-[3px] border-2 border-quarantine bg-quarantine/10 shadow-[0_0_10px_hsl(var(--quarantine)/0.45)] transition-shadow hover:shadow-[0_0_18px_hsl(var(--quarantine)/0.7)]",
                         active && "ring-4 ring-quarantine/30")}
                       style={{ left: `calc(${left}% - 3px)`, top: `calc(${top}% - 3px)`,
-                        width: `calc(${width}% + 6px)`, height: `calc(max(${height}%, 4px) + 6px)` }} />
+                        width: `calc(${width}% + 6px)`, height: `calc(max(${height}%, 4px) + 6px)`,
+                        animationDelay: `${Math.min(i * 60, 300)}ms` }} />
                     <span aria-hidden="true"
-                      className="absolute flex w-max items-center gap-1 overflow-hidden whitespace-nowrap rounded-sm bg-quarantine px-1.5 py-[1px] font-mono text-[10px] font-medium uppercase text-white dark:text-neutral-950"
+                      className="absolute flex w-max items-center gap-1 overflow-hidden whitespace-nowrap rounded-sm bg-quarantine px-1.5 py-[1px] font-mono text-[10px] font-medium uppercase text-white animate-in fade-in slide-in-from-bottom-1 duration-300 dark:text-neutral-950"
                       style={{ ...side, bottom: `calc(${100 - top}% + 3px)` }}>
                       ⊘ {f.how_label} · {f.danger}
                     </span>
@@ -151,7 +175,7 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
                         Fixed dark red on white: the page picture is always white paper,
                         in light AND dark mode (theme red was too light in dark mode, QA-24). */}
                     {noteFor === i && <button onClick={() => onSelect(i)} tabIndex={-1} aria-hidden="true"
-                      className="absolute z-10 w-max break-words rounded-sm border border-red-300 bg-white px-1.5 py-0.5 text-left text-[11px] font-semibold leading-tight text-red-800 shadow-sm md:text-[12px]"
+                      className="absolute z-10 w-max break-words rounded-sm border border-red-300 bg-white px-1.5 py-0.5 text-left text-[11px] font-semibold leading-tight text-red-800 shadow-md animate-in fade-in slide-in-from-top-1 duration-500 md:text-[12px]"
                       style={{ ...side, top: `calc(${top}% + max(${height}%, 4px) + 3px)` }}>
                       {f.reads_as || f.text}
                     </button>}
@@ -166,7 +190,7 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
                 return (
                   <button key={`edge-${i}`} onClick={() => onSelect(i)} data-edge-marker={side}
                     aria-label={`Text hidden off the page: ${f.reads_as || f.text}`}
-                    className={cn("absolute z-10 flex items-center gap-1 whitespace-nowrap bg-quarantine px-2 py-1 font-mono text-[10px] font-semibold uppercase text-white shadow-[0_0_14px_hsl(var(--quarantine)/0.7)] dark:text-neutral-950 md:text-[11px]",
+                    className={cn("absolute z-10 flex animate-in fade-in items-center gap-1 whitespace-nowrap bg-quarantine px-2 py-1 font-mono text-[10px] font-semibold uppercase text-white shadow-[0_0_14px_hsl(var(--quarantine)/0.7)] duration-500 dark:text-neutral-950 md:text-[11px]",
                       side === "right" && "right-0 -translate-y-1/2 rounded-l-md",
                       side === "left" && "left-0 -translate-y-1/2 rounded-r-md",
                       side === "top" && "top-0 -translate-x-1/2 rounded-b-md",
@@ -184,12 +208,12 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
             {pageCount > 1 && (
               <div className="mx-auto mt-3 flex max-w-[640px] items-center justify-center gap-3 font-mono text-[13px] text-muted-foreground">
                 <button onClick={() => setPage(Math.max(1, page - 1))} disabled={page === 1}
-                  className="grid h-11 w-11 place-items-center rounded-lg border bg-card hover:bg-muted disabled:opacity-30" aria-label="Previous page">
+                  className="lift grid h-11 w-11 place-items-center rounded-full border bg-card hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-30" aria-label="Previous page">
                   <ChevronLeft className="h-5 w-5" />
                 </button>
-                <span aria-live="polite">Page {page} of {pageCount}</span>
+                <span aria-live="polite" className="rounded-full border bg-card px-3 py-1">Page {page} of {pageCount}</span>
                 <button onClick={() => setPage(Math.min(pageCount, page + 1))} disabled={page === pageCount}
-                  className="grid h-11 w-11 place-items-center rounded-lg border bg-card hover:bg-muted disabled:opacity-30" aria-label="Next page">
+                  className="lift grid h-11 w-11 place-items-center rounded-full border bg-card hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-30" aria-label="Next page">
                   <ChevronRight className="h-5 w-5" />
                 </button>
               </div>
@@ -200,7 +224,7 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
               <div className="mx-auto mt-4 max-w-[640px] space-y-2">
                 {notOnPage.map(({ f, i }) => (
                   <button key={i} onClick={() => onSelect(i)}
-                    className={cn("flex w-full gap-3 rounded-lg border-2 border-quarantine/50 bg-quarantine/5 p-3 text-left",
+                    className={cn("lift flex w-full gap-3 rounded-xl border-2 border-quarantine/50 bg-card p-3 text-left shadow-[0_0_24px_-10px_hsl(var(--quarantine)/0.6)] animate-in fade-in slide-in-from-bottom-2 duration-300",
                       selected === i && "ring-4 ring-quarantine/25")}>
                     <FileWarning className="mt-0.5 h-5 w-5 shrink-0 text-quarantine" />
                     <span>
@@ -240,8 +264,10 @@ function TwoViews({ result }: { result: ScanResult }) {
           <div key={page}>
             <div className="mb-2 font-mono text-[11px] uppercase text-muted-foreground">Page {page}</div>
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-lg border bg-card p-3">
-                <div className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-primary">What the AI reads</div>
+              <div className="rounded-xl border bg-card p-3 shadow-e1">
+                <div className="mb-2 flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-primary">
+                  <Bot className="h-4 w-4" aria-hidden /> What the AI reads
+                </div>
                 <ul className="space-y-0.5 text-[13px]">
                   {result.views!.ai.filter((l) => l.page === page).map((line, i) => (
                     <li key={i} className={cn(line.hidden && "rounded bg-quarantine/10 px-1 font-semibold text-quarantine")}>
@@ -250,9 +276,9 @@ function TwoViews({ result }: { result: ScanResult }) {
                   ))}
                 </ul>
               </div>
-              <div className="rounded-lg border bg-card p-3">
-                <div className="mb-2 text-[12px] font-semibold uppercase tracking-wider text-pass">
-                  What a person sees <span className="font-normal normal-case text-muted-foreground">(read by {people?.reader ?? "—"})</span>
+              <div className="rounded-xl border bg-card p-3 shadow-e1">
+                <div className="mb-2 flex flex-wrap items-center gap-1.5 text-[12px] font-semibold uppercase tracking-wider text-primary">
+                  <Eye className="h-4 w-4" aria-hidden /> What a person sees <span className="font-normal normal-case text-muted-foreground">(read by {people?.reader ?? "—"})</span>
                 </div>
                 <ul className="space-y-0.5 text-[13px]">
                   {(people?.lines ?? []).map((line, i) => <li key={i}>{line}</li>)}

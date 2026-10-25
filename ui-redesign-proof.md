@@ -47,6 +47,7 @@ Console errors / warnings: none. Sideways scrolling: none.
 | 5. Landing page at / (open to everyone; 320, 375, 768, 1440 px) | ✅ | ✅ | ✅ | ✅ | none |
 | 6. Upload zone + scanning state (hover, drag-over, beam while checking) | ✅ | ✅ | ✅ | ✅ | none |
 | 7. Results: gauge draws in, score counts up (ends on 25 / 44 / 100 exactly), badge springs in, findings stagger | ✅ | ✅ | ✅ | ✅ | none |
+| 8. X-Ray Reveal (switch glows, one beam pass, boxes draw in; off/on + Space key still work) | ✅ | ✅ | ✅ | ✅ | none |
 
 ## AFTER PROOF
 
