@@ -62,10 +62,10 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="section-title">Document</h2>
-          <div className="mt-3 flex rounded-full border bg-muted/70 p-1 text-[14px]">
+          <div className="mt-3 flex rounded-full border bg-muted/70 p-1 text-[13px] sm:text-[14px]">
             {([["page", "Page"], ["views", "AI view vs Human view"]] as const).map(([key, label]) => (
               <button key={key} onClick={() => setTab(key)}
-                className={cn("relative rounded-full px-4 py-1.5 font-medium transition-colors duration-base max-md:min-h-11",
+                className={cn("relative whitespace-nowrap rounded-full px-3 py-1.5 font-medium transition-colors duration-base [overflow-wrap:normal] max-lg:min-h-11 sm:px-4",
                   tab === key ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
                 {/* The white pill slides to the open tab */}
                 {tab === key && (
@@ -79,7 +79,7 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
         </div>
 
         {/* The big X-Ray Reveal switch: the hero control. It glows red when on. */}
-        <label className={cn("group relative flex w-full cursor-pointer items-center gap-4 overflow-hidden rounded-2xl border-2 px-4 py-3 transition-all duration-base ease-out-soft sm:w-auto sm:min-w-[410px]",
+        <label className={cn("group relative flex w-full cursor-pointer flex-wrap items-center gap-x-4 gap-y-2 overflow-hidden rounded-2xl border-2 px-4 py-3 transition-all duration-base ease-out-soft sm:w-auto sm:min-w-[410px] sm:flex-nowrap",
           xray
             ? "border-quarantine/50 bg-quarantine/[0.07] shadow-[0_0_0_1px_hsl(var(--quarantine)/0.15),0_10px_36px_-10px_hsl(var(--quarantine)/0.55)]"
             : "border-border bg-muted/40 hover:border-primary/40 hover:shadow-glow")}>
@@ -90,8 +90,9 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
           {xray
             ? <Eye className="relative h-6 w-6 shrink-0 text-quarantine drop-shadow-[0_0_6px_hsl(var(--quarantine)/0.8)] animate-in zoom-in-50 duration-300" />
             : <EyeOff className="relative h-6 w-6 shrink-0 text-muted-foreground transition-transform duration-base group-hover:scale-110" />}
-          <span className="relative min-w-0">
-            <span className={cn("block whitespace-nowrap font-display text-[clamp(20px,5vw,26px)] font-bold leading-none tracking-[0.14em] transition-colors duration-base",
+          {/* On very small phones the title moves to its own line under the switch */}
+          <span className="relative min-w-0 max-[400px]:basis-full">
+            <span className={cn("block whitespace-nowrap font-display text-[clamp(20px,5vw,26px)] [overflow-wrap:normal] font-bold leading-none tracking-[0.14em] transition-colors duration-base",
               xray ? "text-foreground" : "text-muted-foreground")}>X-RAY REVEAL</span>
             <span className="text-[12px] text-muted-foreground">
               {xray ? "ON · red boxes show what a person cannot see" : "OFF · the page as a person sees it"}

@@ -96,9 +96,10 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
       <div className="px-5 pb-5">
         {/* The verdict badge springs in */}
         <SpringIn replay={`${result.id}-${result.verdict}`} className="mx-auto -mt-1 w-fit">
-          <div className={cn("flex items-center gap-2.5 whitespace-nowrap rounded-full px-5 py-2.5 text-white dark:text-neutral-950", style.solid, GLOW[result.verdict])}>
+          {/* On very small phones the word gets a little smaller, so "QUARANTINE" always fits */}
+          <div className={cn("flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-white sm:gap-2.5 sm:px-5 dark:text-neutral-950", style.solid, GLOW[result.verdict])}>
             <Icon className="h-5 w-5 shrink-0" />
-            <span className="font-display text-[22px] font-bold uppercase leading-none tracking-[0.14em]">{result.verdict}</span>
+            <span className="font-display text-[clamp(16px,5.4vw,22px)] font-bold uppercase leading-none tracking-[0.1em] sm:tracking-[0.14em]">{result.verdict}</span>
           </div>
         </SpringIn>
         <p className="mt-3 text-center text-[16px] md:text-[14px] leading-snug text-foreground">{VERDICT_MEANING[result.verdict]}</p>

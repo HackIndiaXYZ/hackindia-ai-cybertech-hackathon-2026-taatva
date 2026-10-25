@@ -52,7 +52,7 @@ export function UpdateBar() {
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-[15px] md:text-[14px] text-foreground md:px-8">
         <span><b>A newer version of Obsidian is ready.</b> Refresh to use it (this page is out of date).</span>
         <button onClick={() => window.location.reload()}
-          className="lift group flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 max-md:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-primary-foreground shadow-glow">
+          className="lift group flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 max-lg:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-primary-foreground shadow-glow">
           <RefreshCw className="h-4 w-4 transition-transform duration-slow group-hover:rotate-180" /> Refresh now
         </button>
       </div>

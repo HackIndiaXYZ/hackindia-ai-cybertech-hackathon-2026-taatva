@@ -147,7 +147,7 @@ function HistoryScreen() {
         <div className="flex flex-wrap rounded-2xl border bg-muted/70 p-1 sm:rounded-full">
           {(["all", "quarantine", "flag", "pass"] as const).map((f) => (
             <button key={f} onClick={() => setFilter(f)}
-              className={cn("relative flex items-center gap-2 rounded-full px-3 py-2 max-md:min-h-11 font-display text-[13px] sm:px-4 sm:text-[14px] font-semibold uppercase tracking-[0.14em] transition-colors duration-base",
+              className={cn("relative flex items-center gap-2 rounded-full px-3 py-2 max-lg:min-h-11 font-display text-[13px] sm:px-4 sm:text-[14px] font-semibold uppercase tracking-[0.14em] transition-colors duration-base",
                 filter === f ? "text-foreground" : "text-foreground/70 hover:text-foreground")}>
               {/* The white pill slides to the chosen filter */}
               {filter === f && (
@@ -163,17 +163,17 @@ function HistoryScreen() {
         <span className="text-[13px] text-muted-foreground">Tip: open a row to see the hidden text and where it sat.</span>
       </div>
 
-      {/* On a phone: one card per scan */}
-      <ul className="space-y-3 md:hidden">
+      {/* Phones and tablets (below 1280 px): one card per scan, 2 side by side on tablets */}
+      <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 md:grid-cols-2 xl:hidden">
         {rows === null && !error && (
           // Skeleton cards while the history loads ("Loading…" stays for screen readers)
-          <li className="panel space-y-3 p-4" aria-busy="true">
+          <li className="panel space-y-3 p-4 md:col-span-2" aria-busy="true">
             <span className="sr-only">Loading…</span>
             {[0, 1, 2].map((i) => <Skeleton key={i} />)}
           </li>
         )}
         {rows !== null && visible.length === 0 && (
-          <li className="panel p-6 text-center text-muted-foreground">
+          <li className="panel p-6 text-center text-muted-foreground md:col-span-2">
             {rows.length ? "No files match." : <>No files scanned yet. <Link href="/scan" className="text-primary underline">Scan one</Link>.</>}
           </li>
         )}
@@ -182,8 +182,8 @@ function HistoryScreen() {
         ))}
       </ul>
 
-      {/* On bigger screens: the table */}
-      <section className="panel hidden overflow-x-auto md:block">
+      {/* Wide screens (1280 px and up): the table */}
+      <section className="panel hidden overflow-x-auto xl:block">
         <table className="w-full min-w-[980px] text-left">
           <thead>
             <tr className="border-b bg-muted/30 font-display text-[14px] uppercase tracking-[0.16em] text-primary">
@@ -216,7 +216,7 @@ function HistoryScreen() {
                   <tr className={cn("border-b align-middle transition-colors duration-base hover:bg-muted/40", row.decision === "waiting" && "bg-quarantine/[0.04]", isOpen && "border-b-0 bg-muted/30")}>
                     <td className="py-4 pl-5 pr-2">
                       <button onClick={toggle} aria-label={isOpen ? "Close row" : "Open row"} aria-expanded={isOpen}
-                        className="lift grid h-9 w-9 place-items-center rounded-full border bg-card text-primary hover:border-primary/40">
+                        className="lift grid h-9 w-9 place-items-center rounded-full border bg-card text-primary hover:border-primary/40 max-lg:h-11 max-lg:w-11">
                         {isOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
                       </button>
                     </td>
@@ -297,11 +297,11 @@ function DecisionCell({ row, onDecide }: { row: ScanResult; onDecide: (id: strin
     return (
       <div className="flex flex-wrap gap-2 whitespace-nowrap [overflow-wrap:normal]">
         <button disabled={busy} onClick={() => act("approved")}
-          className="lift flex items-center gap-1.5 rounded-full bg-pass px-4 py-2 max-md:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_6px_18px_-6px_hsl(var(--pass)/0.6)] dark:text-neutral-950 disabled:cursor-wait disabled:opacity-50">
+          className="lift flex items-center gap-1.5 rounded-full bg-pass px-4 py-2 max-lg:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_6px_18px_-6px_hsl(var(--pass)/0.6)] dark:text-neutral-950 disabled:cursor-wait disabled:opacity-50">
           <Check className="h-4 w-4" strokeWidth={3} />Approve
         </button>
         <button disabled={busy} onClick={() => act("rejected")}
-          className="lift flex items-center gap-1.5 rounded-full border-2 border-quarantine/40 bg-card px-4 py-2 max-md:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-quarantine hover:border-quarantine/70 hover:bg-quarantine/5 disabled:cursor-wait disabled:opacity-50">
+          className="lift flex items-center gap-1.5 rounded-full border-2 border-quarantine/40 bg-card px-4 py-2 max-lg:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-quarantine hover:border-quarantine/70 hover:bg-quarantine/5 disabled:cursor-wait disabled:opacity-50">
           <X className="h-4 w-4" strokeWidth={3} />Reject
         </button>
       </div>

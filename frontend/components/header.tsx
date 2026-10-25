@@ -107,7 +107,7 @@ export function Header() {
 
         {/* SCAN / HISTORY / DEMO / LAB: centered. On tablets they get their own row;
             on phones they live in the "Menu" panel. A cyan pill slides to the open page. */}
-        <nav className="order-3 hidden w-full justify-center md:flex lg:order-none lg:w-auto">
+        <nav className="order-3 hidden w-full justify-center md:flex xl:order-none xl:w-auto">
           <div className="flex rounded-full border bg-card/70 p-1 shadow-e1">
             {tabs.map((tab) => {
               const active = path.startsWith(tab.href);
@@ -116,7 +116,8 @@ export function Header() {
                   key={tab.href}
                   href={tab.href}
                   className={cn(
-                    "group relative flex items-center justify-center gap-2 rounded-full px-5 py-2 font-display text-[14px] font-semibold uppercase tracking-[0.16em] transition-colors duration-base",
+                    // Tablets (touch screens): at least 44 px tall, easy to tap
+                    "group relative flex items-center justify-center gap-2 rounded-full px-5 py-2 font-display text-[14px] font-semibold uppercase tracking-[0.16em] transition-colors duration-base max-lg:min-h-11",
                     active ? "text-primary-foreground" : "text-muted-foreground hover:text-foreground",
                   )}
                   aria-label={tab.badge ? `${tab.label}: ${waitingText(tab.badge)}` : undefined}
@@ -162,7 +163,7 @@ export function Header() {
             <button
               onClick={() => setPrivateMode(!privateMode)}
               className={cn(
-                "lift flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 font-mono text-[11px] max-md:min-h-11 sm:px-3",
+                "lift flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-1.5 font-mono text-[11px] [overflow-wrap:normal] max-lg:min-h-11 sm:px-3",
                 privateMode ? "border-pass/40 bg-pass/10 text-pass" : "bg-card/70 text-foreground hover:border-primary/40",
               )}
               aria-pressed={privateMode}
@@ -183,7 +184,7 @@ export function Header() {
               </Tip>
               <span className="hidden max-w-[160px] truncate text-[12px] text-muted-foreground 2xl:block">{email}</span>
               <button onClick={signOut} title="Sign out" aria-label="Sign out"
-                className="lift flex items-center justify-center gap-1 rounded-full border bg-card/70 px-2.5 py-1.5 text-[11px] text-foreground hover:border-primary/40">
+                className="lift flex items-center justify-center gap-1 rounded-full border bg-card/70 px-2.5 py-1.5 text-[11px] text-foreground hover:border-primary/40 max-lg:min-h-11">
                 <LogOut className="h-3.5 w-3.5" /> <span className="hidden sm:inline">Sign out</span>
               </button>
             </div>

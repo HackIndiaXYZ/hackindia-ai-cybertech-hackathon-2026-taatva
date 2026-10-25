@@ -166,7 +166,7 @@ function LoginForm() {
         <div className="mt-5 grid grid-cols-2 rounded-full border bg-muted/70 p-1" role="tablist">
           {([["signin", "Sign in"], ["signup", "Sign up"]] as const).map(([key, label]) => (
             <button key={key} role="tab" aria-selected={mode === key} onClick={() => switchTo(key)}
-              className={cn("relative rounded-full py-2 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition-colors duration-base",
+              className={cn("relative rounded-full py-2 max-lg:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em] transition-colors duration-base",
                 mode === key ? "text-foreground" : "text-muted-foreground hover:text-foreground")}>
               {/* The white pill slides between Sign in and Sign up */}
               {mode === key && (
@@ -281,8 +281,8 @@ function LoginForm() {
 
         <p className="mt-6 text-[14px] md:text-[12px] text-muted-foreground">
           {mode === "signin"
-            ? <>New to Obsidian? <button onClick={() => switchTo("signup")} className="font-medium text-primary underline max-md:inline-flex max-md:min-h-11 max-md:min-w-11 max-md:items-center max-md:justify-center">Create an account</button>.</>
-            : <>Already have an account? <button onClick={() => switchTo("signin")} className="font-medium text-primary underline max-md:inline-flex max-md:min-h-11 max-md:min-w-11 max-md:items-center max-md:justify-center">Sign in</button>.</>}
+            ? <>New to Obsidian? <button onClick={() => switchTo("signup")} className="font-medium text-primary underline max-lg:inline-flex max-lg:min-h-11 max-lg:min-w-11 max-lg:items-center max-lg:justify-center">Create an account</button>.</>
+            : <>Already have an account? <button onClick={() => switchTo("signin")} className="font-medium text-primary underline max-lg:inline-flex max-lg:min-h-11 max-lg:min-w-11 max-lg:items-center max-lg:justify-center">Sign in</button>.</>}
         </p>
       </div>
       </FadeIn>

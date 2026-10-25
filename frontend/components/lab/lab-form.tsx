@@ -56,7 +56,7 @@ export function LabForm({ trick, sentence, busy, onTrick, onSentence, onBuild }:
           <div className="flex flex-wrap items-baseline justify-between gap-2">
             <label htmlFor="lab-sentence" className="section-title">2 · Type the sentence to hide</label>
             <button type="button" onClick={() => onSentence(EXAMPLE)} disabled={busy}
-              className="text-[13px] font-medium text-primary underline-offset-2 hover:underline max-md:min-h-11">
+              className="text-[13px] font-medium text-primary underline-offset-2 hover:underline max-lg:min-h-11">
               Use an example
             </button>
           </div>

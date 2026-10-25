@@ -40,7 +40,7 @@ export function ThemeToggle() {
       onClick={flip}
       aria-label={dark ? "Switch to light mode" : "Switch to dark mode"}
       title={dark ? "Switch to light mode" : "Switch to dark mode"}
-      className="lift group grid h-11 w-11 shrink-0 place-items-center rounded-full border bg-card/70 text-foreground hover:border-primary/40 md:h-9 md:w-9"
+      className="lift group grid h-11 w-11 shrink-0 place-items-center rounded-full border bg-card/70 text-foreground hover:border-primary/40 lg:h-9 lg:w-9"
     >
       {/* The icon turns a little on hover */}
       {dark

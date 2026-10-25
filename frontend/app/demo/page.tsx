@@ -88,11 +88,11 @@ export default function DemoPage() {
             <h2 className="section-title">The resumes</h2>
             <div className="flex gap-2">
               <button onClick={loadDemoFiles}
-                className="lift rounded-full border-2 border-primary/50 px-3.5 py-1.5 text-[13px] font-semibold text-primary hover:bg-primary/5 max-md:min-h-11">
+                className="lift rounded-full border-2 border-primary/50 px-3.5 py-1.5 text-[13px] font-semibold text-primary hover:bg-primary/5 max-lg:min-h-11">
                 Use the 3 demo resumes
               </button>
               <button onClick={() => input.current?.click()} disabled={files.length >= 3}
-                className="lift flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-40 max-md:min-h-11">
+                className="lift flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] hover:border-primary/40 disabled:cursor-not-allowed disabled:opacity-40 max-lg:min-h-11">
                 <Upload className="h-4 w-4" /> Add my own
               </button>
               <input ref={input} type="file" multiple accept=".pdf,.html,.htm,.eml,application/pdf,text/html,message/rfc822" className="hidden"
@@ -110,7 +110,7 @@ export default function DemoPage() {
                       <FileBadge type={file.name.split(".").pop() ?? "pdf"} />
                       <span className="flex-1 truncate font-mono text-[13px]">{file.name}</span>
                       <button onClick={() => { setFiles(files.filter((_, j) => j !== i)); setSides({ original: EMPTY, obsidian: EMPTY }); }}
-                        className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground max-md:h-11 max-md:w-11" aria-label={`Remove ${file.name}`}>
+                        className="grid h-9 w-9 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground max-lg:h-11 max-lg:w-11" aria-label={`Remove ${file.name}`}>
                         <X className="h-4 w-4" />
                       </button>
                     </>

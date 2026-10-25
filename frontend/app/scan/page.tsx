@@ -187,7 +187,7 @@ function ScanScreen() {
               less memory than Google Drive or WhatsApp.
             </span>
           )}
-          <button onClick={() => setPhoneNote(null)} className="ml-auto text-[12px] text-muted-foreground underline max-md:min-h-11 max-md:min-w-11">OK</button>
+          <button onClick={() => setPhoneNote(null)} className="ml-auto text-[12px] text-muted-foreground underline max-lg:min-h-11 max-lg:min-w-11">OK</button>
         </div>
       )}
       {notice && (
@@ -212,7 +212,7 @@ function ScanScreen() {
       )}
 
       {/* 3 columns on wide screens; on medium screens the right column moves underneath */}
-      <div className="grid gap-6 lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[290px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)_340px]">
         {/* Left column */}
         <div className="space-y-6">
           <VerdictCard result={result} scanning={scanning} />

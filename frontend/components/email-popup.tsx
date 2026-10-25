@@ -26,7 +26,7 @@ export function EmailPopup({ problem, onClose, onUseSuggestion, onKeepTyped }: P
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
 
-  const button = "lift w-full rounded-xl px-4 py-3 max-md:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em]";
+  const button = "lift w-full rounded-xl px-4 py-3 max-lg:min-h-11 font-display text-[15px] font-semibold uppercase tracking-[0.14em]";
 
   return (
     // A blurred, darker background; the pop-up zooms in softly

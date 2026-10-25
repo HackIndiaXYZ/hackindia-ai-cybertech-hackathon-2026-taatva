@@ -64,7 +64,7 @@ export function FindingsList({ shown, harmless, selected, onSelect }: Props) {
       {harmless.length > 0 && (
         <div className="mt-4">
           <button onClick={() => setShowHarmless(!showHarmless)}
-            className="group inline-flex items-center gap-1.5 text-[12px] font-medium text-primary hover:underline max-md:min-h-11 max-md:text-[14px]"
+            className="group inline-flex items-center gap-1.5 text-[12px] font-medium text-primary hover:underline max-lg:min-h-11 max-md:text-[14px]"
             aria-expanded={showHarmless}>
             <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-base", showHarmless && "rotate-180")} aria-hidden />
             {showHarmless ? "Hide" : "Show"} {harmless.length} harmless item{harmless.length === 1 ? "" : "s"}

@@ -49,6 +49,7 @@ Console errors / warnings: none. Sideways scrolling: none.
 | 7. Results: gauge draws in, score counts up (ends on 25 / 44 / 100 exactly), badge springs in, findings stagger | ✅ | ✅ | ✅ | ✅ | none |
 | 8. X-Ray Reveal (switch glows, one beam pass, boxes draw in; off/on + Space key still work) | ✅ | ✅ | ✅ | ✅ | none |
 | 9. Sign-in, History, Demo, Lab, pop-up, Refresh bar (style only) | ✅ | ✅ | ✅ | ✅ | none |
+| 10. Responsive: 7 pages x 8 widths (320-1920), no sideways scroll, 44 px taps below 1024, boxes on the page | ✅ | ✅ | ✅ | ✅ | none |
 
 ## AFTER PROOF
 

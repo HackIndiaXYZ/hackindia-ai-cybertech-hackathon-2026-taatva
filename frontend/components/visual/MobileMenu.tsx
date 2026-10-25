@@ -23,11 +23,12 @@ export function MobileMenu({ tabs, path, email, onSignOut, waiting, status }: {
   return (
     <Sheet>
       <SheetTrigger
-        className="lift relative flex min-h-11 items-center gap-2 rounded-full border bg-card px-3 text-[13px] font-medium text-foreground hover:border-primary/40 md:hidden"
+        className="lift relative flex min-h-11 min-w-11 items-center justify-center gap-2 whitespace-nowrap rounded-full border bg-card px-3 text-[13px] font-medium text-foreground [overflow-wrap:normal] hover:border-primary/40 md:hidden"
         aria-label={waiting ? `Open menu (${waiting} waiting)` : "Open menu"}
       >
         <Menu className="h-4 w-4" />
-        Menu
+        {/* Very small phones: icon only (the button still says "Open menu" to screen readers) */}
+        <span className="max-[359px]:hidden">Menu</span>
         {/* The History badge stays visible on phones: only Quarantine files still waiting */}
         {!!waiting && (
           <span className="flex h-5 items-center gap-1 whitespace-nowrap rounded-full bg-quarantine px-1.5 text-[11px] font-semibold text-white dark:text-neutral-950">
