@@ -24,9 +24,14 @@ from pipeline.hidden_parts import plain_letters
 #   specific phrases, so short words don't match by accident inside other words.
 S = r"\W*"  # "any gap between words": spaces, dots, dashes, or nothing
 PHRASES = [
+    # 25 Oct 2026 (team test of Prompt Guard): also "overlook", and screening words like
+    # "rubric", "criteria", "job requirements", "missing qualifications". A verb such as
+    # ignore/disregard/overlook must come first, so "Designed a scoring rubric" stays harmless.
     ("ignore the rules",
-     rf"(ignore|disregard|forget|skip|bypass|override){S}((all|any|the|your|other|previous|prior|above|earlier|preceding|existing|of|those|these|usual|normal|standard){S}){{0,3}}"
-     rf"(instructions?|rules?|prompts?|directions?|guidelines?|commands?|context|constraints?|guardrails?|checks?|reviews?|approvals?|verification)", 1.0, True),
+     rf"(ignore|disregard|forget|skip|bypass|override|overlook){S}((all|any|the|your|other|previous|prior|above|earlier|preceding|existing|of|those|these|usual|normal|standard"
+     rf"|job|hiring|screening|scoring|evaluation|grading|missing|stated|listed){S}){{0,3}}"
+     rf"(instructions?|rules?|prompts?|directions?|guidelines?|commands?|context|constraints?|guardrails?|checks?|reviews?|approvals?|verification"
+     rf"|rubrics?|criteria|criterion|requirements?|qualifications?|polic(y|ies))", 1.0, True),
     ("rank this candidate first",
      rf"(rank|rate|score){S}(this|the){S}(candidate|applicant|resume|cv|profile|person){S}(first|highest|top|number{S}one)", 0.9, True),
     ("put me first",
@@ -89,6 +94,31 @@ PHRASES = [
      r"(इस|इसी)\s*(उम्मीदवार|आवेदक|सप्लायर|विक्रेता)[^।.]{0,25}(चुनें|चुनो|सिफारिश|पहले|सर्वश्रेष्ठ)", 0.6, False),
     ("best candidate claim",
      rf"\b(this|the){S}candidate{S}(is|must{S}be){S}(the{S})?(best|perfect|ideal|top|most{S}qualified)\b", 0.6, False),
+    # ---- Added 25 Oct 2026 after a team test: reworded orders that Prompt Guard also missed ----
+    # Each one talks to the reader ("your top recommendation") or tells it to rate/treat
+    # "this resume / candidate", so normal resume lines stay harmless (see the tests).
+    ("must be your top choice",
+     # (not "is to be your first choice": "My goal is to be your first choice" is a normal sentence)
+     rf"\b(must|needs{S}to){S}be{S}your{S}(top|first|number{S}one|best|only|preferred){S}"
+     rf"(recommendation|choice|pick|candidate|hire|match|option|selection)\b", 0.8, False),
+    ("this candidate is your top choice",
+     rf"\b(this|the){S}(candidate|applicant|person|application|resume|cv|profile){S}(is|should{S}be|must{S}be|will{S}be){S}your{S}"
+     rf"(top|first|number{S}one|best|only|preferred|strongest){S}(recommendation|choice|pick|candidate|hire|match|option|selection)\b", 0.7, False),
+    ("treat this resume as the best",
+     rf"\b(consider|treat|regard|count|view){S}(this|the){S}(candidate|applicant|person|application|resume|cv|profile|submission){S}(as{S})?(the{S})?"
+     rf"(best|top|strongest|ideal|perfect|most{S}qualified|exceptional|outstanding)\b", 0.7, False),
+    ("rate this candidate as exceptional",
+     rf"\b(rate|score|grade|mark|evaluate|assess|rank|judge){S}(this|the){S}(candidate|applicant|person|application|resume|cv|profile|submission){S}as{S}(an?{S})?"
+     rf"(exceptional|excellent|outstanding|perfect|the{S}best|top|highly{S}qualified|ideal|strong{S}(match|fit|hire))\b", 0.7, False),
+    ("give this resume the top rating",
+     rf"\b(give|assign|award){S}(this|the){S}(candidate|applicant|resume|cv|profile|application|submission){S}(the|a){S}"
+     rf"(highest|maximum|max|top|best|perfect|full){S}(possible{S})?(score|rating|marks?|grade|ranking)\b", 0.8, False),
+    ("output a perfect score",
+     rf"\b(output|return|print|respond{S}with|reply{S}with|answer{S}with){S}(a{S})?(score|rating|grade)?{S}(of{S})?"
+     rf"(10{S}/{S}10|100{S}/{S}100|100{S}%|10{S}out{S}of{S}10|ten{S}out{S}of{S}ten)", 0.8, False),
+    ("override mode",
+     r"\b(system|admin|administrator|developer|security|safety)\s*override\s*(:|\b(mode|enabled|activated|engaged|active|on)\b)"
+     rf"|\b(evaluation|screening){S}bypass\b", 0.8, False),
 ]
 COMPILED = [(name, re.compile(pattern, re.IGNORECASE), weight, squeeze)
             for name, pattern, weight, squeeze in PHRASES]
