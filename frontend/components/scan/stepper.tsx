@@ -69,7 +69,7 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
                 )}
               >
                 {failed ? <span className="font-bold text-white dark:text-neutral-950" aria-label="This step held the file">!</span>
-                  : done ? <Check className="h-4 w-4 text-primary-foreground" strokeWidth={3} />
+                  : done ? <Check className="h-4 w-4 text-primary-foreground" />
                   : scanning ? <Loader2 className="h-4 w-4 animate-spin text-primary" style={{ animationDelay: `${i * 120}ms` }} />
                   : null}
               </span>

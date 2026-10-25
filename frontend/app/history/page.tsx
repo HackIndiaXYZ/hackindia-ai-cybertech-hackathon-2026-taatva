@@ -152,7 +152,7 @@ function HistoryScreen() {
               {/* The white pill slides to the chosen filter */}
               {filter === f && (
                 <motion.span layoutId="history-filter" aria-hidden="true" className="absolute inset-0 rounded-full bg-card shadow-e1"
-                  transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                  transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }} />
               )}
               <span className={cn("relative h-1.5 w-1.5 rounded-full", f === "all" ? "bg-muted-foreground" : VERDICT_STYLE[f].solid)} />
               <span className="relative">{f}</span>
@@ -298,11 +298,11 @@ function DecisionCell({ row, onDecide }: { row: ScanResult; onDecide: (id: strin
       <div className="flex flex-wrap gap-2 whitespace-nowrap [overflow-wrap:normal]">
         <button disabled={busy} onClick={() => act("approved")}
           className="lift flex items-center gap-1.5 rounded-full bg-pass px-4 py-2 max-lg:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-white shadow-[0_6px_18px_-6px_hsl(var(--pass)/0.6)] dark:text-neutral-950 disabled:cursor-wait disabled:opacity-50">
-          <Check className="h-4 w-4" strokeWidth={3} />Approve
+          <Check className="h-4 w-4" />Approve
         </button>
         <button disabled={busy} onClick={() => act("rejected")}
           className="lift flex items-center gap-1.5 rounded-full border-2 border-quarantine/40 bg-card px-4 py-2 max-lg:min-h-11 font-display text-[14px] font-semibold uppercase tracking-[0.14em] text-quarantine hover:border-quarantine/70 hover:bg-quarantine/5 disabled:cursor-wait disabled:opacity-50">
-          <X className="h-4 w-4" strokeWidth={3} />Reject
+          <X className="h-4 w-4" />Reject
         </button>
       </div>
     );

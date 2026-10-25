@@ -30,7 +30,7 @@
     --border: 37 14% 77%;           /* hairlines: #D0C9BD */
     --input: 37 12% 62%;
     --ring: 214 12% 12%;            /* focus outline = graphite */
-    --radius: 0.875rem;
+    --radius: 0px;                  /* SHARP: every corner is square */
 
     /* The "beam" accent (background, glows, the X-Ray sweep): graphite ink.
        Never a verdict colour. */
@@ -114,9 +114,23 @@
   box-shadow: 0 0 0 1px currentColor inset, 0 0 18px -4px currentColor;
 }
 
-/* Dark mode cards: a faint light-box sheen along the top edge */
-.dark .panel {
-  background-image: linear-gradient(180deg, hsl(var(--beam) / 0.035), transparent 30%);
+/* Every card gets 4 sharp corner brackets, like the frame of a scanner.
+   (Drawn as background lines, so they never move or cover anything.) */
+.panel {
+  --bracket: hsl(var(--foreground) / 0.45);
+  background-image:
+    linear-gradient(var(--bracket), var(--bracket)), linear-gradient(var(--bracket), var(--bracket)),
+    linear-gradient(var(--bracket), var(--bracket)), linear-gradient(var(--bracket), var(--bracket)),
+    linear-gradient(var(--bracket), var(--bracket)), linear-gradient(var(--bracket), var(--bracket)),
+    linear-gradient(var(--bracket), var(--bracket)), linear-gradient(var(--bracket), var(--bracket));
+  background-repeat: no-repeat;
+  background-size: 12px 1px, 1px 12px, 12px 1px, 1px 12px, 12px 1px, 1px 12px, 12px 1px, 1px 12px;
+  background-position: top left, top left, top right, top right, bottom left, bottom left, bottom right, bottom right;
+}
+
+/* One sharp, even line weight for every icon (lucide-react) */
+svg.lucide {
+  stroke-width: 1.75;
 }
 
 @layer base {
@@ -146,23 +160,23 @@
 }
 
 @layer components {
-  /* A card on the light table, used everywhere */
+  /* A card: solid surface, square corners, thin hairline border */
   .panel {
-    @apply rounded-2xl border bg-card;
+    @apply rounded-none border bg-card;
     box-shadow: var(--shadow-1);
     transition: box-shadow var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out),
       transform var(--dur) var(--ease-out);
   }
-  /* Small steel capital-letter titles, like "VERDICT" and "FINDINGS",
-     with a little beam mark in front */
+  /* Small capital-letter titles, like "VERDICT" and "FINDINGS",
+     with a sharp square mark in front */
   .section-title {
     @apply inline-flex items-center gap-2 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-primary;
   }
   .section-title::before {
     content: "";
-    @apply inline-block h-3.5 w-1 rounded-full;
+    @apply inline-block h-2 w-2;
     background: hsl(var(--beam));
-    box-shadow: 0 0 8px hsl(var(--beam) / 0.6);
+    box-shadow: 0 0 8px hsl(var(--beam) / 0.45);
   }
   /* Small grey tags, like "page 1 · near the middle" */
   .tag {

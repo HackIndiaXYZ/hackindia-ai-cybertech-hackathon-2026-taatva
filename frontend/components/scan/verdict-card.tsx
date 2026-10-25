@@ -28,9 +28,9 @@ function Gauge({ score, color }: { score: number; color: string }) {
   const [tx, ty] = point(100, r);
   return (
     <svg viewBox="0 0 220 140" className="mx-auto w-full max-w-[260px]" aria-label={`Danger score ${score} out of 100`}>
-      <path d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${tx} ${ty}`} fill="none" stroke="hsl(var(--muted))" strokeWidth="16" strokeLinecap="round" />
+      <path d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${tx} ${ty}`} fill="none" stroke="hsl(var(--muted))" strokeWidth="16" strokeLinecap="butt" />
       {/* The coloured arc draws itself in, up to the real score */}
-      <DrawPath key={score} d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${ex} ${ey}`} fill="none" stroke={color} strokeWidth="16" strokeLinecap="round"
+      <DrawPath key={score} d={`M ${sx} ${sy} A ${r} ${r} 0 0 1 ${ex} ${ey}`} fill="none" stroke={color} strokeWidth="16" strokeLinecap="butt"
         style={{ filter: score > 0 ? `drop-shadow(0 0 6px ${color})` : undefined }} />
       <circle cx={ex} cy={ey} r="9" fill="hsl(var(--card))" stroke={color} strokeWidth="4" />
       {/* Where Flag (30) and Quarantine (70) start */}
@@ -94,7 +94,7 @@ export function VerdictCard({ result, scanning }: { result: ScanResult | null; s
         </div>
       </div>
       <div className="px-5 pb-5">
-        {/* The verdict badge springs in */}
+        {/* The verdict badge snaps in (fast, no bounce) */}
         <SpringIn replay={`${result.id}-${result.verdict}`} className="mx-auto -mt-1 w-fit">
           {/* On very small phones the word gets a little smaller, so "QUARANTINE" always fits */}
           <div className={cn("flex items-center gap-2 whitespace-nowrap rounded-full px-4 py-2.5 text-white sm:gap-2.5 sm:px-5 dark:text-neutral-950", style.solid, GLOW[result.verdict])}>

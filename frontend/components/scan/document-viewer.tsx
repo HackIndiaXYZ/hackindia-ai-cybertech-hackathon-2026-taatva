@@ -70,7 +70,7 @@ export function DocumentViewer({ result, shown, selected, onSelect, edgeMarkers 
                 {/* The white pill slides to the open tab */}
                 {tab === key && (
                   <motion.span layoutId="doc-tab" aria-hidden="true" className="absolute inset-0 rounded-full bg-card shadow-e1"
-                    transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }} />
                 )}
                 <span className="relative">{label}</span>
               </button>

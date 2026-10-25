@@ -125,7 +125,7 @@ export function Header() {
                   {active && (
                     <motion.span layoutId="nav-pill" aria-hidden="true"
                       className="absolute inset-0 rounded-full bg-primary shadow-glow"
-                      transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }} />
                   )}
                   {/* A thin beam underline slides in on hover */}
                   {!active && (

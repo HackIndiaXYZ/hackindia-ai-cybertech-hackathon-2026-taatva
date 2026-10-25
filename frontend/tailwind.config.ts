@@ -36,10 +36,20 @@ const config: Config = {
         display: ["var(--font-display)", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
+      // Design round 2: SHARP. Every corner size is 0 (no pills, no bubbly shapes).
+      // The class names stay the same, only their value changes, so nothing breaks.
+      // "hairline" = 2px, only where a hard corner would look broken.
       borderRadius: {
+        none: "0px",
+        sm: "var(--radius)",
+        DEFAULT: "var(--radius)",
+        md: "var(--radius)",
         lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        xl: "var(--radius)",
+        "2xl": "var(--radius)",
+        "3xl": "var(--radius)",
+        full: "var(--radius)",
+        hairline: "2px",
       },
       // ----- "Forensic Light Table" design tokens (the values live in globals.css) -----
       boxShadow: {

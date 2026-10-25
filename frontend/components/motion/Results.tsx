@@ -51,15 +51,16 @@ export function DrawPath(props: React.SVGProps<SVGPathElement> & { delay?: numbe
   );
 }
 
-// The verdict badge springs in (a little bounce), replayed when the verdict changes
+// The verdict badge snaps in (fast and precise, no bounce), replayed when the verdict changes.
+// (Name kept as SpringIn so nothing that uses it has to change.)
 export function SpringIn({ children, className, replay }: { children: React.ReactNode; className?: string; replay?: string }) {
   return (
     <motion.div
       key={replay}
       className={className}
-      initial={{ scale: 0.6, opacity: 0 }}
+      initial={{ scale: 0.92, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      transition={{ type: "spring", stiffness: 380, damping: 18, delay: 0.15 }}
+      transition={{ duration: 0.22, delay: 0.12, ease: EASE }}
     >
       {children}
     </motion.div>

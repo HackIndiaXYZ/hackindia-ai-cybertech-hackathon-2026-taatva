@@ -31,7 +31,7 @@ export function ScoreRing({ danger, size = 52 }: { danger: number; size?: number
       <circle cx="26" cy="26" r={radius} fill="hsl(var(--card))" stroke="hsl(var(--muted))" strokeWidth="5" />
       <circle
         cx="26" cy="26" r={radius} fill="none" stroke={VERDICT_STYLE[verdict].hex} strokeWidth="5"
-        strokeDasharray={`${(circle * Math.min(danger, 100)) / 100} ${circle}`} strokeLinecap="round"
+        strokeDasharray={`${(circle * Math.min(danger, 100)) / 100} ${circle}`} strokeLinecap="butt"
         transform="rotate(-90 26 26)"
       />
       <text x="26" y="27" textAnchor="middle" dominantBaseline="middle"
