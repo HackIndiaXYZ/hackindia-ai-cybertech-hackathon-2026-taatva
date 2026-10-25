@@ -1,5 +1,6 @@
 # TAATVA Obsidian - QA: how the website BEHAVES (not just how it looks).
-# Needs the special test build on port 3001 (see QA_REPORT.md, "How to run the QA tools").
+# Needs the website running on port 3000 (start.ps1, or: npm --prefix frontend run dev)
+# and the backend on port 8000. Test mode ("?qa=1") works there because it is developer mode.
 # Run from the Obsidian folder:  backend\.venv\Scripts\python.exe qa\behaviour.py
 
 import json
@@ -9,7 +10,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = "http://localhost:3001"
+BASE = "http://localhost:3000"  # the website (team rule: website 3000, backend 8000)
 PDF = (ROOT / "test_files" / "attacked_1_white_text.pdf").read_bytes()
 results = []
 

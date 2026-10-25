@@ -1,5 +1,5 @@
 # TAATVA Obsidian - QA: quick recheck of the narrowest phones, plus dark mode screenshots.
-# Needs the special test build on port 3001. Run: backend\.venv\Scripts\python.exe qa\recheck.py
+# Needs the website on port 3000 and the backend on 8000 (start.ps1). Run: backend\.venv\Scripts\python.exe qa\recheck.py
 import sys
 from pathlib import Path
 
@@ -7,7 +7,7 @@ from playwright.sync_api import sync_playwright
 
 sys.stdout.reconfigure(encoding="utf-8")
 OUT = Path(__file__).resolve().parents[1] / "qa-screenshots"
-BASE = "http://localhost:3001"
+BASE = "http://localhost:3000"  # the website (team rule: website 3000, backend 8000)
 PAGES = ["/scan?qa=1&id=xss", "/scan?qa=1&id=white", "/scan?qa=1&id=footer", "/history?qa=1", "/login"]
 problems = 0
 with sync_playwright() as p:

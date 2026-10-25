@@ -31,7 +31,7 @@ See [Follow-up fixes (24 Oct 2026)](#follow-up-fixes-24-oct-2026).
 | Only the quick tests | `.venv\Scripts\python.exe -m pytest -m "not slow"` |
 | The 4 proof numbers (20 files) | `backend\.venv\Scripts\python.exe test_files\run_tests.py --private` |
 | Example results for the website test mode | `backend\.venv\Scripts\python.exe qa\make_fixtures.py` |
-| Special website test build (port 3001) | `cd frontend`, then `set NEXT_DIST_DIR=.next-qa`, `set NEXT_PUBLIC_QA_MODE=1`, `npm run build`, `npx next start -p 3001` |
+| Start the app first (needed by the 2 checks below) | `.\start.ps1` → backend on **port 8000**, website on **port 3000** (the only ports the team uses; test mode `?qa=1` works there) |
 | Screenshots at every size, 3 browsers (11 pages, incl. sign-up) | `backend\.venv\Scripts\python.exe qa\screens.py` → pictures in `qa-screenshots\` |
 | Behaviour checks (tap upload, double-click, X-Ray, rotate, keyboard, offline, memory) | `backend\.venv\Scripts\python.exe qa\behaviour.py` |
 
