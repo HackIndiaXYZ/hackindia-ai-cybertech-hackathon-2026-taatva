@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="frontend/public/brand/obsidian-logo.svg" alt="Obsidian logo: the X-Ray Eye" width="140">
+</p>
+
 # Obsidian — by team TAATVA
 
 Hackathon team repository for TAATVA - [hackindia-team:hackindia-ai-cybertech-hackathon-2026:taatva]

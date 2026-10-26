@@ -13,6 +13,7 @@ import { useSettings } from "./settings";
 import { ThemeToggle } from "./theme";
 import { MobileMenu } from "./visual/MobileMenu";
 import { Tip } from "./ui/tooltip";
+import { ObsidianLockup } from "./ObsidianLockup";
 import { cn } from "@/lib/utils";
 
 // What the History badge counts, in full words (for the tooltip and screen readers)
@@ -22,36 +23,10 @@ function waitingText(count: number) {
     : `${count} Quarantine files are waiting for you to Approve or Reject them`;
 }
 
-// The Obsidian logo: a dark cut gemstone, with a steel scanner line across it
-export function Logo({ className }: { className?: string }) {
-  return (
-    <svg viewBox="0 0 40 40" className={cn("transition-transform duration-base ease-out-soft group-hover:scale-105 group-hover:brightness-125", className)} aria-hidden="true">
-      <polygon points="20,3 37,15 31,36 9,36 3,15" fill="#111821" className="stroke-transparent dark:stroke-slate-500" strokeWidth="1.2" />
-      <polygon points="20,3 26,17 20,36 14,17" fill="#2b3a4d" />
-      <polygon points="3,15 14,17 9,36" fill="#1d2836" />
-      <polygon points="37,15 26,17 31,36" fill="#0a1017" />
-      <polyline points="20,3 14,17 9,36" fill="none" stroke="#7d8fa5" strokeWidth="0.6" />
-      <polyline points="20,3 26,17 31,36" fill="none" stroke="#7d8fa5" strokeWidth="0.6" />
-      {/* The scanner beam crossing the stone */}
-      <polyline points="3,15 14,17 26,17 37,15" fill="none" stroke="hsl(var(--beam))" strokeWidth="1.3" />
-    </svg>
-  );
-}
-
-function Brand({ small = false }: { small?: boolean }) {
-  return (
-    <span className="group flex items-center gap-2.5 sm:gap-3">
-      <Logo className={small ? "h-8 w-8" : "h-8 w-8 sm:h-10 sm:w-10"} />
-      <span>
-        <span className="block whitespace-nowrap font-display text-[20px] font-bold leading-none tracking-[0.18em] text-foreground [overflow-wrap:normal] sm:text-[24px] sm:tracking-[0.2em]">
-          OBSIDIAN
-        </span>
-        <span className="mt-1 hidden font-mono text-[10px] tracking-[0.16em] text-muted-foreground sm:block">
-          BY TEAM TAATVA · HIDDEN-ORDER SCANNER
-        </span>
-      </span>
-    </span>
-  );
+// The logo with the name (the "X-Ray Eye" lockup). On phones the small line under
+// the name is hidden, so the top bar fits.
+function Brand() {
+  return <ObsidianLockup size={36} taglineClassName="max-sm:hidden" />;
 }
 
 // The glass bar at the top, with a thin beam line along its bottom edge

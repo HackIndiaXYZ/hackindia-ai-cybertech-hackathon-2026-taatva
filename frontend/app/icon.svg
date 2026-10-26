@@ -1,0 +1,22 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Obsidian logo">
+  <defs>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef0f3"/>
+      <stop offset="0.45" stop-color="#8a919b"/>
+      <stop offset="0.6" stop-color="#c9ced6"/>
+      <stop offset="1" stop-color="#4a5058"/>
+    </linearGradient>
+  </defs>
+  <!-- steel hexagon -->
+  <polygon points="100,14 174,57 174,143 100,186 26,143 26,57"
+    fill="#15171a" stroke="url(#steel)" stroke-width="8" stroke-linejoin="round"/>
+  <!-- the eye -->
+  <path d="M42,100 Q100,46 158,100 Q100,154 42,100 Z"
+    fill="#0a0b0c" stroke="#e6e9ee" stroke-width="4" stroke-linejoin="round"/>
+  <!-- the pupil -->
+  <circle cx="100" cy="100" r="21" fill="url(#steel)"/>
+  <circle cx="100" cy="100" r="8" fill="#0a0b0c"/>
+  <!-- red X-Ray Reveal corners -->
+  <path d="M66,80 V66 H80 M120,66 H134 V80 M134,120 V134 H120 M80,134 H66 V120"
+    fill="none" stroke="#FF3B3B" stroke-width="5" stroke-linecap="square"/>
+</svg>

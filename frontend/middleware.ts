@@ -39,6 +39,8 @@ export async function middleware(request: NextRequest) {
   // The landing page (home) is open to everyone, e.g. judges. It shows no data;
   // its buttons lead to pages that still ask for sign-in. (Team decision, 25 Oct 2026)
   if (request.nextUrl.pathname === "/") return response;
+  // The app manifest (name + logo icons) must load for everyone, signed in or not
+  if (request.nextUrl.pathname === "/manifest.webmanifest") return response;
 
   if (!user && !onLoginPage) {
     const url = request.nextUrl.clone();
@@ -57,5 +59,5 @@ export async function middleware(request: NextRequest) {
 
 // Check every page, but not pictures, fonts and other files
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
+  matcher: ["/((?!_next/static|_next/image|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)"],
 };

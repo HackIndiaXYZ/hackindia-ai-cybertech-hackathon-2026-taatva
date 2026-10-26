@@ -17,9 +17,30 @@ const sans = Inter({ subsets: ["latin"], weight: ["400", "500", "600"], variable
 // The technical font is only used for small tags: it may load a moment later (faster first view on phones)
 const mono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-mono", preload: false });
 
+// The "X-Ray Eye" logo everywhere outside the page itself:
+// - browser tab icon: app/icon.svg, Apple home-screen icon: app/apple-icon.png (Next.js adds both)
+// - app icons for phones: app/manifest.ts
+// - the picture shown when the link is shared (WhatsApp, LinkedIn, X...): public/brand/og-image.png
+const SHARE_IMAGE = { url: "/brand/og-image.png", width: 1200, height: 630, alt: "Obsidian by team TAATVA: the X-Ray Eye logo" };
+
 export const metadata: Metadata = {
+  // The live website address, so shared links can find the picture
+  metadataBase: new URL("https://obsidian-taatva.vercel.app"),
   title: "Obsidian by TAATVA",
   description: "Find, show and remove hidden instructions before an AI agent reads a file.",
+  openGraph: {
+    title: "Obsidian by TAATVA",
+    description: "Find, show and remove hidden instructions before an AI agent reads a file.",
+    siteName: "Obsidian",
+    images: [SHARE_IMAGE],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Obsidian by TAATVA",
+    description: "Find, show and remove hidden instructions before an AI agent reads a file.",
+    images: [SHARE_IMAGE.url],
+  },
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
