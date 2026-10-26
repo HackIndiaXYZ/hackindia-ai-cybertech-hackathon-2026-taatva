@@ -81,6 +81,7 @@ scoreboard use Supabase online. If there is no internet at all, use the
 | **"We could not check your sign-in"** or the page will not load | Check the Wi-Fi. If the internet is gone, use the backup below. |
 | You closed one of the two windows by mistake | Close the other one too, then do Part 1, step 4 again. |
 | `http://localhost:3000` does not open | Wait one more minute (the website window must say `Ready`), then press Refresh. |
+| A window says **"address already in use"** or **"Port 3000 is in use"** | An old Obsidian copy is still running. Close both windows and run `start.ps1` again: it now closes any old copy on ports 8000 and 3000 by itself (yellow line "Closing an old copy on port …") before it starts. |
 
 **To stop at the end:** close the two windows (backend and website).
 
