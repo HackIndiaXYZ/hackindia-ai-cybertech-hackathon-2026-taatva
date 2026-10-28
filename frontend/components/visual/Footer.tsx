@@ -9,7 +9,7 @@ const MEMBERS = [
   { name: "Chaarvi Saxena", role: "Team Lead & AI Architect" },
   { name: "Yashi Savita", role: "Lead UI/UX Designer" },
   { name: "Divyanshu Tripathi", role: "Frontend & API Integration" },
-  { name: "Ishan Singh Bhadoria", role: "Engine, Backend, & Database" },
+  { name: "Ishan Singh Bhadoria", role: "Engine, Backend & Database" },
 ];
 
 const PAGES = [
