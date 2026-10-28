@@ -107,10 +107,14 @@ def box_errors(found, size, wanted):
     problems = []
     if len(found["boxes"]) != len(wanted):
         problems.append(f"{len(found['boxes'])} boxes drawn, {len(wanted)} expected")
+    # The red box is drawn on purpose 3px OUTSIDE the hidden text on every side
+    # (so even 2pt text gets a clear box), same as in behaviour.py.
+    margin = 3
     for drawn, box in zip(sorted(found["boxes"], key=lambda b: (b["y"], b["x"])),
                           sorted(wanted, key=lambda b: (b[1], b[0]))):
         sx, sy = img["w"] / size["width"], img["h"] / size["height"]
-        want = (img["x"] + box[0] * sx, img["y"] + box[1] * sy, (box[2] - box[0]) * sx, max((box[3] - box[1]) * sy, 4))
+        want = (img["x"] + box[0] * sx - margin, img["y"] + box[1] * sy - margin,
+                (box[2] - box[0]) * sx + 2 * margin, max((box[3] - box[1]) * sy, 4) + 2 * margin)
         got = (drawn["x"], drawn["y"], drawn["w"], drawn["h"])
         if max(abs(a - b) for a, b in zip(want, got)) > 1.5:
             problems.append(f"box off by {max(abs(a - b) for a, b in zip(want, got)):.1f}px")
@@ -147,6 +151,18 @@ def run():
                     page.on("dialog", lambda d: (alerts.append(d.message), d.dismiss()))
                     page.goto(BASE + path, wait_until="networkidle", timeout=60_000)
                     page.wait_for_timeout(700)
+                    # Pages with a result: wait for its page picture (WebKit in developer
+                    # mode can take a few seconds). If it never comes, the check reports it.
+                    if "id=" in path:
+                        try:
+                            page.wait_for_selector('img[alt^="Page"]', timeout=20_000)
+                        except Exception:
+                            pass
+                    # Measure only after the page picture has loaded and the X-Ray boxes
+                    # have finished their quick "draw in" animation (it zooms from 125%)
+                    page.wait_for_function("() => [...document.images].every(i => i.complete)"
+                                           " && document.getAnimations().every(a => a.playState !== 'running'"
+                                           " || a.effect?.getTiming().iterations === Infinity)", timeout=15_000)
                     found = page.evaluate(CHECKS)
                     size, wanted = expected_boxes(page_key)
                     problems = box_errors(found, size, wanted) if size else []
