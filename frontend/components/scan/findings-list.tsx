@@ -9,6 +9,7 @@ import { ArrowRight, Check, ChevronDown, Copy, Lock, Send } from "lucide-react";
 import type { Finding, ScanResult } from "@/lib/api";
 import { DANGER_TIP, QUARANTINE_FROM, VERDICT_STYLE, verdictFor } from "@/lib/verdict";
 import { ScoreRing, VerdictPill } from "@/components/shared";
+import { DownloadReportButton } from "@/components/download-report";
 import { Appear, Collapse } from "@/components/motion/Results";
 import { cn } from "@/lib/utils";
 
@@ -150,6 +151,8 @@ export function AgentCard({ result }: { result: ScanResult }) {
           {copied ? "Copied" : "Copy clean text"}
         </button>
       )}
+
+      <DownloadReportButton result={result} className="mt-3" />
 
       <Link href={result.id ? `/history?open=${result.id}` : "/history"}
         className="lift group mt-3 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-primary/60 px-4 py-3 font-display text-[16px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5">

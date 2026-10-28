@@ -15,6 +15,7 @@ import { decideScan, getHistory, type ScanResult, type Verdict } from "@/lib/api
 import { DANGER_TIP, VERDICT_STYLE } from "@/lib/verdict";
 import { useSettings } from "@/components/settings";
 import { Input } from "@/components/ui/input";
+import { DownloadReportButton } from "@/components/download-report";
 import { DangerBar, FILE_KIND, FileBadge, PageSchematic, VerdictPill, friendlyTime } from "@/components/shared";
 import { cn } from "@/lib/utils";
 
@@ -395,10 +396,13 @@ function RowDetails({ row }: { row: ScanResult }) {
               </p>
             )}
           </div>
-          <Link href={`/scan?id=${row.id}`}
-            className="lift group flex w-full items-center justify-center gap-2 self-center rounded-full border-2 border-primary/60 bg-card px-5 py-3 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5 sm:w-auto">
-            Open full report <ArrowRight className="h-4 w-4 transition-transform duration-base group-hover:translate-x-1" />
-          </Link>
+          <div className="flex w-full flex-col gap-2 self-center sm:w-auto">
+            <Link href={`/scan?id=${row.id}`}
+              className="lift group flex w-full items-center justify-center gap-2 rounded-full border-2 border-primary/60 bg-card px-5 py-3 font-display text-[15px] font-semibold uppercase tracking-[0.14em] text-primary hover:bg-primary/5">
+              Open full report <ArrowRight className="h-4 w-4 transition-transform duration-base group-hover:translate-x-1" />
+            </Link>
+            <DownloadReportButton result={row} />
+          </div>
         </div>
   );
 }
