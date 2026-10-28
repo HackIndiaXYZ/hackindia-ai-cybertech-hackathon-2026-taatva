@@ -35,7 +35,7 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
     ? (timed.length <= 1 ? 0 : STEPS.findIndex((s) => result.timings[s.key] === undefined)) : -1;
 
   return (
-    <section className={cn("panel relative flex flex-col gap-5 overflow-hidden p-5 lg:flex-row lg:items-center", scanning && "border-beam/40 shadow-glow")}>
+    <section className={cn("panel relative flex flex-col gap-5 overflow-hidden p-5 xl:flex-row xl:items-center", scanning && "border-beam/40 shadow-glow")}>
       {/* While checking: a scanner beam slides over the strip (pictures only) */}
       {scanning && <ScanBeam />}
       {/* The file */}
@@ -52,7 +52,7 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
         </div>
       </div>
 
-      {/* The 6 steps */}
+      {/* The 6 steps (one row with the file only on screens 1280px+, so words never break) */}
       <ol className="relative grid flex-1 grid-cols-3 gap-y-4 md:grid-cols-6">
         {STEPS.map((step, i) => {
           const time = result?.timings[step.key];
@@ -97,7 +97,7 @@ export function Stepper({ result, scanning, fileName, fileSize }: Props) {
 
 function Metric({ value, unit, label, alert }: { value: React.ReactNode; unit?: string; label: string; alert?: boolean }) {
   return (
-    <div className={cn("min-w-[86px] flex-1 rounded-xl border p-2.5 lg:flex-none", alert ? "border-quarantine/30 bg-quarantine/10" : "bg-muted/40")}>
+    <div className={cn("min-w-[86px] flex-1 rounded-xl border p-2.5 xl:flex-none", alert ? "border-quarantine/30 bg-quarantine/10" : "bg-muted/40")}>
       <div className={cn("whitespace-nowrap font-display text-[28px] font-bold leading-none tabular-nums", alert ? "text-quarantine" : "text-foreground")}>
         {value}
         <span className="ml-0.5 text-[14px] font-medium text-muted-foreground">{unit}</span>
