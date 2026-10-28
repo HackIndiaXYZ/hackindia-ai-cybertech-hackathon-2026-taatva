@@ -30,24 +30,24 @@ export function Footer() {
     <footer className="relative mt-8 border-t bg-card">
       {/* A thin line along the top edge with a soft deep glow */}
       <span aria-hidden="true" className="absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-foreground/50 to-transparent" />
-      <div className="mx-auto grid max-w-content gap-10 px-4 py-12 md:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)_auto] md:px-8">
+      <div className="mx-auto grid max-w-content gap-6 px-4 py-6 md:grid-cols-[minmax(0,1.1fr)_minmax(0,2fr)_auto] md:px-8">
         {/* Team TAATVA */}
         <div>
-          <p className="font-display text-[44px] font-bold uppercase leading-none tracking-[0.14em] text-foreground">TAATVA</p>
-          <p className="mt-3 max-w-[40ch] text-[14px] leading-relaxed text-muted-foreground">
+          <p className="font-display text-[32px] font-bold uppercase leading-none tracking-[0.14em] text-foreground">TAATVA</p>
+          <p className="mt-2 max-w-[52ch] text-[14px] leading-snug text-muted-foreground">
             The team behind Obsidian: a scanner that checks files before an AI agent reads them, and reveals what a person can&apos;t see.
           </p>
-          <p className="mt-4 font-display text-[13px] font-semibold uppercase tracking-[0.22em] text-foreground">Find. Show. Remove.</p>
+          <p className="mt-2 font-display text-[13px] font-semibold uppercase tracking-[0.22em] text-foreground">Find. Show. Remove.</p>
         </div>
 
         {/* The members */}
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">The team</p>
-          <ul className="mt-4 grid gap-px border bg-border sm:grid-cols-2">
+          <ul className="mt-3 grid grid-cols-2 gap-px border bg-border xl:grid-cols-4">
             {MEMBERS.map((m) => (
-              <li key={m.name} className="group bg-card p-4 transition-colors duration-base hover:bg-accent/40">
-                <p className="text-[15px] font-semibold text-foreground">{m.name}</p>
-                <p className="mt-0.5 text-[13px] text-muted-foreground">{m.role}</p>
+              <li key={m.name} className="group bg-card px-3 py-2.5 transition-colors sm:px-4 duration-base hover:bg-accent/40">
+                <p className="text-[14px] font-semibold text-foreground sm:text-[15px]">{m.name}</p>
+                <p className="mt-0.5 text-[12px] text-muted-foreground sm:text-[13px]">{m.role}</p>
               </li>
             ))}
           </ul>
@@ -56,7 +56,7 @@ export function Footer() {
         {/* Quick links to the pages */}
         <nav aria-label="Footer">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">Pages</p>
-          <ul className="mt-4 grid grid-cols-2 gap-x-6 md:grid-cols-1 md:gap-y-2">
+          <ul className="mt-3 grid grid-cols-2 gap-x-4 min-[360px]:grid-cols-4 md:grid-cols-2 md:gap-x-6 lg:gap-y-1.5">
             {PAGES.map((p) => (
               <li key={p.href}>
                 <Link href={p.href} className={FOOT_LINK}>
@@ -72,7 +72,7 @@ export function Footer() {
 
       {/* Bottom line: project and year */}
       <div className="border-t">
-        <div className="mx-auto flex max-w-content flex-col gap-1 px-4 py-4 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:flex-row sm:justify-between md:px-8">
+        <div className="mx-auto flex max-w-content flex-col gap-1 px-4 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-muted-foreground sm:flex-row sm:justify-between md:px-8">
           <span>Obsidian — built by team <span className="text-foreground">TAATVA</span> · 2026</span>
           <span>Old tools ask: does this sound bad? Obsidian asks: could a human even see this?</span>
         </div>
